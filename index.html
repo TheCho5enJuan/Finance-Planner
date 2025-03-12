@@ -367,7 +367,7 @@
             return;
         }
 
-        let totalBalance = startingBalance;
+        let totalBalance = parseFloat(localStorage.getItem("startingBalance") || 0);
         let currentDate = new Date(today);
         while (currentDate <= targetDate) {
             totalBalance += calculateDailyNetAmount(currentDate);
@@ -408,7 +408,7 @@
         endDate.setHours(0,0,0,0);
 
         let currentDate = new Date(startDate);
-        let balance = startingBalance;
+        let balance = parseFloat(localStorage.getItem("startingBalance") || 0);
 
         while (currentDate <= endDate) {
             labels.push(currentDate.toISOString().split('T')[0]);
@@ -536,6 +536,8 @@
         darkIcon.classList.remove("fa-moon");
         darkIcon.classList.add("fa-sun");
     }
+    
+    document.getElementById("starting-balance").value = localStorage.getItem("startingBalance") || 0;
 
     const balanceForm = document.getElementById("balance-form");
     balanceForm.addEventListener("submit", function(e) {
