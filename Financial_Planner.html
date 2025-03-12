@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Financial Planner</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        body { padding: 20px; }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+        }
+        .hidden-section { display: none; }
+        .menu-toggle { position: absolute; top: 20px; right: 20px; }
+        .menu-dropdown { display: none; position: absolute; right: 20px; top: 60px; background: #fff; border: 1px solid #ccc; z-index: 1000; }
+        .menu-dropdown.show { display: block; }
+        .menu-dropdown a { display: block; padding: 10px 15px; text-decoration: none; color: #000; border-bottom: 1px solid #eee; }
+        .menu-dropdown a:hover { background: #f8f9fa; }
+        .dark-mode { background-color: #343a40; color: #f8f9fa; }
+        .dark-mode .card { background-color: #495057; border-color: #6c757d; }
+        .dark-mode .card-body { color: #f8f9fa; }
+        .dark-mode input,
+        .dark-mode select,
+        .dark-mode .form-control,
+        .dark-mode .form-control-file {
+            background-color: #495057;
+            color: #f8f9fa;
+            border-color: #6c757d;
+        }
+        .dark-mode .btn {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: #f8f9fa;
+        }
+        .dark-mode .btn-primary { background-color: #007bff; border-color: #007bff; }
+        .dark-mode .btn-secondary { background-color: #6c757d; border-color: #6c757d; }
+        .dark-mode .btn-info { background-color: #17a2b8; border-color: #17a2b8; }
+        .dark-mode .btn-light { background-color: #adb5bd; border-color: #adb5bd; color: #343a40; }
+        .dark-mode .menu-dropdown { background: #495057; border-color: #6c757d; }
+        .dark-mode .menu-dropdown a { color: #f8f9fa; border-bottom: 1px solid #6c757d; }
+        .dark-mode .menu-dropdown a:hover { background-color: #6c757d; }
+        .toast.slide-down {
+            animation: slideDownFade 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+        }
+        @keyframes slideDownFade {
+            0% { opacity: 0; transform: translateY(-20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Financial Planner</h1>
+    <div class="menu-toggle">
+        <button id="menuButton" class="btn btn-light"><i class="fas fa-bars"></i></button>
+        <div class="menu-dropdown" id="menuDropdown">
+            <a href="#" data-section="overview-section">Financial Overview</a>
+            <a href="#" data-section="expenses-section">Expenses</a>
+            <a href="#" data-section="income-section">Income</a>
+            <a href="#" data-section="settings-section">Settings</a>
+        </div>
+    </div>
+</div>
+<div class="toast-container">
+    <div id="toastMessage" class="toast bg-info text-white" style="display:none;" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-body">Balance updated successfully!</div>
+    </div>
+</div>
+<div id="settings-section" class="main-section hidden-section">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2>Account Settings</h2>
+            <form id="balance-form">
+                <div class="form-group">
+                    <label for="starting-balance">Starting Balance:</label>
+                    <input type="number" id="starting-balance" class="form-control" placeholder="0.00" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Set Balance</button>
+            </form>
+        </div>
+    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4>Data Management</h4>
+            <button id="export-data" class="btn btn-info mb-2">Export Data</button>
+            <input type="file" id="import-file" class="form-control-file mb-2">
+            <button id="import-data" class="btn btn-secondary mb-2">Import Data</button>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h4>Appearance</h4>
+            <button id="darkModeToggle" class="btn btn-light">
+                <span id="darkModeIcon" class="fas fa-moon"></span> Toggle Dark Mode
+            </button>
+        </div>
+    </div>
+</div>
+<div id="expenses-section" class="main-section hidden-section">
+    <div class="card">
+        <div class="card-body">
+            <h2>Expenses</h2>
+            <form id="expense-form">
+                <div class="form-row align-items-end">
+                    <div class="form-group col-md-3">
+                        <label for="expense-description">Description</label>
+                        <input type="text" id="expense-description" class="form-control" placeholder="Description" required>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="expense-amount">Amount</label>
+                        <input type="number" id="expense-amount" class="form-control" placeholder="Amount" required>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="expense-date">Start Date</label>
+                        <input type="date" id="expense-date" class="form-control" required>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="expense-end-date">End Date (opt)</label>
+                        <input type="date" id="expense-end-date" class="form-control">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="expense-frequency">Frequency</label>
+                        <select id="expense-frequency" class="form-control">
+                            <option value="once">Once</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-1">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </div>
+            </form>
+            <table class="table table-striped mt-4" id="expenses-table">
+                <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Frequency</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="income-section" class="main-section hidden-section">
+    <div class="card">
+        <div class="card-body">
+            <h2>Income</h2>
+            <form id="income-form">
+                <div class="form-row align-items-end">
+                    <div class="form-group col-md-3">
+                        <label for="income-description">Description</label>
+                        <input type="text" id="income-description" class="form-control" placeholder="Description" required>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="income-amount">Amount</label>
+                        <input type="number" id="income-amount" class="form-control" placeholder="Amount" required>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="income-date">Start Date</label>
+                        <input type="date" id="income-date" class="form-control" required>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="income-end-date">End Date (opt)</label>
+                        <input type="date" id="income-end-date" class="form-control">
+                    </div>
+                    <div class="form-group col-md-2">
+                        <label for="income-frequency">Frequency</label>
+                        <select id="income-frequency" class="form-control">
+                            <option value="once">Once</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-md-1">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                    </div>
+                </div>
+            </form>
+            <table class="table table-striped mt-4" id="income-table">
+                <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Frequency</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="overview-section" class="main-section">
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2>Calculate Future Balance</h2>
+            <form id="calculate-form" class="form-inline">
+                <label for="target-date" class="mr-sm-2">Target Date:</label>
+                <input type="date" id="target-date" class="form-control mb-2 mr-sm-2" required>
+                <button type="submit" class="btn btn-success mb-2">Calculate</button>
+            </form>
+            <div id="calculation-result" class="mt-3"></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <h2>Financial Overview</h2>
+            <form id="chart-range-form" class="form-inline">
+                <label for="chart-start-date" class="mr-sm-2">Start Date:</label>
+                <input type="date" id="chart-start-date" class="form-control mb-2 mr-sm-2">
+                <label for="chart-end-date" class="mr-sm-2">End Date:</label>
+                <input type="date" id="chart-end-date" class="form-control mb-2 mr-sm-2">
+                <button type="submit" class="btn btn-primary mb-2">Update Chart</button>
+            </form>
+            <div id="chart-container" style="height: 70vh;">
+                <canvas id="financial-chart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script>
+    const incomes = JSON.parse(localStorage.getItem('incomes') || '[]');
+
+    const incomeForm = document.getElementById("income-form");
+    const incomeTableBody = document.querySelector("#income-table tbody");
+
+    incomeForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        const description = document.getElementById("income-description").value;
+        const amount = parseFloat(document.getElementById("income-amount").value);
+        const date = document.getElementById("income-date").value;
+        const endDate = document.getElementById("income-end-date").value;
+        const frequency = document.getElementById("income-frequency").value;
+
+        if (description && !isNaN(amount) && date) {
+            incomes.push({ description, amount, date, endDate, frequency });
+            localStorage.setItem("incomes", JSON.stringify(incomes));
+            renderIncomes();
+            incomeForm.reset();
+        }
+    });
+
+    function renderIncomes() {
+        incomeTableBody.innerHTML = "";
+        incomes.forEach((item, index) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+        <td>${item.description}</td>
+        <td>${item.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
+        <td>${item.date}</td>
+        <td>${item.endDate || ''}</td>
+        <td>${item.frequency}</td>
+        <td>
+          <button class="btn btn-sm btn-warning" onclick="editIncome(${index})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteIncome(${index})">Delete</button>
+        </td>
+      `;
+            incomeTableBody.appendChild(tr);
+        });
+    }
+
+    function deleteIncome(index) {
+        incomes.splice(index, 1);
+        localStorage.setItem("incomes", JSON.stringify(incomes));
+        renderIncomes();
+    }
+
+    function editIncome(index) {
+        const item = incomes[index];
+        document.getElementById("income-description").value = item.description;
+        document.getElementById("income-amount").value = item.amount;
+        document.getElementById("income-date").value = item.date;
+        document.getElementById("income-end-date").value = item.endDate;
+        document.getElementById("income-frequency").value = item.frequency;
+        deleteIncome(index);
+    }
+
+    renderIncomes();
+    const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+
+    const expenseForm = document.getElementById("expense-form");
+    const expenseTableBody = document.querySelector("#expenses-table tbody");
+
+    expenseForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        const description = document.getElementById("expense-description").value;
+        const amount = parseFloat(document.getElementById("expense-amount").value);
+        const date = document.getElementById("expense-date").value;
+        const endDate = document.getElementById("expense-end-date").value;
+        const frequency = document.getElementById("expense-frequency").value;
+
+        if (description && !isNaN(amount) && date) {
+            expenses.push({ description, amount, date, endDate, frequency });
+            localStorage.setItem("expenses", JSON.stringify(expenses));
+            renderExpenses();
+            expenseForm.reset();
+        }
+    });
+
+    function renderExpenses() {
+        expenseTableBody.innerHTML = "";
+        expenses.forEach((item, index) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+        <td>${item.description}</td>
+        <td>${item.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
+        <td>${item.date}</td>
+        <td>${item.endDate || ''}</td>
+        <td>${item.frequency}</td>
+        <td>
+          <button class="btn btn-sm btn-warning" onclick="editExpense(${index})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteExpense(${index})">Delete</button>
+        </td>
+      `;
+            expenseTableBody.appendChild(tr);
+        });
+    }
+
+    function deleteExpense(index) {
+        expenses.splice(index, 1);
+        localStorage.setItem("expenses", JSON.stringify(expenses));
+        renderExpenses();
+    }
+
+    function editExpense(index) {
+        const item = expenses[index];
+        document.getElementById("expense-description").value = item.description;
+        document.getElementById("expense-amount").value = item.amount;
+        document.getElementById("expense-date").value = item.date;
+        document.getElementById("expense-end-date").value = item.endDate;
+        document.getElementById("expense-frequency").value = item.frequency;
+        deleteExpense(index);
+    }
+
+    renderExpenses();
+    const startingBalance = parseFloat(localStorage.getItem("startingBalance") || 0);
+
+    document.getElementById("calculate-form").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const targetDate = new Date(document.getElementById("target-date").value);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        targetDate.setHours(0,0,0,0);
+
+        if (isNaN(targetDate) || targetDate < today) {
+            document.getElementById("calculation-result").innerHTML = '<p class="text-danger">Please enter a valid future date.</p>';
+            return;
+        }
+
+        let totalBalance = startingBalance;
+        let currentDate = new Date(today);
+        while (currentDate <= targetDate) {
+            totalBalance += calculateDailyNetAmount(currentDate);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        document.getElementById("calculation-result").innerHTML = `<p class="font-weight-bold">You will have ${totalBalance.toLocaleString('en-US', { style: 'currency', currency: 'USD' })} on ${targetDate.toDateString()}.</p>`;
+    });
+
+    document.getElementById("chart-range-form").addEventListener("submit", function(e) {
+        e.preventDefault();
+        updateChart();
+    });
+
+    const defaultStart = new Date();
+    const defaultEnd = new Date(defaultStart.getFullYear(), 11, 31);
+    document.getElementById("chart-start-date").value = defaultStart.toISOString().split("T")[0];
+    document.getElementById("chart-end-date").value = defaultEnd.toISOString().split("T")[0];
+
+    const today = new Date();
+    const endOfYear = new Date(today.getFullYear(), 11, 31);
+    document.getElementById("chart-start-date").value = today.toISOString().split("T")[0];
+    document.getElementById("chart-end-date").value = endOfYear.toISOString().split("T")[0];
+
+    let chart;
+    function updateChart() {
+        if (chart) chart.destroy();
+
+        const labels = [], dataBalance = [];
+        const startDateInput = document.getElementById("chart-start-date").value;
+        const endDateInput = document.getElementById("chart-end-date").value;
+        let startDate = new Date(document.getElementById("chart-start-date").value);
+        let endDate = new Date(document.getElementById("chart-end-date").value);
+
+        if (!endDateInput) endDate.setDate(endDate.getDate() + 180);
+
+        startDate.setHours(0,0,0,0);
+        endDate.setHours(0,0,0,0);
+
+        let currentDate = new Date(startDate);
+        let balance = startingBalance;
+
+        while (currentDate <= endDate) {
+            labels.push(currentDate.toISOString().split('T')[0]);
+            balance += calculateDailyNetAmount(currentDate);
+            dataBalance.push(balance);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+
+        const ctx = document.getElementById("financial-chart").getContext("2d");
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Balance',
+                    data: dataBalance,
+                    borderColor: 'blue',
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    xAxes: [{
+                        type: 'time',
+                        time: { unit: 'day' }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                            }
+                        }
+                    }]
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem) {
+                            return tooltipItem.yLabel.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function calculateDailyNetAmount(date) {
+        let dailyIncome = 0, dailyExpense = 0;
+
+        incomes.forEach(income => {
+            const start = new Date(income.date);
+            const end = income.endDate ? new Date(income.endDate) : null;
+            start.setHours(0,0,0,0);
+            if (end) end.setHours(0,0,0,0);
+            if (start <= date && (!end || date <= end)) {
+                if (income.frequency === 'once' && date.getTime() === start.getTime()) dailyIncome += income.amount;
+                else if (income.frequency === 'weekly' && Math.floor((date - start)/(1000*60*60*24)) % 7 === 0) dailyIncome += income.amount;
+                else if (income.frequency === 'monthly' && date.getDate() === start.getDate()) dailyIncome += income.amount;
+                else if (income.frequency === 'yearly' && date.getDate() === start.getDate() && date.getMonth() === start.getMonth()) dailyIncome += income.amount;
+            }
+        });
+
+        expenses.forEach(expense => {
+            const start = new Date(expense.date);
+            const end = expense.endDate ? new Date(expense.endDate) : null;
+            start.setHours(0,0,0,0);
+            if (end) end.setHours(0,0,0,0);
+            if (start <= date && (!end || date <= end)) {
+                if (expense.frequency === 'once' && date.getTime() === start.getTime()) dailyExpense += expense.amount;
+                else if (expense.frequency === 'weekly' && Math.floor((date - start)/(1000*60*60*24)) % 7 === 0) dailyExpense += expense.amount;
+                else if (expense.frequency === 'monthly' && date.getDate() === start.getDate()) dailyExpense += expense.amount;
+                else if (expense.frequency === 'yearly' && date.getDate() === start.getDate() && date.getMonth() === start.getMonth()) dailyExpense += expense.amount;
+            }
+        });
+
+        return dailyIncome - dailyExpense;
+    }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script>
+    const menuBtn = document.getElementById("menuButton");
+    const menuDropdown = document.getElementById("menuDropdown");
+    const mainSections = document.querySelectorAll(".main-section");
+    const toastMessage = document.getElementById("toastMessage");
+    let currentSection = document.querySelector(".main-section:not(.hidden-section)") || mainSections[0];
+
+    menuBtn.addEventListener("click", () => {
+        menuDropdown.classList.toggle("show");
+    });
+
+    menuDropdown.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", e => {
+            e.preventDefault();
+            const sectionId = e.target.getAttribute("data-section");
+            const newSection = document.getElementById(sectionId);
+            if (currentSection !== newSection) {
+                currentSection.classList.add("hidden-section");
+                newSection.classList.remove("hidden-section");
+                currentSection = newSection;
+            }
+            menuDropdown.classList.remove("show");
+        });
+    });
+
+    const darkToggle = document.getElementById("darkModeToggle");
+    const darkIcon = document.getElementById("darkModeIcon");
+
+    darkToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        if (document.body.classList.contains("dark-mode")) {
+            localStorage.setItem("darkMode", "enabled");
+            darkIcon.classList.remove("fa-moon");
+            darkIcon.classList.add("fa-sun");
+        } else {
+            localStorage.setItem("darkMode", "disabled");
+            darkIcon.classList.remove("fa-sun");
+            darkIcon.classList.add("fa-moon");
+        }
+    });
+
+    if (localStorage.getItem("darkMode") === "enabled") {
+        document.body.classList.add("dark-mode");
+        darkIcon.classList.remove("fa-moon");
+        darkIcon.classList.add("fa-sun");
+    }
+
+    const balanceForm = document.getElementById("balance-form");
+    balanceForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        const balanceValue = parseFloat(document.getElementById("starting-balance").value);
+        if (!isNaN(balanceValue)) {
+            const roundedBalance = Math.round(balanceValue * 100) / 100;
+            localStorage.setItem("startingBalance", roundedBalance);
+            requestAnimationFrame(() => {
+                toastMessage.classList.remove("slide-down");
+                toastMessage.offsetHeight;
+                toastMessage.classList.add("slide-down");
+                toastMessage.style.display = "block";
+            });
+        }
+    });
+    document.getElementById("export-data").addEventListener("click", function () {
+        const data = {
+            expenses,
+            incomes,
+            startingBalance: parseFloat(localStorage.getItem("startingBalance") || 0)
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+        const downloadAnchorNode = document.createElement("a");
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", "financial_data.json");
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    });
+
+    document.getElementById("import-data").addEventListener("click", function () {
+        const fileInput = document.getElementById("import-file");
+        if (fileInput.files.length === 0) {
+            alert("Please select a file to import.");
+            return;
+        }
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+
+                const loadedExpenses = importedData.expenses || [];
+                const loadedIncomes = importedData.incomes || [];
+                const loadedStartingBalance = importedData.startingBalance || 0;
+
+                expenses.length = 0;
+                incomes.length = 0;
+
+                expenses.push(...loadedExpenses.map(exp => ({
+                    description: exp.description,
+                    amount: exp.amount,
+                    frequency: exp.frequency,
+                    date: exp.date,
+                    endDate: exp.endDate ?? ""
+                })));
+
+                incomes.push(...loadedIncomes.map(inc => ({
+                    description: inc.description,
+                    amount: inc.amount,
+                    frequency: inc.frequency,
+                    date: inc.date,
+                    endDate: inc.endDate ?? ""
+                })));
+
+                localStorage.setItem("startingBalance", loadedStartingBalance);
+                localStorage.setItem("expenses", JSON.stringify(expenses));
+                localStorage.setItem("incomes", JSON.stringify(incomes));
+
+                document.getElementById("starting-balance").value = loadedStartingBalance;
+                renderExpenses();
+                renderIncomes();
+                alert("Data imported successfully.");
+            } catch (err) {
+                alert("Import failed: " + err.message);
+            }
+        };
+
+        reader.readAsText(file);
+    });
+</script>
+</body>
+</html>
