@@ -510,6 +510,7 @@
                 currentSection.classList.add("hidden-section");
                 newSection.classList.remove("hidden-section");
                 currentSection = newSection;
+                if (sectionId === "overview-section") updateChart();
             }
             menuDropdown.classList.remove("show");
         });
@@ -541,7 +542,7 @@
     if (savedBalance !== null && !isNaN(savedBalance)) {
         document.getElementById("starting-balance").value = parseFloat(savedBalance);
     }
-    
+
     const balanceForm = document.getElementById("balance-form");
     balanceForm.addEventListener("submit", function(e) {
         e.preventDefault();
