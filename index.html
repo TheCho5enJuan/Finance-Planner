@@ -536,9 +536,12 @@
         darkIcon.classList.remove("fa-moon");
         darkIcon.classList.add("fa-sun");
     }
-    
-    document.getElementById("starting-balance").value = localStorage.getItem("startingBalance") || 0;
 
+    const savedBalance = localStorage.getItem("startingBalance");
+    if (savedBalance !== null && !isNaN(savedBalance)) {
+        document.getElementById("starting-balance").value = parseFloat(savedBalance);
+    }
+    
     const balanceForm = document.getElementById("balance-form");
     balanceForm.addEventListener("submit", function(e) {
         e.preventDefault();
