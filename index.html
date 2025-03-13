@@ -387,9 +387,6 @@
 document.getElementById("chart-start-date").value = today.toISOString().split("T")[0];
 document.getElementById("chart-end-date").value = endOfYear.toISOString().split("T")[0];
 
-document.getElementById("target-date").value = document.getElementById("chart-end-date").value;
-document.getElementById("calculate-form").dispatchEvent(new Event("submit"));
-
     const today = new Date();
     const endOfYear = new Date(today.getFullYear(), 11, 31);
     document.getElementById("chart-start-date").value = today.toISOString().split("T")[0];
