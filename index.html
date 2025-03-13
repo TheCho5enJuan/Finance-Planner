@@ -384,8 +384,8 @@
 
     const defaultStart = new Date();
     const defaultEnd = new Date(defaultStart.getFullYear(), 11, 31);
-document.getElementById("chart-start-date").value = today.toISOString().split("T")[0];
-document.getElementById("chart-end-date").value = endOfYear.toISOString().split("T")[0];
+    document.getElementById("chart-start-date").value = defaultStart.toISOString().split("T")[0];
+    document.getElementById("chart-end-date").value = defaultEnd.toISOString().split("T")[0];
 
     const today = new Date();
     const endOfYear = new Date(today.getFullYear(), 11, 31);
