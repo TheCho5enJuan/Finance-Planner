@@ -707,16 +707,16 @@ function renderUpcomingCharges() {
     let runningBalance = parseFloat(localStorage.getItem("startingBalance") || 0);
 
         entries.forEach(e => {
-            runningBalance += e.amount;
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${e.description}</td>
-                <td>${e.amount < 0 ? "-$" + Math.abs(e.amount).toLocaleString() : "$" + e.amount.toLocaleString()}</td>
-                <td>${e.date}</td>
-                <td>${e.frequency}</td>
-                <td>$${runningBalance.toLocaleString()}</td>
-            `;
-            tableBody.appendChild(row);
+                const row = document.createElement("tr");
+                row.className = runningBalance < 0 ? "table-danger" : "table-success";
+                row.innerHTML = `
+                    <td>${e.description}</td>
+                    <td>${e.amount < 0 ? "-$" + Math.abs(e.amount).toLocaleString() : "$" + e.amount.toLocaleString()}</td>
+                    <td>${e.date}</td>
+                    <td>${e.frequency}</td>
+                    <td>$${runningBalance.toLocaleString()}</td>
+                `;
+                tableBody.appendChild(row);
         });
 }
 </script>
