@@ -557,7 +557,7 @@ const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
 <div id="chart-container" style="height: 35vh;"><div id="plotly-graph" style="width:100%; min-height:30vh; display:block;"></div></div>
 <div class="mt-2">
 <h3>Items Within Chart Range</h3>
-  <div style="max-height: 300px; overflow-y: auto;">
+<div style="flex: 1 1 auto; overflow-y: auto; min-height: 0;">
     <table class="table table-striped" id="upcoming-charges-table">
       <thead>
         <tr>
