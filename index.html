@@ -343,6 +343,17 @@ label {
     background: white;
     z-index: 1;
 }
+html, body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#overview-section {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
 /* Enlarge Plotly modebar buttons for mobile accessibility */
 .js-plotly-plot .modebar {
     transform: scale(1.8);
@@ -557,20 +568,20 @@ const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
 <div id="chart-container" style="height: 35vh;"><div id="plotly-graph" style="width:100%; min-height:30vh; display:block;"></div></div>
 <div class="mt-2">
 <h3>Items Within Chart Range</h3>
-  <div style="max-height: 300px; overflow-y: auto;">
-    <table class="table table-striped" id="upcoming-charges-table">
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th>Amount</th>
-          <th>Date</th>
-          <th>Frequency</th>
-          <th>Balance</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+<div style="flex-grow: 1; overflow-y: auto; min-height: 0;">
+  <table class="table table-striped" id="upcoming-charges-table" style="margin-bottom: 0;">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Frequency</th>
+        <th>Balance</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
 </div>
 </div>
 </div>
