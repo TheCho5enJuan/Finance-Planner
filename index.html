@@ -550,6 +550,22 @@ const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
 <input class="form-control mb-2 mr-sm-2" id="chart-end-date" style="display:none;" type="date"/>
 </form>
 <div id="chart-container" style="height: 70vh;"><div id="plotly-graph" style="width:100%; min-height:60vh; display:block;"></div></div>
+        <div class="mt-5">
+  <h3>Upcoming Charges</h3>
+  <div style="max-height: 300px; overflow-y: auto;">
+    <table class="table table-striped" id="upcoming-charges-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Frequency</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+        </div>
 </div>
 </div>
 </div>
@@ -649,7 +665,32 @@ Plotly.newPlot("plotly-graph", [trace], layout, {
     } catch (e) {
         document.getElementById("calculation-result").innerHTML = "<p class='text-danger'>Chart rendering failed: " + e.message + "</p>";
     }
+        renderUpcomingCharges();
 }
+        function renderUpcomingCharges() {
+    const tableBody = document.querySelector("#upcoming-charges-table tbody");
+    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
+
+    const entries = expenses.map(e => ({
+        description: e.description,
+        amount: e.amount,
+        date: e.date,
+        frequency: e.frequency
+    }));
+
+    entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    tableBody.innerHTML = "";
+
+    entries.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${item.description}</td>
+            <td>$${parseFloat(item.amount).toFixed(2)}</td>
+            <td>${item.date}</td>
+            <td>${item.frequency}</td>`;
+        tableBody.appendChild(tr);
+    });
+        }
 </script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <script>
