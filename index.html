@@ -565,6 +565,7 @@ const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
           <th>Amount</th>
           <th>Date</th>
           <th>Frequency</th>
+          <th>Balance</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -703,17 +704,20 @@ function renderUpcomingCharges() {
     JSON.parse(localStorage.getItem("incomes") || "[]").forEach(i => addRecurring(i, true));
 
     entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+    let runningBalance = parseFloat(localStorage.getItem("startingBalance") || 0);
 
-    entries.forEach(e => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${e.description}</td>
-            <td>${e.amount < 0 ? "-$" + Math.abs(e.amount).toLocaleString() : "$" + e.amount.toLocaleString()}</td>
-            <td>${e.date}</td>
-            <td>${e.frequency}</td>
-        `;
-        tableBody.appendChild(row);
-    });
+        entries.forEach(e => {
+            runningBalance += e.amount;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${e.description}</td>
+                <td>${e.amount < 0 ? "-$" + Math.abs(e.amount).toLocaleString() : "$" + e.amount.toLocaleString()}</td>
+                <td>${e.date}</td>
+                <td>${e.frequency}</td>
+                <td>$${runningBalance.toLocaleString()}</td>
+            `;
+            tableBody.appendChild(row);
+        });
 }
 </script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
