@@ -670,54 +670,90 @@ function renderUpcomingCharges() {
     const tableBody = document.querySelector("#upcoming-charges-table tbody");
     tableBody.innerHTML = "";
 
-    const start = new Date(document.getElementById("target-date").value);
-    const today = new Date();
-    const entries = [];
-    
-    const addRecurring = (item, isIncome) => {
-        const startDate = new Date(item.date);
-        const endDate = item.endDate ? new Date(item.endDate) : new Date(document.getElementById("target-date").value);
-        let current = new Date(startDate);
-        current.setHours(0, 0, 0, 0);
-        endDate.setHours(0, 0, 0, 0);
-        const type = isIncome ? 'Income' : 'Expense';
+    const startDate = new Date();
+    const endDate = new Date(document.getElementById("target-date").value);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
 
-        while (current <= endDate) {
-            if (current >= today && current <= start) {
-                entries.push({
-                    description: item.description,
-                    amount: isIncome ? item.amount : -item.amount,
-                    date: current.toISOString().split("T")[0],
-                    frequency: item.frequency,
-                    type
-                });
-            }
-
-            if (item.frequency === "once") break;
-            else if (item.frequency === "weekly") current.setDate(current.getDate() + 7);
-            else if (item.frequency === "monthly") current.setMonth(current.getMonth() + 1);
-            else if (item.frequency === "yearly") current.setFullYear(current.getFullYear() + 1);
-        }
-    };
-
-    JSON.parse(localStorage.getItem("expenses") || "[]").forEach(e => addRecurring(e, false));
-    JSON.parse(localStorage.getItem("incomes") || "[]").forEach(i => addRecurring(i, true));
-
-    entries.sort((a, b) => new Date(a.date) - new Date(b.date));
     let runningBalance = parseFloat(localStorage.getItem("startingBalance") || 0);
+    const rows = [];
 
-        entries.forEach(e => {
-                const row = document.createElement("tr");
-                row.className = runningBalance < 0 ? "table-danger" : "table-success";
-                row.innerHTML = `
-                    <td>${e.description}</td>
-                    <td>${e.amount < 0 ? "-$" + Math.abs(e.amount).toLocaleString() : "$" + e.amount.toLocaleString()}</td>
-                    <td>${e.date}</td>
-                    <td>${e.frequency}</td>
-                    <td>$${runningBalance.toLocaleString()}</td>
-                `;
-                tableBody.appendChild(row);
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const day = new Date(d);
+        day.setHours(0, 0, 0, 0);
+
+        const incomeMatches = [];
+        const expenseMatches = [];
+
+        JSON.parse(localStorage.getItem("incomes") || "[]").forEach(i => {
+            const s = new Date(i.date);
+            const e = i.endDate ? new Date(i.endDate) : null;
+            s.setHours(0, 0, 0, 0);
+            if (e) e.setHours(0, 0, 0, 0);
+            if (s <= day && (!e || day <= e)) {
+                const match = (
+                    (i.frequency === "once" && day.getTime() === s.getTime()) ||
+                    (i.frequency === "weekly" && (Math.floor((day - s) / (1000 * 60 * 60 * 24)) % 7 === 0)) ||
+                    (i.frequency === "monthly" && day.getDate() === s.getDate()) ||
+                    (i.frequency === "yearly" && day.getDate() === s.getDate() && day.getMonth() === s.getMonth())
+                );
+                if (match) incomeMatches.push(i);
+            }
         });
+
+        JSON.parse(localStorage.getItem("expenses") || "[]").forEach(e => {
+            const s = new Date(e.date);
+            const eEnd = e.endDate ? new Date(e.endDate) : null;
+            s.setHours(0, 0, 0, 0);
+            if (eEnd) eEnd.setHours(0, 0, 0, 0);
+            if (s <= day && (!eEnd || day <= eEnd)) {
+                const match = (
+                    (e.frequency === "once" && day.getTime() === s.getTime()) ||
+                    (e.frequency === "weekly" && (Math.floor((day - s) / (1000 * 60 * 60 * 24)) % 7 === 0)) ||
+                    (e.frequency === "monthly" && day.getDate() === s.getDate()) ||
+                    (e.frequency === "yearly" && day.getDate() === s.getDate() && day.getMonth() === s.getMonth())
+                );
+                if (match) expenseMatches.push(e);
+            }
+        });
+
+        incomeMatches.forEach(i => {
+            runningBalance += i.amount;
+            rows.push({
+                description: i.description,
+                amount: i.amount,
+                date: day.toISOString().split("T")[0],
+                frequency: i.frequency,
+                balance: runningBalance
+            });
+        });
+
+        expenseMatches.forEach(e => {
+            runningBalance -= e.amount;
+            rows.push({
+                description: e.description,
+                amount: -e.amount,
+                date: day.toISOString().split("T")[0],
+                frequency: e.frequency,
+                balance: runningBalance
+            });
+        });
+    }
+
+    rows.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    rows.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.className = row.balance < 0 ? "table-danger" : "table-success";
+        tr.innerHTML = `
+            <td>${row.description}</td>
+            <td>${row.amount < 0 ? "-$" + Math.abs(row.amount).toLocaleString() : "$" + row.amount.toLocaleString()}</td>
+            <td>${row.date}</td>
+            <td>${row.frequency}</td>
+            <td>$${row.balance.toLocaleString()}</td>
+        `;
+        tableBody.appendChild(tr);
+    });
 }
 </script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
