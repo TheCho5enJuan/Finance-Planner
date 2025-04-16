@@ -343,17 +343,6 @@ label {
     background: white;
     z-index: 1;
 }
-html, body {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-#overview-section {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
 /* Enlarge Plotly modebar buttons for mobile accessibility */
 .js-plotly-plot .modebar {
     transform: scale(1.8);
@@ -556,7 +545,7 @@ const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
 </div>
 <div class="main-section" id="overview-section">
 <div class="card">
-<div class="card-body d-flex flex-column" style="height: 100%;">
+<div class="card-body">
 <form class="form-inline justify-content-center mb-3" id="calculate-form">
 <label class="mr-2 font-weight-bold" for="target-date">Target Date:</label>
 <input aria-label="Target date input for forecast" class="form-control" id="target-date" required="" style="width: 100%; font-size: 1.5rem; padding: 1rem;" title="Select your target date for financial forecast" type="date"/>
@@ -568,20 +557,20 @@ const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
 <div id="chart-container" style="height: 35vh;"><div id="plotly-graph" style="width:100%; min-height:30vh; display:block;"></div></div>
 <div class="mt-2">
 <h3>Items Within Chart Range</h3>
-<div style="flex: 1 1 auto; overflow-y: auto;">
-  <table class="table table-striped" id="upcoming-charges-table" style="margin-bottom: 0;">
-    <thead>
-      <tr>
-        <th>Description</th>
-        <th>Amount</th>
-        <th>Date</th>
-        <th>Frequency</th>
-        <th>Balance</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+  <div style="max-height: 300px; overflow-y: auto;">
+    <table class="table table-striped" id="upcoming-charges-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Frequency</th>
+          <th>Balance</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 </div>
 </div>
 </div>
