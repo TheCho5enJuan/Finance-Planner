@@ -337,7 +337,12 @@ label {
 #calculation-result {
     font-size: 1.6rem !important;
 }
-
+#upcoming-charges-table thead th {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+}
 /* Enlarge Plotly modebar buttons for mobile accessibility */
 .js-plotly-plot .modebar {
     transform: scale(1.8);
@@ -550,6 +555,7 @@ const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
 <input class="form-control mb-2 mr-sm-2" id="chart-end-date" style="display:none;" type="date"/>
 </form>
 <div id="chart-container" style="height: 35vh;"><div id="plotly-graph" style="width:100%; min-height:30vh; display:block;"></div></div>
+<div class="mt-2">
 <h3>Items Within Chart Range</h3>
   <div style="max-height: 300px; overflow-y: auto;">
     <table class="table table-striped" id="upcoming-charges-table">
@@ -564,6 +570,7 @@ const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
       <tbody></tbody>
     </table>
   </div>
+</div>
 </div>
 </div>
 </div>
