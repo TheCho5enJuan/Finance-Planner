@@ -1185,7 +1185,7 @@ window.editExpense = editExpense;</script>
 <div class="modal-header">
 <h5 class="modal-title" id="expenseModalLabel">Add/Edit Expense</h5>
 <button aria-label="Close" class="close" data-dismiss="modal" onclick="$('#expenseModal').modal('hide')" type="button">
-<span aria-hidden="true">Ã—</span>
+<span aria-hidden="true">×</span>
 </button>
 </div>
 <div class="modal-body">
@@ -1230,7 +1230,7 @@ window.editExpense = editExpense;</script>
 <div class="modal-header">
 <h5 class="modal-title" id="incomeModalLabel">Add/Edit Income</h5>
 <button aria-label="Close" class="close" data-dismiss="modal" onclick="$('#incomeModal').modal('hide')" type="button">
-<span aria-hidden="true">Ã—</span>
+<span aria-hidden="true">×</span>
 </button>
 </div>
 <div class="modal-body">
@@ -1604,7 +1604,7 @@ function groupAndRenderItems(collectionKey) {
         grouped[item.frequency].push(item);
     });
 
-    const freqNames = { once: "Oneâ€‘Time", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" };
+    const freqNames = { once: "One‑Time", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" };
     const annualMultiplier = { once: 1, weekly: 52, monthly: 12, yearly: 1 };
 
     for (const freq of ["once","weekly","monthly","yearly"]) {
@@ -1694,7 +1694,7 @@ function groupAndRenderItems(type){
     const grouped={once:[],weekly:[],monthly:[],yearly:[]};
     items.sort((a,b)=>new Date(a.date)-new Date(b.date));
     items.forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
     for(const freq in grouped){
         if(!grouped[freq].length) continue;
         const activeGrp=grouped[freq].filter(active);
@@ -1778,7 +1778,7 @@ function groupAndRenderItems(type){
 
     container.innerHTML="";
 
-    // === Topâ€‘level totals ===
+    // === Top‑level totals ===
     const activeAll=items.filter(isActive);
     const topTotal=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
     const topAvg=activeAll.length?topTotal/activeAll.length:0;
@@ -1786,14 +1786,14 @@ function groupAndRenderItems(type){
     const topAnnual=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*annualMult[i.frequency],0);
     const topHeader=document.createElement("div");
     topHeader.className="bg-primary text-white p-2 mb-3 rounded";
-    topHeader.innerHTML=`<strong>All Active â€” Sum: $${formatCurrency(topTotal)} | Avg: $${formatCurrency(topAvg)} | Annual: $${formatCurrency(topAnnual)}</strong>`;
+    topHeader.innerHTML=`<strong>All Active — Sum: $${formatCurrency(topTotal)} | Avg: $${formatCurrency(topAvg)} | Annual: $${formatCurrency(topAnnual)}</strong>`;
     container.appendChild(topHeader);
 
     // === Grouped totals ===
     const grouped={once:[],weekly:[],monthly:[],yearly:[]};
     items.sort((a,b)=>new Date(a.date)-new Date(b.date));
     items.forEach(it=>grouped[it.frequency]?.push(it));
-    const freqNames={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const freqNames={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
 
     for(const freq in grouped){
         if(grouped[freq].length===0) continue;
@@ -1877,12 +1877,12 @@ function groupAndRenderItems(type){
     const annualAll=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
     const topDiv=document.createElement("div");
     topDiv.className="bg-primary text-white p-2 mb-3 rounded";
-    topDiv.innerHTML=`<strong>All Active â€” Sum: $${formatCurrency(sumAll)} | Avg: $${formatCurrency(avgAll)} | Annual: $${formatCurrency(annualAll)}</strong>`;
+    topDiv.innerHTML=`<strong>All Active — Sum: $${formatCurrency(sumAll)} | Avg: $${formatCurrency(avgAll)} | Annual: $${formatCurrency(annualAll)}</strong>`;
     container.appendChild(topDiv);
 
     const grouped={once:[],weekly:[],monthly:[],yearly:[]};
     itemsSorted.forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
 
     for(const freq in grouped){
         if(grouped[freq].length===0) continue;
@@ -1966,7 +1966,7 @@ function groupAndRenderItems(type){
 
     const mult={once:1,weekly:52,monthly:12,yearly:1};
 
-    // === Topâ€‘level totals (no average) ===
+    // === Top‑level totals (no average) ===
     const activeAll=items.filter(isActive);
     const totalSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
     const annualSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
@@ -1979,7 +1979,7 @@ function groupAndRenderItems(type){
     const grouped={once:[],weekly:[],monthly:[],yearly:[]};
     items.sort((a,b)=>new Date(a.date)-new Date(b.date));
     items.forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
 
     for(const freq in grouped){
         if(grouped[freq].length===0) continue;
@@ -2072,7 +2072,7 @@ function groupAndRenderItems(type){
     const sorted=items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
     const groups={once:[],weekly:[],monthly:[],yearly:[]};
     sorted.forEach(it=>groups[it.frequency]?.push(it));
-    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
 
     for(const freq in groups){
         if(groups[freq].length===0) continue;
@@ -2172,7 +2172,7 @@ function groupAndRenderItems(type){
     const groups={once:[],weekly:[],monthly:[],yearly:[]};
     const sorted=items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
     sorted.forEach(it=>groups[it.frequency]?.push(it));
-    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
 
     for(const f in groups){
         if(groups[f].length===0) continue;
@@ -2299,7 +2299,7 @@ function render(type){
     // Grouping
     const grouped={once:[],weekly:[],monthly:[],yearly:[]};
     items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
 
     for(const f in grouped){
         if(grouped[f].length===0) continue;
@@ -2416,7 +2416,7 @@ function render(type){
     // Grouping
     const grouped={once:[],weekly:[],monthly:[],yearly:[]};
     items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
     const mult={once:1,weekly:52,monthly:12,yearly:1};
 
     for(const f in grouped){
@@ -2474,7 +2474,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 
 <script>
-// ===== Rollingâ€‘Year Annualized & Collapse (v1.2.19) =====
+// ===== Rolling‑Year Annualized & Collapse (v1.2.19) =====
 (function(){
 function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -2530,13 +2530,13 @@ function render(type){
     const annualTotal=items.reduce((sum,i)=>sum+annualContribution(i),0);
     const banner=document.createElement("div");
     banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
-    banner.textContent=`ANNUALIZED TOTAL (next 12â€¯months): $${fmt(annualTotal)}`;
+    banner.textContent=`ANNUALIZED TOTAL (next 12 months): $${fmt(annualTotal)}`;
     container.appendChild(banner);
 
     // Grouping
     const grouped={once:[],weekly:[],monthly:[],yearly:[]};
     items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
 
     for(const f in grouped){
         if(grouped[f].length===0) continue;
@@ -2592,7 +2592,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 
 
 <script>
-// ===== Rollingâ€‘Year Annualized Only (v1.2.20) =====
+// ===== Rolling‑Year Annualized Only (v1.2.20) =====
 (function(){
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 function f(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
@@ -2626,9 +2626,9 @@ function render(type){
  const cid=(type==="expense"?"expenses":type)+"-cards",c=document.getElementById(cid);if(!c)return;
  let items=JSON.parse(localStorage.getItem(type+"s")||"[]");if(ensureId(items))save(type,items);c.innerHTML="";
  const ann=items.reduce((s,i)=>s+contrib(i),0);
- c.innerHTML+=`<div class="bg-primary text-white p-2 mb-3 rounded text-center"><strong>ANNUALIZED TOTAL (next 12â€¯months): $${f(ann)}</strong></div>`;
+ c.innerHTML+=`<div class="bg-primary text-white p-2 mb-3 rounded text-center"><strong>ANNUALIZED TOTAL (next 12 months): $${f(ann)}</strong></div>`;
  const g={once:[],weekly:[],monthly:[],yearly:[]};items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>g[it.frequency]?.push(it));
- const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+ const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
  for(const freq in g){
   if(!g[freq].length)continue;
   const annual=g[freq].filter(active).reduce((s,i)=>s+contrib(i),0);
@@ -2650,7 +2650,7 @@ document.addEventListener("DOMContentLoaded",()=>{if(document.getElementById("ex
 
 
 <script>
-// ===== Rollingâ€‘Year Annualized Only (v1.2.21 ASCII) =====
+// ===== Rolling‑Year Annualized Only (v1.2.21 ASCII) =====
 (function(){
 function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
 function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
