@@ -2065,7 +2065,7 @@ function groupAndRenderItems(type){
     const annualSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
     const banner=document.createElement("div");
     banner.className="bg-primary text-white p-2 mb-3 rounded";
-    banner.innerHTML=`<strong>Total Active: $${formatCurrency(totalSum)} | Annualized Total: $${formatCurrency(annualSum)}</strong>`;
+    banner.innerHTML=`<strong>Annualized Total: $${formatCurrency(annualSum)}</strong>`;
     container.appendChild(banner);
 
     // Work with a sorted copy for grouping, leaving original order untouched
