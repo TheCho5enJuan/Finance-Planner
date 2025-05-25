@@ -1185,7 +1185,7 @@ window.editExpense = editExpense;</script>
 <div class="modal-header">
 <h5 class="modal-title" id="expenseModalLabel">Add/Edit Expense</h5>
 <button aria-label="Close" class="close" data-dismiss="modal" onclick="$('#expenseModal').modal('hide')" type="button">
-<span aria-hidden="true">×</span>
+<span aria-hidden="true">Ã—</span>
 </button>
 </div>
 <div class="modal-body">
@@ -1230,7 +1230,7 @@ window.editExpense = editExpense;</script>
 <div class="modal-header">
 <h5 class="modal-title" id="incomeModalLabel">Add/Edit Income</h5>
 <button aria-label="Close" class="close" data-dismiss="modal" onclick="$('#incomeModal').modal('hide')" type="button">
-<span aria-hidden="true">×</span>
+<span aria-hidden="true">Ã—</span>
 </button>
 </div>
 <div class="modal-body">
@@ -1585,5 +1585,546 @@ window.addEventListener('load', function() {
     renderExpenses();
     renderIncomes();
 });
-</script></body>
+</script>
+<script>
+// === Enhanced grouping with Average and Annualized header ===
+function groupAndRenderItems(collectionKey) {
+    // collectionKey should be "expenses" or "incomes"
+    const containerId = collectionKey + "-cards";
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const items = JSON.parse(localStorage.getItem(collectionKey) || "[]");
+    container.innerHTML = "";
+
+    const grouped = { once: [], weekly: [], monthly: [], yearly: [] };
+    items.sort((a, b) => new Date(a.date || a.startDate || 0) - new Date(b.date || b.startDate || 0));
+    items.forEach(item => {
+        grouped[item.frequency] = grouped[item.frequency] || [];
+        grouped[item.frequency].push(item);
+    });
+
+    const freqNames = { once: "Oneâ€‘Time", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" };
+    const annualMultiplier = { once: 1, weekly: 52, monthly: 12, yearly: 1 };
+
+    for (const freq of ["once","weekly","monthly","yearly"]) {
+        const groupArr = grouped[freq];
+        if (!groupArr || groupArr.length === 0) continue;
+
+        const count = groupArr.length;
+        const total = groupArr.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
+        const average = total / count;
+        const annualized = total * annualMultiplier[freq];
+
+        const section = document.createElement("div");
+
+        // Header
+        const header = document.createElement("div");
+        header.className = "bg-light p-2 mb-2 border d-flex justify-content-between align-items-center";
+        header.style.cursor = "pointer";
+        const groupId = `${collectionKey}-group-${freq}`;
+        header.innerHTML = `<strong>${freqNames[freq]} (${count})</strong>
+            <span>Avg: $${average.toFixed(2)} | Annual: $${annualized.toFixed(2)}</span>`;
+        header.addEventListener("click", () => toggleGroup(groupId));
+        section.appendChild(header);
+
+        // Content
+        const groupContent = document.createElement("div");
+        groupContent.id = groupId;
+        groupContent.className = "mb-3";
+
+        groupArr.forEach(item => {
+            const idx = items.indexOf(item);
+            const card = document.createElement("div");
+            card.className = "card mb-2 shadow-sm";
+            card.innerHTML = `<div class="card-body">
+                <h5 class="card-title font-weight-bold">${item.description}</h5>
+                <div class="row">
+                    <div class="col-6"><strong>Amount:</strong> $${parseFloat(item.amount).toFixed(2)}</div>
+                    <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6"><strong>Start:</strong> ${item.date || item.startDate || "-"}</div>
+                    <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
+                </div>
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${collectionKey.slice(0,-1).charAt(0).toUpperCase()+collectionKey.slice(1,-1)}(${idx})" title="Edit">&#x270E;</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="delete${collectionKey.slice(0,-1).charAt(0).toUpperCase()+collectionKey.slice(1,-1)}(${idx})" title="Delete">&#x1F5D1;</button>
+                </div>
+            </div>`;
+            groupContent.appendChild(card);
+        });
+
+        section.appendChild(groupContent);
+        container.appendChild(section);
+    }
+}
+
+// Override original renderers
+window.renderExpenses = () => groupAndRenderItems("expenses");
+window.renderIncomes  = () => groupAndRenderItems("incomes");
+</script>
+
+
+
+
+<script>
+// === Enhanced grouping with totals & overall summary ===
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function fmt(n){return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function today(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function active(item){return !item.endDate || new Date(item.endDate)>=today();}
+function containerId(t){return t==="expense"?"expenses-cards":"income-cards";}
+function groupAndRenderItems(type){
+    const container=document.getElementById(containerId(type)); if(!container) return;
+    const items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    container.innerHTML="";
+    // --- overall summary ---
+    const activeItems=items.filter(active);
+    const sumAll=activeItems.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+    const avgAll=activeItems.length?sumAll/activeItems.length:0;
+    const mult={once:1,weekly:52,monthly:12,yearly:1};
+    const annualAll=activeItems.reduce((a,it)=>a+parseFloat(it.amount||0)*mult[it.frequency],0);
+    const summary=document.createElement("div");
+    summary.className="bg-primary text-white p-2 mb-3";
+    summary.innerHTML=`<strong>All Active (${activeItems.length})</strong> | Sum: $${fmt(sumAll)} | Avg: $${fmt(avgAll)} | Annual: $${fmt(annualAll)}`;
+    container.appendChild(summary);
+    // --- groups ---
+    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
+    items.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    items.forEach(it=>grouped[it.frequency]?.push(it));
+    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    for(const freq in grouped){
+        if(!grouped[freq].length) continue;
+        const activeGrp=grouped[freq].filter(active);
+        const sumGrp=activeGrp.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avgGrp=activeGrp.length?sumGrp/activeGrp.length:0;
+        const annualGrp=sumGrp*mult[freq];
+        const section=document.createElement("div");
+        const gid=`${type}-${freq}-grp`;
+        section.innerHTML=`<div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
+            <strong>${names[freq]} (${grouped[freq].length})</strong>
+            <span>Sum: $${fmt(sumGrp)} | Avg: $${fmt(avgGrp)} | Annual: $${fmt(annualGrp)}</span>
+        </div>`;
+        const body=document.createElement("div"); body.id=gid;
+        grouped[freq].forEach(it=>{
+            const idx=items.indexOf(it);
+            const card=document.createElement("div"); card.className="card mb-2 shadow-sm";
+            card.innerHTML=`<div class="card-body">
+                <h5 class="card-title font-weight-bold">${it.description}</h5>
+                <div class="row">
+                    <div class="col-6"><strong>Amount:</strong> $${fmt(it.amount)}</div>
+                    <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
+                </div>
+                <div class="row">
+                    <div class="col-6"><strong>Start:</strong> ${it.date}</div>
+                    <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
+                </div>
+                <div class="d-flex justify-content-end mt-2">
+                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                </div>
+            </div>`;
+            body.appendChild(card);
+        });
+        section.appendChild(body);
+        container.appendChild(section);
+    }
+}
+window.renderExpenses=()=>groupAndRenderItems("expense");
+window.renderIncomes=()=>groupAndRenderItems("income");
+})();
+</script>
+
+
+<script>
+// ===== Enhanced Grouping, Totals & Reliable Edit/Delete =====
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureIds(arr){
+    let changed=false;
+    arr.forEach(it=>{
+        if(!it.id){
+            it.id=uuidv4();
+            changed=true;
+        }
+    });
+    return changed;
+}
+function saveBack(type,arr){
+    localStorage.setItem(type+"s",JSON.stringify(arr));
+}
+function isActive(item){
+    if(!item.endDate) return true;
+    const today=new Date(); today.setHours(0,0,0,0);
+    return new Date(item.endDate)>=today;
+}
+function findIndexById(arr,id){
+    return arr.findIndex(i=>i.id===id);
+}
+function toggleGroup(id){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.style.display = el.style.display==='none'?'':'none';
+}
+function groupAndRenderItems(type){
+    const container=document.getElementById(type+"-cards");
+    if(!container) return;
+    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    if(ensureIds(items)) saveBack(type,items);
+
+    container.innerHTML="";
+
+    // === Topâ€‘level totals ===
+    const activeAll=items.filter(isActive);
+    const topTotal=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+    const topAvg=activeAll.length?topTotal/activeAll.length:0;
+    const annualMult={once:1,weekly:52,monthly:12,yearly:1};
+    const topAnnual=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*annualMult[i.frequency],0);
+    const topHeader=document.createElement("div");
+    topHeader.className="bg-primary text-white p-2 mb-3 rounded";
+    topHeader.innerHTML=`<strong>All Active â€” Sum: $${formatCurrency(topTotal)} | Avg: $${formatCurrency(topAvg)} | Annual: $${formatCurrency(topAnnual)}</strong>`;
+    container.appendChild(topHeader);
+
+    // === Grouped totals ===
+    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
+    items.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    items.forEach(it=>grouped[it.frequency]?.push(it));
+    const freqNames={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+
+    for(const freq in grouped){
+        if(grouped[freq].length===0) continue;
+        const active=grouped[freq].filter(isActive);
+        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avg=active.length?total/active.length:0;
+        const annual=total*annualMult[freq];
+
+        const section=document.createElement("div");
+        const gid=`${type}-group-${freq}`;
+        section.innerHTML=`
+        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
+            <strong>${freqNames[freq]} (${grouped[freq].length})</strong>
+            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
+        </div>`;
+        const body=document.createElement("div"); body.id=gid;
+
+        grouped[freq].forEach(item=>{
+            const idx=findIndexById(items,item.id);
+            const card=document.createElement("div");
+            card.className="card mb-2 shadow-sm";
+            card.innerHTML=`
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold">${item.description}</h5>
+                    <div class="row">
+                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(item.amount))}</div>
+                        <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Start:</strong> ${item.date}</div>
+                        <div class="col-6"><strong>End:</strong> ${item.endDate||"-"}</div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                    </div>
+                </div>`;
+            body.appendChild(card);
+        });
+        section.appendChild(body);
+        container.appendChild(section);
+    }
+}
+window.renderExpenses=()=>groupAndRenderItems("expense");
+window.renderIncomes=()=>groupAndRenderItems("income");
+})();
+</script>
+
+
+<script>
+// ===== Improved Grouping, Totals & Reliable Edit/Delete =====
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureIds(arr){let changed=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();changed=true;}});return changed;}
+function saveBack(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
+function isActive(item){if(!item.endDate) return true;const today=new Date();today.setHours(0,0,0,0);return new Date(item.endDate)>=today;}
+function findIndexById(arr,id){return arr.findIndex(i=>i.id===id);}
+function toggleGroup(id){const el=document.getElementById(id);if(!el)return;el.style.display=el.style.display==='none'?'':'none';}
+
+function groupAndRenderItems(type){
+    const containerId=(type==="expense"?"expenses":"income")+"-cards";
+    const container=document.getElementById(containerId);
+    if(!container) return;
+
+    // Deep copy to preserve original order for index referencing
+    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    if(ensureIds(items)) saveBack(type,items);
+
+    const allItems=items; // keep unsorted reference
+    const itemsSorted=[...items].sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+    container.innerHTML="";
+
+    // === Top-level totals ===
+    const activeAll=allItems.filter(isActive);
+    const sumAll=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+    const avgAll=activeAll.length?sumAll/activeAll.length:0;
+    const mult={once:1,weekly:52,monthly:12,yearly:1};
+    const annualAll=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
+    const topDiv=document.createElement("div");
+    topDiv.className="bg-primary text-white p-2 mb-3 rounded";
+    topDiv.innerHTML=`<strong>All Active â€” Sum: $${formatCurrency(sumAll)} | Avg: $${formatCurrency(avgAll)} | Annual: $${formatCurrency(annualAll)}</strong>`;
+    container.appendChild(topDiv);
+
+    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
+    itemsSorted.forEach(it=>grouped[it.frequency]?.push(it));
+    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+
+    for(const freq in grouped){
+        if(grouped[freq].length===0) continue;
+        const active=grouped[freq].filter(isActive);
+        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avg=active.length?total/active.length:0;
+        const annual=total*mult[freq];
+
+        const section=document.createElement("div");
+        const gid=`${type}-group-${freq}`;
+        section.innerHTML=`
+        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
+            <strong>${names[freq]} (${grouped[freq].length})</strong>
+            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
+        </div>`;
+        const body=document.createElement("div"); body.id=gid;
+
+        grouped[freq].forEach(item=>{
+            const idx=findIndexById(allItems,item.id);
+            const card=document.createElement("div");
+            card.className="card mb-2 shadow-sm";
+            card.innerHTML=`
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold">${item.description}</h5>
+                    <div class="row">
+                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(item.amount))}</div>
+                        <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Start:</strong> ${item.date}</div>
+                        <div class="col-6"><strong>End:</strong> ${item.endDate||"-"}</div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                    </div>
+                </div>`;
+            body.appendChild(card);
+        });
+        section.appendChild(body);
+        container.appendChild(section);
+    }
+}
+
+// Expose for legacy callers
+window.renderExpenses=()=>groupAndRenderItems('expense');
+window.renderIncomes=()=>groupAndRenderItems('income');
+window.renderExpensesUpdated=window.renderExpenses;
+window.renderIncomesUpdated=window.renderIncomes;
+
+// Auto-render on load
+document.addEventListener('DOMContentLoaded', ()=>{
+    groupAndRenderItems('expense');
+    groupAndRenderItems('income');
+});
+})();
+</script>
+
+
+<script>
+// ===== Grouping, Totals & Reliable Edit/Delete (v1.2.13) =====
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureIds(arr){let changed=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();changed=true;}});return changed;}
+function saveBack(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
+function isActive(item){if(!item.endDate) return true;const today=new Date();today.setHours(0,0,0,0);return new Date(item.endDate)>=today;}
+function findIndexById(arr,id){return arr.findIndex(i=>i.id===id);}
+function toggleGroup(id){const el=document.getElementById(id);if(!el)return;el.style.display=el.style.display==='none'?'':'none';}
+
+function groupAndRenderItems(type){
+    const containerId=(type==="expense"?"expenses":type)+"-cards";
+    const container=document.getElementById(containerId);
+    if(!container) return;
+
+    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    if(ensureIds(items)) saveBack(type,items);
+
+    container.innerHTML="";
+
+    const mult={once:1,weekly:52,monthly:12,yearly:1};
+
+    // === Topâ€‘level totals (no average) ===
+    const activeAll=items.filter(isActive);
+    const totalSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+    const annualSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
+    const topHeader=document.createElement("div");
+    topHeader.className="bg-primary text-white p-2 mb-3 rounded";
+    topHeader.innerHTML=`<strong>Total Active: $${formatCurrency(totalSum)} | Annualized Total: $${formatCurrency(annualSum)}</strong>`;
+    container.appendChild(topHeader);
+
+    // === Grouping ===
+    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
+    items.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    items.forEach(it=>grouped[it.frequency]?.push(it));
+    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+
+    for(const freq in grouped){
+        if(grouped[freq].length===0) continue;
+        const active=grouped[freq].filter(isActive);
+        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avg=active.length?total/active.length:0;
+        const annual=total*mult[freq];
+
+        const section=document.createElement("div");
+        const gid=`${type}-group-${freq}`;
+        section.innerHTML=`
+        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
+            <strong>${names[freq]} (${grouped[freq].length})</strong>
+            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
+        </div>`;
+        const body=document.createElement("div"); body.id=gid;
+
+        grouped[freq].forEach(item=>{
+            const idx=findIndexById(items,item.id);
+            const card=document.createElement("div");
+            card.className="card mb-2 shadow-sm";
+            card.innerHTML=`
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold">${item.description}</h5>
+                    <div class="row">
+                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(item.amount))}</div>
+                        <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Start:</strong> ${item.date}</div>
+                        <div class="col-6"><strong>End:</strong> ${item.endDate||"-"}</div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                    </div>
+                </div>`;
+            body.appendChild(card);
+        });
+        section.appendChild(body);
+        container.appendChild(section);
+    }
+}
+window.renderExpenses=()=>groupAndRenderItems("expense");
+window.renderIncomes=()=>groupAndRenderItems("income");
+// call both on load for consistency
+document.addEventListener("DOMContentLoaded",()=>{
+    if(document.getElementById("expenses-cards")) window.renderExpenses();
+    if(document.getElementById("income-cards")) window.renderIncomes();
+});
+})();
+</script>
+
+
+<script>
+// ===== Grouping, Totals & Reliable Edit/Delete (v1.2.14) =====
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureIds(arr){let changed=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();changed=true;}});return changed;}
+function saveBack(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
+function isActive(item){if(!item.endDate) return true;const today=new Date();today.setHours(0,0,0,0);return new Date(item.endDate)>=today;}
+function findIndexById(arr,id){return arr.findIndex(i=>i.id===id);}
+function toggleGroup(id){const el=document.getElementById(id);if(!el)return;el.style.display=el.style.display==='none'?'':'none';}
+
+function groupAndRenderItems(type){
+    const containerId=(type==="expense"?"expenses":type)+"-cards";
+    const container=document.getElementById(containerId);
+    if(!container) return;
+
+    // original array as stored
+    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    if(ensureIds(items)) saveBack(type,items);
+
+    container.innerHTML="";
+
+    const mult={once:1,weekly:52,monthly:12,yearly:1};
+
+    // === Top banner (no avg) ===
+    const activeAll=items.filter(isActive);
+    const totalSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+    const annualSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
+    const banner=document.createElement("div");
+    banner.className="bg-primary text-white p-2 mb-3 rounded";
+    banner.innerHTML=`<strong>Total Active: $${formatCurrency(totalSum)} | Annualized Total: $${formatCurrency(annualSum)}</strong>`;
+    container.appendChild(banner);
+
+    // Work with a sorted copy for grouping, leaving original order untouched
+    const sorted=items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const groups={once:[],weekly:[],monthly:[],yearly:[]};
+    sorted.forEach(it=>groups[it.frequency]?.push(it));
+    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+
+    for(const freq in groups){
+        if(groups[freq].length===0) continue;
+        const active=groups[freq].filter(isActive);
+        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avg=active.length?total/active.length:0;
+        const annual=total*mult[freq];
+
+        const section=document.createElement("div");
+        const gid=`${type}-group-${freq}`;
+        section.innerHTML=`
+        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
+            <strong>${names[freq]} (${groups[freq].length})</strong>
+            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
+        </div>`;
+        const body=document.createElement("div"); body.id=gid;
+
+        groups[freq].forEach(item=>{
+            const idx=findIndexById(items,item.id); // index in original array
+            const card=document.createElement("div");
+            card.className="card mb-2 shadow-sm";
+            card.innerHTML=`
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold">${item.description}</h5>
+                    <div class="row">
+                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(item.amount))}</div>
+                        <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Start:</strong> ${item.date}</div>
+                        <div class="col-6"><strong>End:</strong> ${item.endDate||"-"}</div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                    </div>
+                </div>`;
+            body.appendChild(card);
+        });
+        section.appendChild(body);
+        container.appendChild(section);
+    }
+}
+// Alias legacy update functions if they exist
+window.renderExpenses=()=>groupAndRenderItems("expense");
+window.renderIncomes=()=>groupAndRenderItems("income");
+document.addEventListener("DOMContentLoaded",()=>{
+    if(document.getElementById("expenses-cards")) window.renderExpenses();
+    if(document.getElementById("income-cards")) window.renderIncomes();
+});
+})();
+</script>
+
+</body>
 </html>
