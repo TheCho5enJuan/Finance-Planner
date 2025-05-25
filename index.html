@@ -2606,16 +2606,50 @@ const END=new Date(TODAY);END.setFullYear(END.getFullYear()+1);
 
 function monthDiff(s,e){return (e.getFullYear()-s.getFullYear())*12+(e.getMonth()-s.getMonth())+1;}
 
+
 function count(it){
- const st=new Date(it.date);const ed=it.endDate?new Date(it.endDate):null;
- const s=st>TODAY?st:TODAY;const e=ed&&ed<END?ed:END;if(s>e)return 0;
- switch(it.frequency){
-  case'once':return(st>=TODAY&&st<=END)?1:0;
-  case'weekly':return Math.floor((e-s)/(7*MS_DAY))+1;
-  case'monthly':return monthDiff(s,e);
-  case'yearly':return 1;
-  default:return 0;}
+  const TODAY=(function(d){d.setHours(0,0,0,0);return d;})(new Date());
+  const END=(function(d){d.setFullYear(d.getFullYear()+1);return d;})(new Date(TODAY));
+  const st=new Date(it.date);
+  const ed=it.endDate?new Date(it.endDate):null;
+
+  if(it.frequency==='once'){
+    return (st>=TODAY && st<=END && (!ed || st<=ed)) ? 1 : 0;
+  }
+
+  function nextDate(d,freq){
+    const nd=new Date(d);
+    switch(freq){
+      case 'weekly':
+        nd.setDate(nd.getDate()+7);
+        break;
+      case 'monthly': {
+        const day=nd.getDate();
+        nd.setMonth(nd.getMonth()+1);
+        if(nd.getDate()<day){ nd.setDate(0); }
+        break;
+      }
+      case 'yearly':
+        nd.setFullYear(nd.getFullYear()+1);
+        break;
+    }
+    return nd;
+  }
+
+  let next=new Date(st);
+  while(next<TODAY){
+    next=nextDate(next,it.frequency);
+  }
+  if((ed&&next>ed) || next>END) return 0;
+
+  let cnt=0;
+  while(next<=END && (!ed || next<=ed)){
+    cnt++;
+    next=nextDate(next,it.frequency);
+  }
+  return cnt;
 }
+
 function contrib(it){return count(it)*parseFloat(it.amount||0);}
 function active(it){return count(it)>0;}
 function idx(arr,id){return arr.findIndex(i=>i.id===id);}
