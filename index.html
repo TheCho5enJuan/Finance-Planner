@@ -2648,5 +2648,92 @@ document.addEventListener("DOMContentLoaded",()=>{if(document.getElementById("ex
 })();
 </script>
 
+
+<script>
+// ===== Rollingâ€‘Year Annualized Only (v1.2.21 ASCII) =====
+(function(){
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuid(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureId(arr){let ch=false;arr.forEach(it=>{if(!it.id){it.id=uuid();ch=true;}});return ch;}
+function save(t,a){localStorage.setItem(t+"s",JSON.stringify(a));}
+
+const MS_DAY=86400000;
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+const END=new Date(TODAY);END.setFullYear(END.getFullYear()+1);
+
+function monthDiff(s,e){return (e.getFullYear()-s.getFullYear())*12+(e.getMonth()-s.getMonth())+1;}
+
+function count(it){
+ const st=new Date(it.date), ed=it.endDate?new Date(it.endDate):null;
+ const s=st>TODAY?st:TODAY, e=ed&&ed<END?ed:END;
+ if(s>e) return 0;
+ switch(it.frequency){
+  case'once':return(st>=TODAY&&st<=END)?1:0;
+  case'weekly':return Math.floor((e-s)/(7*MS_DAY))+1;
+  case'monthly':return monthDiff(s,e);
+  case'yearly':return 1;
+  default:return 0;
+ }
+}
+function contrib(it){return count(it)*parseFloat(it.amount||0);}
+function active(it){return count(it)>0;}
+function indexOf(arr,id){return arr.findIndex(i=>i.id===id);}
+function toggle(id){const el=document.getElementById(id);if(el) el.style.display=el.style.display==='none'?'':'none';}
+window.toggleGroup=toggle;
+
+function render(type){
+ const cid=(type==="expense"?"expenses":type)+"-cards";
+ const container=document.getElementById(cid); if(!container) return;
+
+ let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+ if(ensureId(items)) save(type,items);
+ container.innerHTML="";
+
+ const annualTotal=items.reduce((s,i)=>s+contrib(i),0);
+ container.innerHTML+=`<div class="bg-primary text-white p-2 mb-3 rounded text-center"><strong>ANNUALIZED TOTAL (next 12 months): $${fmt(annualTotal)}</strong></div>`;
+
+ const grouped={once:[],weekly:[],monthly:[],yearly:[]};
+ items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
+
+ const names={once:"One-Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+
+ for(const f in grouped){
+  if(!grouped[f].length) continue;
+  const annual=grouped[f].filter(active).reduce((s,i)=>s+contrib(i),0);
+  const gid=`${type}-group-${f}`;
+  container.innerHTML+=`<div class="bg-light p-2 mb-2 border d-flex justify-content-between align-items-center" onclick="toggleGroup('${gid}')"><strong>${names[f]} (${grouped[f].length})</strong><span>Annual: $${fmt(annual)}</span></div>`;
+  const body=document.createElement("div"); body.id=gid;
+
+  grouped[f].forEach(it=>{
+   const idx=indexOf(items,it.id);
+   body.innerHTML+=\`
+    <div class="card mb-2 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title font-weight-bold">\${it.description}</h5>
+        <div class="row">
+          <div class="col-6"><strong>Amount:</strong> $\${fmt(parseFloat(it.amount))}</div>
+          <div class="col-6"><strong>Frequency:</strong> \${it.frequency}</div>
+        </div>
+        <div class="row">
+          <div class="col-6"><strong>Start:</strong> \${it.date}</div>
+          <div class="col-6"><strong>End:</strong> \${it.endDate||"-"}</div>
+        </div>
+        <div class="d-flex justify-content-end mt-2">
+          <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit\${cap(type)}(\${idx})" title="Edit">&#9998;</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="delete\${cap(type)}(\${idx})" title="Delete">&#128465;</button>
+        </div>
+      </div>
+    </div>\`;
+  });
+  container.appendChild(body);
+ }
+}
+window.renderExpenses=()=>render("expense");
+window.renderIncomes=()=>render("income");
+document.addEventListener("DOMContentLoaded",()=>{if(document.getElementById("expenses-cards")) window.renderExpenses(); if(document.getElementById("income-cards")) window.renderIncomes();});
+})();
+</script>
+
 </body>
 </html>
