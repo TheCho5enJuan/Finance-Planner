@@ -2065,7 +2065,7 @@ function groupAndRenderItems(type){
     const annualSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
     const banner=document.createElement("div");
     banner.className="bg-primary text-white p-2 mb-3 rounded";
-    banner.innerHTML=`<strong>Annualized Total: $${formatCurrency(annualSum)}</strong>`;
+    banner.innerHTML=`<strong>Total Active: $${formatCurrency(totalSum)} | Annualized Total: $${formatCurrency(annualSum)}</strong>`;
     container.appendChild(banner);
 
     // Work with a sorted copy for grouping, leaving original order untouched
@@ -2123,6 +2123,528 @@ document.addEventListener("DOMContentLoaded",()=>{
     if(document.getElementById("expenses-cards")) window.renderExpenses();
     if(document.getElementById("income-cards")) window.renderIncomes();
 });
+})();
+</script>
+
+
+<script>
+// ===== Grouping & Annualized Total (v1.2.16) =====
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureIds(arr){let c=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();c=true;}});return c;}
+function saveBack(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
+// Active if overlaps current calendar year
+function activeThisYear(it){
+    const curYear = new Date().getFullYear();
+    const start = new Date(it.date);
+    const end = it.endDate ? new Date(it.endDate) : null;
+    const yearStart = new Date(curYear,0,1);
+    const yearEnd = new Date(curYear,11,31,23,59,59,999);
+    if(start > yearEnd) return false;
+    if(end && end < yearStart) return false;
+    return true;
+}
+function findIndexById(arr,id){return arr.findIndex(i=>i.id===id);}
+function toggleGroup(id){const e=document.getElementById(id);if(e)e.style.display=e.style.display==='none'?'':'none';}
+
+function groupAndRenderItems(type){
+    const containerId=(type==="expense"?"expenses":type)+"-cards";
+    const container=document.getElementById(containerId);
+    if(!container) return;
+
+    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    if(ensureIds(items)) saveBack(type,items);
+    container.innerHTML="";
+
+    const mult={once:1,weekly:52,monthly:12,yearly:1};
+
+    // === Annualized banner ===
+    const activeYear=items.filter(activeThisYear);
+    const annualTotal=activeYear.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
+    const banner=document.createElement("div");
+    banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
+    banner.innerHTML=`<strong>ANNUALIZED&nbsp;TOTAL:&nbsp;$${formatCurrency(annualTotal)}</strong>`;
+    container.appendChild(banner);
+
+    // === Grouping ===
+    const groups={once:[],weekly:[],monthly:[],yearly:[]};
+    const sorted=items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+    sorted.forEach(it=>groups[it.frequency]?.push(it));
+    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+
+    for(const f in groups){
+        if(groups[f].length===0) continue;
+        const active=groups[f].filter(activeThisYear);
+        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avg=active.length?total/active.length:0;
+        const annual=total*mult[f];
+
+        const gid=`${type}-group-${f}`;
+        const section=document.createElement("div");
+        section.innerHTML=`
+        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
+            <strong>${names[f]} (${groups[f].length})</strong>
+            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
+        </div>`;
+        const body=document.createElement("div"); body.id=gid;
+
+        groups[f].forEach(it=>{
+            const idx=findIndexById(items,it.id);
+            const card=document.createElement("div");
+            card.className="card mb-2 shadow-sm";
+            card.innerHTML=`
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold">${it.description}</h5>
+                    <div class="row">
+                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(it.amount))}</div>
+                        <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Start:</strong> ${it.date}</div>
+                        <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                    </div>
+                </div>`;
+            body.appendChild(card);
+        });
+        section.appendChild(body);
+        container.appendChild(section);
+    }
+}
+window.renderExpenses=()=>groupAndRenderItems("expense");
+window.renderIncomes=()=>groupAndRenderItems("income");
+document.addEventListener("DOMContentLoaded",()=>{
+    if(document.getElementById("expenses-cards")) window.renderExpenses();
+    if(document.getElementById("income-cards")) window.renderIncomes();
+});
+})();
+</script>
+
+
+<script>
+// ===== Accurate Annualized Calculation (v1.2.17) =====
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureIds(arr){let ch=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();ch=true;}});return ch;}
+function save(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
+
+const MS_DAY = 86400000;
+const year = new Date().getFullYear();
+const Y_START = new Date(year,0,1);
+const Y_END = new Date(year,11,31,23,59,59,999);
+
+function withinYearCount(item){
+    const freq=item.frequency;
+    const amount=parseFloat(item.amount||0);
+    const start=new Date(item.date);
+    const end=item.endDate? new Date(item.endDate): null;
+
+    // window of overlap with current year
+    const s = start>Y_START ? start : Y_START;
+    const e = end && end < Y_END ? end : Y_END;
+    if(s>e) return 0; // no overlap
+
+    let count=0;
+    switch(freq){
+        case 'once':
+            count = (start>=Y_START && start<=Y_END)?1:0;
+            break;
+        case 'weekly':
+            count = Math.floor((e - s)/ (7*MS_DAY)) + 1;
+            break;
+        case 'monthly':
+            count = (e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth()) + 1;
+            break;
+        case 'yearly':
+            count = 1;
+            break;
+        default:
+            count = 0;
+    }
+    return count;
+}
+
+function annualContribution(item){
+    return withinYearCount(item) * parseFloat(item.amount||0);
+}
+
+function activeThisYear(item){return withinYearCount(item)>0;}
+
+function findIdx(arr,id){return arr.findIndex(i=>i.id===id);}
+function toggle(id){const el=document.getElementById(id);if(el) el.style.display= el.style.display==='none'?'':'none';}
+
+function render(type){
+    const containerId=(type==="expense"?"expenses":type)+"-cards";
+    const container=document.getElementById(containerId);
+    if(!container) return;
+
+    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    if(ensureIds(items)) save(type,items);
+    container.innerHTML="";
+
+    // Banner annual total
+    const annualTotal=items.reduce((s,i)=>s+annualContribution(i),0);
+    const banner=document.createElement("div");
+    banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
+    banner.innerHTML=`<strong>ANNUALIZED&nbsp;TOTAL:&nbsp;$${formatCurrency(annualTotal)}</strong>`;
+    container.appendChild(banner);
+
+    // Grouping
+    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
+    items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
+    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+
+    for(const f in grouped){
+        if(grouped[f].length===0) continue;
+        const active=grouped[f].filter(activeThisYear);
+        const sum=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avg=active.length?sum/active.length:0;
+        const annual=active.reduce((s,i)=>s+annualContribution(i),0);
+
+        const gid=`${type}-group-${f}`;
+        const header=document.createElement("div");
+        header.innerHTML=`
+        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggle('${gid}')">
+            <strong>${names[f]} (${grouped[f].length})</strong>
+            <span>Sum: $${formatCurrency(sum)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
+        </div>`;
+        container.appendChild(header);
+
+        const body=document.createElement("div"); body.id=gid;
+
+        grouped[f].forEach(it=>{
+            const idx=findIdx(items,it.id);
+            const card=document.createElement("div");
+            card.className="card mb-2 shadow-sm";
+            card.innerHTML=`
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold">${it.description}</h5>
+                    <div class="row">
+                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(it.amount))}</div>
+                        <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Start:</strong> ${it.date}</div>
+                        <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                    </div>
+                </div>`;
+            body.appendChild(card);
+        });
+        container.appendChild(body);
+    }
+}
+window.renderExpenses=()=>render("expense");
+window.renderIncomes=()=>render("income");
+document.addEventListener("DOMContentLoaded",()=>{
+    if(document.getElementById("expenses-cards")) window.renderExpenses();
+    if(document.getElementById("income-cards")) window.renderIncomes();
+});
+})();
+</script>
+
+
+<script>
+// ===== Accurate Annualized & Working Collapse (v1.2.18) =====
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureIds(arr){let changed=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();changed=true;}});return changed;}
+function save(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
+
+const MS_DAY=86400000;
+const year=new Date().getFullYear();
+const Y_START=new Date(year,0,1);
+const Y_END=new Date(year,11,31,23,59,59,999);
+
+function withinYearCount(item){
+    const freq=item.frequency;
+    const amt=parseFloat(item.amount||0);
+    const start=new Date(item.date);
+    const end=item.endDate?new Date(item.endDate):null;
+    const s=start>Y_START?start:Y_START;
+    const e=end && end<Y_END?end:Y_END;
+    if(s>e) return 0;
+    switch(freq){
+        case 'once': return (start>=Y_START && start<=Y_END)?1:0;
+        case 'weekly': return Math.floor((e-s)/(7*MS_DAY))+1;
+        case 'monthly': return (e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth()) +1;
+        case 'yearly': return 1;
+        default: return 0;
+    }
+}
+function annualContribution(it){return withinYearCount(it)*parseFloat(it.amount||0);}
+function activeThisYear(it){return withinYearCount(it)>0;}
+
+function findIdx(arr,id){return arr.findIndex(i=>i.id===id);}
+
+// global collapse helper
+function toggleGroup(id){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.style.display = (el.style.display==='none'?'':'none');
+}
+window.toggleGroup=toggleGroup;
+
+function render(type){
+    const containerId=(type==="expense"?"expenses":type)+"-cards";
+    const container=document.getElementById(containerId);
+    if(!container) return;
+
+    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    if(ensureIds(items)) save(type,items);
+    container.innerHTML="";
+
+    // Annualized banner
+    const annualTotal=items.reduce((s,i)=>s+annualContribution(i),0);
+    const banner=document.createElement("div");
+    banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
+    banner.textContent=`ANNUALIZED TOTAL: $${formatCurrency(annualTotal)}`;
+    container.appendChild(banner);
+
+    // Grouping
+    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
+    items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
+    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+    const mult={once:1,weekly:52,monthly:12,yearly:1};
+
+    for(const f in grouped){
+        if(grouped[f].length===0) continue;
+        const active=grouped[f].filter(activeThisYear);
+        const sum=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avg=active.length?sum/active.length:0;
+        const annual=active.reduce((s,i)=>s+annualContribution(i),0);
+
+        const gid=`${type}-group-${f}`;
+        const header=document.createElement("div");
+        header.innerHTML=`
+        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
+            <strong>${names[f]} (${grouped[f].length})</strong>
+            <span>Sum: $${formatCurrency(sum)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
+        </div>`;
+        container.appendChild(header);
+
+        const body=document.createElement("div");
+        body.id=gid;
+
+        grouped[f].forEach(it=>{
+            const idx=findIdx(items,it.id);
+            const card=document.createElement("div");
+            card.className="card mb-2 shadow-sm";
+            card.innerHTML=`
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold">${it.description}</h5>
+                    <div class="row">
+                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(it.amount))}</div>
+                        <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Start:</strong> ${it.date}</div>
+                        <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                    </div>
+                </div>`;
+            body.appendChild(card);
+        });
+        container.appendChild(body);
+    }
+}
+window.renderExpenses=()=>render("expense");
+window.renderIncomes=()=>render("income");
+document.addEventListener("DOMContentLoaded",()=>{
+    if(document.getElementById("expenses-cards")) window.renderExpenses();
+    if(document.getElementById("income-cards")) window.renderIncomes();
+});
+})();
+</script>
+
+
+<script>
+// ===== Rollingâ€‘Year Annualized & Collapse (v1.2.19) =====
+(function(){
+function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureIds(arr){let ch=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();ch=true;}});return ch;}
+function save(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
+
+const MS_DAY=86400000;
+const TODAY=new Date(); TODAY.setHours(0,0,0,0);
+const R_END=new Date(TODAY); R_END.setFullYear(R_END.getFullYear()+1);
+
+function monthDiff(s,e){return (e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth()) +1;}
+
+function periodCount(it){
+    const freq=it.frequency;
+    const start=new Date(it.date);
+    const end=it.endDate?new Date(it.endDate):null;
+
+    // clip to rolling window
+    let s = start > TODAY ? start : TODAY;
+    let e = end? (end < R_END ? end : R_END) : R_END;
+    if(s>e) return 0;
+
+    switch(freq){
+        case 'once':
+            return (start>=TODAY && start<=R_END)?1:0;
+        case 'weekly':
+            return Math.floor((e - s)/ (7*MS_DAY)) + 1;
+        case 'monthly':
+            return monthDiff(s,e);
+        case 'yearly':
+            return 1; // if overlaps window
+        default:
+            return 0;
+    }
+}
+function activeRolling(it){return periodCount(it)>0;}
+function annualContribution(it){return periodCount(it)*parseFloat(it.amount||0);}
+function findIdx(arr,id){return arr.findIndex(i=>i.id===id);}
+function toggleGroup(id){const el=document.getElementById(id);if(el) el.style.display = el.style.display==='none'?'':'none';}
+window.toggleGroup=toggleGroup;
+
+function render(type){
+    const containerId=(type==="expense"?"expenses":type)+"-cards";
+    const container=document.getElementById(containerId);
+    if(!container) return;
+
+    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
+    if(ensureIds(items)) save(type,items);
+    container.innerHTML="";
+
+    // Banner annualized total
+    const annualTotal=items.reduce((sum,i)=>sum+annualContribution(i),0);
+    const banner=document.createElement("div");
+    banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
+    banner.textContent=`ANNUALIZED TOTAL (next 12â€¯months): $${fmt(annualTotal)}`;
+    container.appendChild(banner);
+
+    // Grouping
+    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
+    items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
+    const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+
+    for(const f in grouped){
+        if(grouped[f].length===0) continue;
+        const active=grouped[f].filter(activeRolling);
+        const sum=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
+        const avg=active.length?sum/active.length:0;
+        const annual=active.reduce((s,i)=>s+annualContribution(i),0);
+
+        const gid=`${type}-group-${f}`;
+        const header=document.createElement("div");
+        header.innerHTML=`
+        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
+            <strong>${names[f]} (${grouped[f].length})</strong>
+            <span>Sum: $${fmt(sum)} | Avg: $${fmt(avg)} | Annual: $${fmt(annual)}</span>
+        </div>`;
+        container.appendChild(header);
+
+        const body=document.createElement("div"); body.id=gid;
+
+        grouped[f].forEach(it=>{
+            const idx=findIdx(items,it.id);
+            const card=document.createElement("div");
+            card.className="card mb-2 shadow-sm";
+            card.innerHTML=`
+                <div class="card-body">
+                    <h5 class="card-title font-weight-bold">${it.description}</h5>
+                    <div class="row">
+                        <div class="col-6"><strong>Amount:</strong> $${fmt(parseFloat(it.amount))}</div>
+                        <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6"><strong>Start:</strong> ${it.date}</div>
+                        <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
+                    </div>
+                </div>`;
+            body.appendChild(card);
+        });
+        container.appendChild(body);
+    }
+}
+window.renderExpenses=()=>render("expense");
+window.renderIncomes=()=>render("income");
+document.addEventListener("DOMContentLoaded",()=>{
+    if(document.getElementById("expenses-cards")) window.renderExpenses();
+    if(document.getElementById("income-cards")) window.renderIncomes();
+});
+})();
+</script>
+
+
+<script>
+// ===== Rollingâ€‘Year Annualized Only (v1.2.20) =====
+(function(){
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function f(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function uid(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
+function ensureId(arr){let c=false;arr.forEach(it=>{if(!it.id){it.id=uid();c=true;}});return c;}
+function save(t,a){localStorage.setItem(t+"s",JSON.stringify(a));}
+
+const MS_DAY=86400000;
+const TODAY=new Date();TODAY.setHours(0,0,0,0);
+const END=new Date(TODAY);END.setFullYear(END.getFullYear()+1);
+
+function monthDiff(s,e){return (e.getFullYear()-s.getFullYear())*12+(e.getMonth()-s.getMonth())+1;}
+
+function count(it){
+ const st=new Date(it.date);const ed=it.endDate?new Date(it.endDate):null;
+ const s=st>TODAY?st:TODAY;const e=ed&&ed<END?ed:END;if(s>e)return 0;
+ switch(it.frequency){
+  case'once':return(st>=TODAY&&st<=END)?1:0;
+  case'weekly':return Math.floor((e-s)/(7*MS_DAY))+1;
+  case'monthly':return monthDiff(s,e);
+  case'yearly':return 1;
+  default:return 0;}
+}
+function contrib(it){return count(it)*parseFloat(it.amount||0);}
+function active(it){return count(it)>0;}
+function idx(arr,id){return arr.findIndex(i=>i.id===id);}
+function tg(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none';}
+window.toggleGroup=tg;
+
+function render(type){
+ const cid=(type==="expense"?"expenses":type)+"-cards",c=document.getElementById(cid);if(!c)return;
+ let items=JSON.parse(localStorage.getItem(type+"s")||"[]");if(ensureId(items))save(type,items);c.innerHTML="";
+ const ann=items.reduce((s,i)=>s+contrib(i),0);
+ c.innerHTML+=`<div class="bg-primary text-white p-2 mb-3 rounded text-center"><strong>ANNUALIZED TOTAL (next 12â€¯months): $${f(ann)}</strong></div>`;
+ const g={once:[],weekly:[],monthly:[],yearly:[]};items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>g[it.frequency]?.push(it));
+ const names={once:"Oneâ€‘Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
+ for(const freq in g){
+  if(!g[freq].length)continue;
+  const annual=g[freq].filter(active).reduce((s,i)=>s+contrib(i),0);
+  const gid=`${type}-group-${freq}`;
+  c.innerHTML+=`<div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')"><strong>${names[freq]} (${g[freq].length})</strong><span>Annual: $${f(annual)}</span></div>`;
+  const body=document.createElement("div");body.id=gid;
+  g[freq].forEach(it=>{
+   const i=idx(items,it.id);
+   body.innerHTML+=`<div class="card mb-2 shadow-sm"><div class="card-body"><h5 class="card-title font-weight-bold">${it.description}</h5><div class="row"><div class="col-6"><strong>Amount:</strong> $${f(parseFloat(it.amount))}</div><div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div></div><div class="row"><div class="col-6"><strong>Start:</strong> ${it.date}</div><div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div></div><div class="d-flex justify-content-end mt-2"><button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${cap(type)}(${i})" title="Edit">&#9998;</button><button class="btn btn-sm btn-outline-danger" onclick="delete${cap(type)}(${i})" title="Delete">&#128465;</button></div></div></div>`;
+  });
+  c.appendChild(body);
+ }
+}
+window.renderExpenses=()=>render("expense");
+window.renderIncomes=()=>render("income");
+document.addEventListener("DOMContentLoaded",()=>{if(document.getElementById("expenses-cards"))window.renderExpenses();if(document.getElementById("income-cards"))window.renderIncomes();});
 })();
 </script>
 
