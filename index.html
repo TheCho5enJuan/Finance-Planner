@@ -338,8 +338,13 @@ const addDays = (d,n)=>{const x=new Date(d); x.setDate(x.getDate()+n); return x}
 const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
 const uuid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
+// Local-date helpers to avoid UTC/time-of-day boundary bugs
+const startOfDay = (d)=>{ const x=new Date(d); x.setHours(0,0,0,0); return x; };
+const isoLocal = (d)=>{ const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,10); };
+
+
 // ---------- Store & Schema ----------
-const schemaVersion = '2.0.2';
+const schemaVersion = '2.0.3';
 const defaults = ()=>({ 
   version: schemaVersion,
   settings: { theme:'dark' },
@@ -389,8 +394,9 @@ function* occurrences(item, fromDate, toDate){
       default: d.setDate(d.getDate()+36500); // once
     }
   };
-  // move to first on/after fromDate
-  while(cur < new Date(fromDate)) step(cur);
+  // move to first on/after the start-of-day of fromDate
+  const fromDay = startOfDay(new Date(fromDate));
+  while(cur < fromDay) step(cur);
   while(cur <= to && (!end || cur <= end)){
     yield new Date(cur);
     if(item.frequency==='once') break;
@@ -417,7 +423,7 @@ function itemsInRange(from, to){
 }
 function simulateBalance(toDate){
   const startBal = Number(store.data.startingBalance||0);
-  const from = new Date();
+  const from = startOfDay(new Date());
   const items = itemsInRange(from, toDate);
   let bal = startBal, daysToNeg = null;
   const series = [];
@@ -434,7 +440,7 @@ function simulateBalance(toDate){
   return {series, endBalance: bal, daysToNeg, items};
 }
 function totalNext12m(){
-  const from = new Date();
+  const from = startOfDay(new Date());
   const to = addDays(from, 365);
   let inc=0, exp=0;
   const add = (v,f)=>{
@@ -518,7 +524,7 @@ function drawLineChart(canvas, series) {
   ctx.stroke();
 }
 function renderOverview(){
-  const from = new Date();
+  const from = startOfDay(new Date());
   // Determine the horizon: if a chip is active in the overview, use its range; otherwise use the manually selected target date.
   let to;
   const activeChip = document.querySelector('#overview .chip.active');
@@ -553,7 +559,7 @@ function renderOverview(){
   tbody.innerHTML='';
   const rows = [];
   let bal = Number(store.data.startingBalance||0);
-  const fmtDate = d=>new Date(d).toISOString().slice(0,10);
+  const fmtDate = d=> isoLocal(d);
   for(const ev of items){
     bal += ev.amount;
     rows.push({
