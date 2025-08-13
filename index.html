@@ -19,20 +19,20 @@ a{color:var(--accent-2); text-decoration:none}
 header{position:sticky; top:0; z-index:5; background:linear-gradient(180deg, var(--header-gradient-start), var(--header-gradient-end)); backdrop-filter: blur(6px);}  
 .container{width:100%; max-width:none; margin:0 auto; padding:16px}
 .row{display:flex; gap:12px; flex-wrap:wrap}
-.card{background:var(--card); border:none; border-radius:12px; padding:16px}
-.btn{display:inline-flex; align-items:center; gap:8px; border:none; background:var(--card); color:var(--text); padding:10px 14px; border-radius:0; cursor:pointer}
+.card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px}
+.btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border); background:var(--card); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer}
 .btn[disabled]{opacity:.5; cursor:not-allowed}
 .btn.primary{background:var(--accent-2); border-color:transparent}
 .btn.success{background:var(--accent); border-color:transparent}
 .btn.danger{background:var(--danger); border-color:transparent}
 .btn.warn{background:var(--warn); border-color:transparent;color:#111}
-.input, select{width:100%; padding:10px 12px; border-radius:0; border:none; background:var(--card); color:var(--text)}
+.input, select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text)}
 .label{font-size:12px; color:var(--muted); margin-bottom:6px}
 h1{font-size:22px; margin:8px 0}
 h2{font-size:18px; margin:8px 0}
 h3{font-size:16px; margin:8px 0}
 small, .muted{color:var(--muted)}
-nav .tab{padding:10px 12px; border-radius:0; cursor:pointer}
+nav .tab{padding:10px 12px; border-radius:10px; cursor:pointer}
 nav .tab.active{background:var(--border)}
 .grid{display:grid; gap:12px}
 .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -42,20 +42,20 @@ table{width:100%; border-collapse:collapse}
 th,td{padding:8px 6px; border-bottom:1px dashed var(--border);}
 th{color:var(--muted); font-weight:600; text-align:left}
 tbody tr:hover{background:#0f1629}
-.badge{display:inline-block; padding:4px 8px; border-radius:999px; border:none; color:var(--muted); font-size:12px}
+.badge{display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:12px}
 .kpi{display:flex; gap:8px; align-items:baseline}
 .kpi b{font-size:22px}
 footer{padding:24px 16px; text-align:center; color:var(--muted)}
 hr{border:0;border-top:1px solid var(--border); margin:12px 0}
-.toast{position:fixed; right:16px; bottom:16px; background:#101828; border:none; padding:12px 14px; border-radius:0; display:none}
+.toast{position:fixed; right:16px; bottom:16px; background:#101828; border:1px solid var(--border); padding:12px 14px; border-radius:10px; display:none}
 .dialog{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:10;}
-.dialog .modal{width:min(560px,90vw); background:var(--panel); border:none; border-radius:12px; padding:16px}
+.dialog .modal{width:min(560px,90vw); background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px}
 .icon{width:18px; height:18px; display:inline-block; vertical-align:-3px}
 .section{display:none}
 .section.active{display:block}
 /* chip group */
 .chips{display:flex; gap:6px; flex-wrap:wrap}
-.chip{padding:6px 10px; border:none; border-radius:999px; cursor:pointer}
+.chip{padding:6px 10px; border:1px solid var(--border); border-radius:999px; cursor:pointer}
 .chip.active{background:var(--border)}
 /* table actions */
 .actions{display:flex; gap:6px}
@@ -92,12 +92,11 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
 #chartDlg .modal{ width:min(980px,95vw); max-height:78vh; overflow:auto; }
 .chart-toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px}
 .chart-toolbar .btn.small{padding:6px 10px; font-size:12px}
-.chart-wrap{position:relative; border:1px solid var(--border); border-radius:12px; padding:8px; background:transparent}
-/* chart spacing tweak */
-#chartInteractive{width:100%; margin-bottom:12px; height:360px; display:block; border:none; border-radius:0; background:var(--card)}
+.chart-wrap{position:relative}
+#chartInteractive{width:100%; height:360px; display:block; border:1px solid var(--border); border-radius:10px; background:var(--card)}
 .chart-tooltip{
   position:absolute; pointer-events:none; padding:6px 8px; font-size:12px;
-  background:rgba(17,24,39,.95); color:var(--text); border:none;
+  background:rgba(17,24,39,.95); color:var(--text); border:1px solid var(--border);
   border-radius:8px; transform:translate(8px,-100%); display:none; white-space:nowrap
 }
 .chart-legend{font-size:12px; color:var(--muted)}
@@ -132,7 +131,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         <div class="kpi" style="margin-top:8px"><span class="muted">Estimated Balance</span> <b id="estBalance">$0</b></div>
         <div class="chips" style="margin-top:8px">
           <div class="chip" data-range="90">3M</div>
-          <div class="chip active" data-range="180">6M</div>
+          <div class="chip" data-range="180">6M</div>
           <div class="chip" data-range="365">12M</div>
           <div class="chip" data-range="730">24M</div>
         </div>
@@ -225,7 +224,15 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         </select>
       </div>
     </div>
-  </section>
+  
+    <div class="card" style="margin-top:12px">
+      <div class="label">Diagnostics</div>
+      <div class="row" style="gap:8px; flex-wrap:wrap">
+        <button id="btnHealthCheck" class="btn">Run Health Check</button>
+      </div>
+      <small class="muted">Runs a quick sanity test of key functions and DOM nodes.</small>
+    </div>
+    </section>
 </main>
 
 <footer>
@@ -265,7 +272,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
       </div>
     </div>
     <!-- Chart range label sits above the chart; removed zoom/pan/reset controls -->
-    <div class="muted" id="chRangeLabel" style="margin-top:10px; text-align:center;"></div>
+    <div class="muted" id="chRangeLabel" style="margin-top:10px; text-align:right;"></div>
     <div class="chart-wrap">
       <canvas id="chartInteractive" height="480"></canvas>
       <div class="chart-tooltip" id="chartTip"></div>
@@ -334,18 +341,16 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const fmt = n => (n<0?'-':'') + '$' + Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:2});
-const fmtAxis = n => (n<0?'-':'') + '$' + Math.abs(Math.round(n)).toLocaleString();
 const todayStr = ()=> new Date().toISOString().slice(0,10);
 const addDays = (d,n)=>{const x=new Date(d); x.setDate(x.getDate()+n); return x};
 const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
 const uuid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
-const SAFE_MARGIN = 32; // extra px from canvas edge to avoid clipping on mobile DPR
 
 // ---------- Store & Schema ----------
-const schemaVersion = '2.0.14';
+const schemaVersion = '2.0.22';
 const defaults = ()=>({ 
   version: schemaVersion,
-  settings: { theme:'dark' },
+  settings: { theme:'dark', targetDate:'' },
   startingBalance: 0,
   accounts: [{id:'acc-default', name:'Checking', type:'cash'}],
   categories: [],
@@ -363,6 +368,8 @@ function migrate(data){
     return d;
   }
   // future migrations here
+  data.settings = data.settings || { theme:'dark' };
+  if(typeof data.settings.targetDate === 'undefined') data.settings.targetDate = '';
   data.version = schemaVersion;
   return data;
 }
@@ -483,13 +490,8 @@ function drawLineChart(canvas, series) {
   // ensure non-zero range to avoid division by zero
   const dx = maxX - minX || 1;
   const dy = maxY - minY || 1;
-  // dynamic left pad based on y-label widths
-  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
-  const yTicks = 4;
-  let _maxLabelW = 0;
-  for(let i=0;i<=yTicks;i++){ const _v = minY + (i*(dy/yTicks)); _maxLabelW = Math.max(_maxLabelW, ctx.measureText(fmtAxis(_v)).width); }
-  const padX = Math.ceil(_maxLabelW) + 24;  // extra gap between labels and axis
-  const padY = 28; // compact bottom padding (no x labels)
+  const padX = 40;
+  const padY = 20;
   // choose colours based on current theme
   const computed = getComputedStyle(document.documentElement);
   const lineColor = computed.getPropertyValue('--accent-2') || '#3b82f6';
@@ -527,6 +529,9 @@ function drawLineChart(canvas, series) {
 }
 function renderOverview(){
   const from = new Date();
+  const savedTD = (store.data.settings && store.data.settings.targetDate) || '';
+  if(savedTD){ $('#targetDate').value = savedTD; document.querySelectorAll('#overview .chip.active').forEach(ch=>ch.classList.remove('active')); }
+
   // Determine the horizon: if a chip is active in the overview, use its range; otherwise use the manually selected target date.
   let to;
   const activeChip = document.querySelector('#overview .chip.active');
@@ -780,6 +785,13 @@ $('#btnSave').onclick = ()=>{
   closeDialog();
 };
 
+// ---------- Diagnostics ----------
+window.addEventListener('error', (e)=>{
+  if(window.showToast){ showToast('Error: ' + (e.message||'unknown'), 'danger', 3500); }
+});
+window.addEventListener('unhandledrejection', (e)=>{
+  if(window.showToast){ showToast('Unhandled: ' + (e.reason && e.reason.message || e.reason || 'unknown'), 'danger', 3500); }
+});
 // ---------- Events ----------
 $('#navTabs').onclick = e=>{
   const t = e.target.closest('.tab'); if(!t) return;
@@ -811,18 +823,44 @@ document.querySelectorAll('#overview .chip').forEach(ch => {
   ch.onclick = () => {
     document.querySelectorAll('#overview .chip').forEach(x => x.classList.remove('active'));
     ch.classList.add('active');
+    const rangeDays = Number(ch.getAttribute('data-range')||180);
+    const to = addDays(new Date(), rangeDays);
+    const iso = to.toISOString().slice(0,10);
+    $('#targetDate').value = iso;
+    store.data.settings = store.data.settings || { theme:'dark' };
+    store.data.settings.targetDate = iso;
+    store.save();
     publish();
   };
 });
 
 // Target date manual change
 $('#targetDate').onchange = ()=>{
-  // align chips to custom (remove active chips only in the overview) and redraw
   document.querySelectorAll('#overview .chip.active').forEach(ch => ch.classList.remove('active'));
+  store.data.settings = store.data.settings || { theme:'dark' };
+  store.data.settings.targetDate = $('#targetDate').value || '';
+  store.save();
   publish();
 };
 
-// Settings
+
+// Health Check
+$('#btnHealthCheck') && ($('#btnHealthCheck').onclick = ()=>{
+  const checks = [];
+  const ok = (name, cond)=> checks.push((cond? '✅ ' : '❌ ') + name);
+  try{
+    ok('store exists', !!window.store && !!store.data);
+    ok('settings.targetDate exists', store.data && store.data.settings && ('targetDate' in store.data.settings));
+    ok('#targetDate input', !!$('#targetDate'));
+    ok('#chart canvas', !!$('#chart'));
+    ok('#rangeTable tbody', !!$('#rangeTable'));
+    ok('simulateBalance()', typeof simulateBalance === 'function');
+    ok('drawLineChart()', typeof drawLineChart === 'function');
+    ok('drawInteractive()', typeof drawInteractive === 'function');
+    ok('drawChartOn()', typeof drawChartOn === 'function');
+  }catch(e){ checks.push('❌ exception: ' + e.message); }
+  showToast(checks.join(' | '), checks.some(x=>x.startsWith('❌')) ? 'danger' : 'success', 5000);
+});// Settings
 $('#btnSetBalance').onclick = ()=>{ store.data.startingBalance = Number($('#startingBalance').value||0); store.save(); toast('Balance updated'); };
 $('#prefTheme').onchange = ()=>{ store.data.settings.theme = $('#prefTheme').value; store.save(); applyTheme(); };
 
@@ -881,24 +919,7 @@ subscribe((state)=>{
 
 // ---------- Init ----------
 (function init(){
-  // seed demo if empty (first run)
-  if(!store.data.incomes.length && !store.data.expenses.length){
-    const t=todayStr();
-    store.data.startingBalance=1416;
-    store.data.incomes=[
-      {id:uuid(), description:'CME', amount:1559, date:t, frequency:'weekly', endDate:''},
-      {id:uuid(), description:'RCC', amount:1152, date:t, frequency:'once', endDate:''},
-      {id:uuid(), description:'PC RCF', amount:5100, date:t, frequency:'monthly', endDate:''},
-    ];
-    store.data.expenses=[
-      {id:uuid(), description:'Grocery', amount:160, date:t, frequency:'weekly', endDate:''},
-      {id:uuid(), description:'Netflix', amount:33, date:'2024-09-30', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'Disney+', amount:15, date:'2024-10-10', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'T-Mobile', amount:100, date:'2024-10-13', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'Mazda Buyout', amount:20000, date:'2026-08-03', frequency:'once', endDate:'2026-08-03'}
-    ];
-    store.save();
-  } else { publish(); } // trigger first render
+  publish();
   applyTheme();
   $('#versionBadge').textContent = store.data.version;
   renderSettings();
@@ -1061,14 +1082,15 @@ const exportBtn = $('#chExport');
 if (exportBtn) exportBtn.addEventListener('click', ()=>{
   // export a clean version of the current chart with a light background and date range
   const winSeries = currentWindow();
-  const rangeTitle = document.getElementById('chRangeLabel').textContent || '';
   const endBal = winSeries.length ? winSeries[winSeries.length-1].y : 0;
+  const rangeTitle = (document.getElementById('chRangeLabel')||{}).textContent || '';
+  const title = 'Estimated Balance ' + fmt(endBal);
   const canvasWidth = document.getElementById('chartInteractive').clientWidth;
-  const canvasHeight = document.getElementById('chartInteractive').clientHeight + 40;
+  const canvasHeight = document.getElementById('chartInteractive').clientHeight + 60;
   const exportCanvas = document.createElement('canvas');
   exportCanvas.width = canvasWidth;
   exportCanvas.height = canvasHeight;
-  drawChartOn(exportCanvas, winSeries, { title: rangeTitle, subtitle: 'Estimated Balance ' + fmt(endBal) });
+  drawChartOn(exportCanvas, winSeries, { title, subtitle: rangeTitle });
   const url = exportCanvas.toDataURL('image/png');
   const a = document.createElement('a');
   a.href = url;
@@ -1092,7 +1114,7 @@ function drawInteractive(){
   const ys = series.map(p=>p.y);
   const minX = Math.min(...xs), maxX = Math.max(...xs);
   const minY = Math.min(...ys), maxY = Math.max(...ys);
-const dx = (maxX-minX)||1, dy=(maxY-minY)||1;
+  const dx = (maxX-minX)||1, dy=(maxY-minY)||1;
   const padX=48, padY=28;
   const computed = getComputedStyle(document.documentElement);
   const lineColor = (computed.getPropertyValue('--accent-2')||'#3b82f6').trim();
@@ -1102,16 +1124,15 @@ const dx = (maxX-minX)||1, dy=(maxY-minY)||1;
   ctx.strokeStyle = axisColor; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(padX, padY); ctx.lineTo(padX, height-padY); ctx.lineTo(width-padX, height-padY); ctx.stroke();
   // ticks (y)
-  ctx.fillStyle = textColor; ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto'; ctx.textAlign='right'; ctx.textBaseline='middle';
+  ctx.fillStyle = textColor; ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
   const yTicks = 4;
   for(let i=0;i<=yTicks;i++){
     const val = minY + (i*(dy/yTicks));
     const y = height - padY - (i*(height-2*padY)/yTicks);
-    ctx.fillText(fmtAxis(val), padX-14, y+4);
+    ctx.fillText(fmt(val), 6, y+4);
     ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(width-padX, y); ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.stroke();
   }
-  ctx.textAlign='left';
-// zero line
+  // zero line
   if(minY<0 && maxY>0){
     const zy = height - padY - ((0-minY)/dy)*(height-2*padY);
     ctx.beginPath(); ctx.moveTo(padX, zy); ctx.lineTo(width-padX, zy); ctx.setLineDash([4,4]); ctx.strokeStyle=axisColor; ctx.stroke(); ctx.setLineDash([]);
@@ -1147,13 +1168,15 @@ function drawChartOn(canvas, series, opts = {}) {
   ctx.fillRect(0, 0, width, height);
   const title = opts.title || '';
   const subtitle = opts.subtitle || '';
-  // Title area height (two-line header)
-  const topMargin = 46;
+  // Title area height
+  const topMargin = 42;
   ctx.fillStyle = '#111827';
+  ctx.textAlign = 'center';
   ctx.font = 'bold 16px system-ui, -apple-system, Segoe UI, Roboto';
-  if(subtitle){ ctx.textAlign='center'; ctx.fillText(subtitle, width/2, 18); }
-  if(title) { ctx.textAlign='center'; ctx.fillText(title, width/2, 36); }
-  ctx.textAlign='left';
+  if(title){ ctx.fillText(title, width/2, 18); }
+  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto';
+  if(subtitle){ ctx.fillText(subtitle, width/2, 36); }
+  ctx.textAlign = 'left';
   if(!series || series.length < 2) return;
   // compute ranges
   const xs = series.map(p => p.x.getTime());
@@ -1192,7 +1215,7 @@ function drawChartOn(canvas, series, opts = {}) {
     ctx.strokeStyle = '#e5e7eb';
     ctx.stroke();
   }
-// zero line
+  // zero line
   if(minY < 0 && maxY > 0) {
     const zy = chartBottom - ((0 - minY) / dy) * chartHeight;
     ctx.beginPath();
