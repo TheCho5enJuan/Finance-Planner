@@ -224,7 +224,17 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         </select>
       </div>
     </div>
-  </section>
+  
+    <div class="card" id="dataMgmtCard" style="margin-top:12px">
+      <div class="label">Data Management</div>
+      <div class="row" style="gap:8px; flex-wrap:wrap">
+        <button id="btnClearExpenses" class="btn warn">Clear All Expenses</button>
+        <button id="btnClearIncomes" class="btn warn">Clear All Income</button>
+        <button id="btnFullReset" class="btn danger">Full Reset (Everything)</button>
+      </div>
+      <small class="muted">Full Reset removes all items and resets balance. Theme preference is preserved.</small>
+    </div>
+    </section>
 </main>
 
 <footer>
@@ -344,7 +354,7 @@ const isoLocal = (d)=>{ const x=new Date(d); x.setMinutes(x.getMinutes()-x.getTi
 
 
 // ---------- Store & Schema ----------
-const schemaVersion = '2.0.3';
+const schemaVersion = '2.0.5';
 const defaults = ()=>({ 
   version: schemaVersion,
   settings: { theme:'dark' },
@@ -788,6 +798,31 @@ $('#navTabs').onclick = e=>{
 };
 $('#btnAddExpense').onclick = ()=>openDialog('expenses');
 $('#btnAddIncome').onclick = ()=>openDialog('incomes');
+// Data management
+$('#btnClearExpenses') && ($('#btnClearExpenses').onclick = ()=>{
+  if(confirm('Clear ALL expenses? This cannot be undone.')){
+    store.data.expenses = [];
+    store.save();
+    alert('All expenses cleared.');
+  }
+});
+$('#btnClearIncomes') && ($('#btnClearIncomes').onclick = ()=>{
+  if(confirm('Clear ALL income? This cannot be undone.')){
+    store.data.incomes = [];
+    store.save();
+    alert('All income cleared.');
+  }
+});
+$('#btnFullReset') && ($('#btnFullReset').onclick = ()=>{
+  if(confirm('Full Reset will remove all expenses, income, and reset balance to 0. Continue?')){
+    const theme = (store.data.settings && store.data.settings.theme) || 'dark';
+    const d = defaults();
+    d.settings.theme = theme; // preserve theme
+    store.load(d);
+    alert('All data reset.');
+  }
+});
+
 
 // Quick add
 $('#qaAddExpense').onclick = ()=>{
@@ -879,28 +914,14 @@ subscribe((state)=>{
 
 // ---------- Init ----------
 (function init(){
-  // seed demo if empty (first run)
-  if(!store.data.incomes.length && !store.data.expenses.length){
-    const t=todayStr();
-    store.data.startingBalance=1416;
-    store.data.incomes=[
-      {id:uuid(), description:'CME', amount:1559, date:t, frequency:'weekly', endDate:''},
-      {id:uuid(), description:'RCC', amount:1152, date:t, frequency:'once', endDate:''},
-      {id:uuid(), description:'PC RCF', amount:5100, date:t, frequency:'monthly', endDate:''},
-    ];
-    store.data.expenses=[
-      {id:uuid(), description:'Grocery', amount:160, date:t, frequency:'weekly', endDate:''},
-      {id:uuid(), description:'Netflix', amount:33, date:'2024-09-30', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'Disney+', amount:15, date:'2024-10-10', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'T-Mobile', amount:100, date:'2024-10-13', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'Mazda Buyout', amount:20000, date:'2026-08-03', frequency:'once', endDate:'2026-08-03'}
-    ];
-    store.save();
-  } else { publish(); } // trigger first render
+  // First render with whatever is in storage (brand-new users = empty)
+  publish();
+  // Theme and version badge
   applyTheme();
-  $('#versionBadge').textContent = store.data.version;
+  const vb = $('#versionBadge'); if(vb) vb.textContent = store.data.version;
+  // Load settings pane values
   renderSettings();
-  // select default chip 6M
+  // Ensure overview is active and chart range default is applied via publish()
   publish();
 })();
 // ---------- Interactive Chart Modal ----------
