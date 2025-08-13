@@ -1,2773 +1,1281 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>Financial Planner</title>
-<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"/>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet"/>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Financial Planner v2</title>
+<link rel="icon" href="data:,">
 <style>
-        body { padding: 20px; }
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-        }
-        .hidden-section { display: none; }
-        .menu-toggle { position: absolute; top: 20px; right: 20px; }
-        .menu-dropdown { display: none; position: absolute; right: 20px; top: 60px; background: #fff; border: 1px solid #ccc; z-index: 1000; }
-        .menu-dropdown.show { display: block; }
-        .menu-dropdown a { display: block; padding: 10px 15px; text-decoration: none; color: #000; border-bottom: 1px solid #eee; }
-        .menu-dropdown a:hover { background: #f8f9fa; }
-        .dark-mode { background-color: #343a40; color: #f8f9fa; }
-        .dark-mode .card { background-color: #495057; border-color: #6c757d; }
-        .dark-mode .card-body { color: #f8f9fa; }
-        .dark-mode input,
-        .dark-mode select,
-        .dark-mode .form-control,
-        .dark-mode .form-control-file {
-            background-color: #495057;
-            color: #f8f9fa;
-            border-color: #6c757d;
-        }
-        .dark-mode .btn {
-            background-color: #6c757d;
-            border-color: #6c757d;
-            color: #f8f9fa;
-        }
-        .dark-mode .btn-primary { background-color: #007bff; border-color: #007bff; }
-        .dark-mode .btn-secondary { background-color: #6c757d; border-color: #6c757d; }
-        .dark-mode .btn-info { background-color: #17a2b8; border-color: #17a2b8; }
-        .dark-mode .btn-light { background-color: #adb5bd; border-color: #adb5bd; color: #343a40; }
-        .dark-mode .menu-dropdown { background: #495057; border-color: #6c757d; }
-        .dark-mode .menu-dropdown a { color: #f8f9fa; border-bottom: 1px solid #6c757d; }
-        .dark-mode .menu-dropdown a:hover { background-color: #6c757d; }
-        .toast.slide-down {
-            animation: slideDownFade 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
-        }
-        @keyframes slideDownFade {
-            0% { opacity: 0; transform: translateY(-20px); }
-            10% { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-20px); }
-        }
-        @keyframes fadeOut {
-            to { opacity: 0; visibility: hidden; }
-        }
-    
-/* Mobile Enhancements */
-@media (max-width: 576px) {
-    .form-control, .btn {
-        font-size: 1rem;
-        padding: 0.75rem;
-    }
-    .form-group {
-        margin-bottom: 1.2rem;
-    }
-    table {
-        display: block;
-        overflow-x: auto;
-        width: 100%;
-    }
-    .btn {
-        width: 100%;
-    }
-    #chart-container {
-        height: 50vh !important;
-    }
+:root{
+  --bg:#0f172a; --panel:#111827; --muted:#9ca3af; --text:#e5e7eb; --accent:#22c55e; --accent-2:#3b82f6; --danger:#ef4444; --warn:#f59e0b;
+  --card:#0b1220; --border:#1f2937;
+  --header-gradient-start: rgba(0,0,0,.7);
+  --header-gradient-end: rgba(0,0,0,.2);
 }
-#chart-container {
-    width: 100%;
-    height: 60vh;
-    overflow-x: auto;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--text)}
+a{color:var(--accent-2); text-decoration:none}
+header{position:sticky; top:0; z-index:5; background:linear-gradient(180deg, var(--header-gradient-start), var(--header-gradient-end)); backdrop-filter: blur(6px);}  
+.container{width:100%; max-width:none; margin:0 auto; padding:16px}
+.row{display:flex; gap:12px; flex-wrap:wrap}
+.card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px}
+.btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border); background:var(--card); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer}
+.btn[disabled]{opacity:.5; cursor:not-allowed}
+.btn.primary{background:var(--accent-2); border-color:transparent}
+.btn.success{background:var(--accent); border-color:transparent}
+.btn.danger{background:var(--danger); border-color:transparent}
+.btn.warn{background:var(--warn); border-color:transparent;color:#111}
+.input, select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text)}
+.label{font-size:12px; color:var(--muted); margin-bottom:6px}
+h1{font-size:22px; margin:8px 0}
+h2{font-size:18px; margin:8px 0}
+h3{font-size:16px; margin:8px 0}
+small, .muted{color:var(--muted)}
+nav .tab{padding:10px 12px; border-radius:10px; cursor:pointer}
+nav .tab.active{background:var(--border)}
+.grid{display:grid; gap:12px}
+.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:820px){ .grid.cols-3{grid-template-columns:1fr} .grid.cols-2{grid-template-columns:1fr} }
+table{width:100%; border-collapse:collapse}
+th,td{padding:8px 6px; border-bottom:1px dashed var(--border);}
+th{color:var(--muted); font-weight:600; text-align:left}
+tbody tr:hover{background:#0f1629}
+.badge{display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:12px}
+.kpi{display:flex; gap:8px; align-items:baseline}
+.kpi b{font-size:22px}
+footer{padding:24px 16px; text-align:center; color:var(--muted)}
+hr{border:0;border-top:1px solid var(--border); margin:12px 0}
+.toast{position:fixed; right:16px; bottom:16px; background:#101828; border:1px solid var(--border); padding:12px 14px; border-radius:10px; display:none}
+.dialog{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:10;}
+.dialog .modal{width:min(560px,90vw); background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px}
+.icon{width:18px; height:18px; display:inline-block; vertical-align:-3px}
+.section{display:none}
+.section.active{display:block}
+/* chip group */
+.chips{display:flex; gap:6px; flex-wrap:wrap}
+.chip{padding:6px 10px; border:1px solid var(--border); border-radius:999px; cursor:pointer}
+.chip.active{background:var(--border)}
+/* table actions */
+.actions{display:flex; gap:6px}
+
+
+/* Quick Add: wider, horizontal layout */
+.quick-add-card{ padding:12px }
+.quick-add-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:8px;
+  align-items:end;
+}
+.quick-add-grid input,
+.quick-add-grid select{ padding-top:8px; padding-bottom:8px }
+.quick-add-grid .btn{ width:100%; height:40px }
+
+
+/* Position the chart dialog so it sits below the header/menu on mobile.  Use a generous
+   top padding to avoid overlapping the navigation bar, and account for safe-area. */
+#chartDlg{
+  align-items:flex-start;
+  padding-top: calc(80px + env(safe-area-inset-top));
+  padding-left:12px;
+  padding-right:12px;
+  padding-bottom:12px;
 }
 
-/* Stronger Mobile Enhancements */
-@media (max-width: 768px) {
-    .form-inline {
-        flex-direction: column !important;
-        align-items: stretch !important;
-    }
-    .form-inline label,
-    .form-inline input,
-    .form-inline select,
-    .form-inline button {
-        width: 100% !important;
-        margin-bottom: 0.75rem !important;
-    }
-    .form-control {
-        font-size: 1.1rem !important;
-        padding: 0.75rem 1rem !important;
-    }
-    .btn {
-        font-size: 1.1rem !important;
-        padding: 0.75rem 1rem !important;
-        width: 100% !important;
-    }
-    #chart-container {
-        height: 50vh !important;
-    }
-    table {
-        display: block;
-        overflow-x: auto;
-        width: 100%;
-    }
-    th, td {
-        white-space: nowrap;
-    }
-}
+.chart-modal-controls{ margin-top:12px; }
 
-/* Improved Mobile Menu Design */
-.menu-dropdown {
-    min-width: 180px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 0;
-}
-.menu-dropdown a {
-    font-size: 1.05rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.menu-dropdown a i {
-    width: 20px;
-    text-align: center;
-}
-.menu-dropdown a:hover {
-    background-color: #e9ecef !important;
-    color: #000 !important;
-}
-@media (max-width: 576px) {
-    .menu-dropdown a {
-        padding: 12px 18px;
-        font-size: 1.1rem;
-    }
-}
-
-/* Enlarge button/menu icons for better mobile accessibility */
-.menu-dropdown a i,
-.btn i,
-button i {
-    font-size: 2.2rem !important;
-    vertical-align: middle;
-}
-
-.menu-dropdown a span {
-    vertical-align: middle;
-}
-
-/* Clean and balanced menu appearance */
-.menu-dropdown {
-    min-width: 200px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-    padding: 0;
-}
-.menu-dropdown a {
-    display: flex;
-    align-items: center;
-    padding: 16px 20px;
-    font-size: 1.25rem;
-    font-weight: 500;
-    gap: 16px;
-    border-bottom: 1px solid #eee;
-}
-.menu-dropdown a i {
-    font-size: 1.6rem !important;
-    width: 32px;
-    text-align: center;
-}
-.menu-dropdown a span {
-    font-size: 1.25rem;
-    display: inline-block;
-    margin-left: 0;
-}
-.menu-dropdown a:hover {
-    background-color: #f0f0f0 !important;
-    color: #000 !important;
-}
-@media (max-width: 576px) {
-    .menu-dropdown a {
-        padding: 18px 24px;
-        font-size: 1.35rem;
-    }
-    .menu-dropdown a i {
-        font-size: 1.8rem !important;
-    }
-    .menu-dropdown a span {
-        font-size: 1.35rem;
-    }
-}
-
-/* Doubled Size Menu Appearance */
-.menu-dropdown {
-    min-width: 240px;
-    border-radius: 12px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.18);
-}
-.menu-dropdown a {
-    display: flex;
-    align-items: center;
-    padding: 24px 28px;
-    font-size: 2rem;
-    font-weight: 600;
-    gap: 24px;
-    border-bottom: 1px solid #ddd;
-}
-.menu-dropdown a i {
-    font-size: 2.4rem !important;
-    width: 40px;
-    text-align: center;
-}
-.menu-dropdown a span {
-    font-size: 2rem;
-}
-.menu-dropdown a:hover {
-    background-color: #f1f1f1 !important;
-    color: #000 !important;
-}
-@media (max-width: 576px) {
-    .menu-dropdown a {
-        padding: 26px 32px;
-        font-size: 2.2rem;
-    }
-    .menu-dropdown a i {
-        font-size: 2.6rem !important;
-        width: 44px;
-    }
-    .menu-dropdown a span {
-        font-size: 2.2rem;
-    }
-}
-
-/* Global scaling of base UI */
-body {
-    font-size: 1.4rem;
-    line-height: 1.8;
-}
-h1, h2, h3, h4 {
-    font-size: 1.8rem;
-    font-weight: 600;
-}
-.form-control {
-    font-size: 1.4rem !important;
-    padding: 0.9rem 1.2rem !important;
-}
-label {
-    font-size: 1.3rem;
-    font-weight: 500;
-}
-.table th, .table td {
-    font-size: 1.3rem;
-    vertical-align: middle;
-}
-.btn {
-    font-size: 1.4rem !important;
-    padding: 1rem 1.4rem !important;
-}
-
-/* Further enhanced global UI scaling */
-body {
-    font-size: 1.7rem;
-    line-height: 2.1;
-}
-h1 {
-    font-size: 2.4rem;
-}
-h2 {
-    font-size: 2.2rem;
-}
-h3, h4 {
-    font-size: 2rem;
-}
-.form-control {
-    font-size: 1.7rem !important;
-    padding: 1.1rem 1.4rem !important;
-}
-label {
-    font-size: 1.6rem;
-    font-weight: 600;
-}
-.table th, .table td {
-    font-size: 1.6rem;
-    vertical-align: middle;
-}
-.btn {
-    font-size: 1.7rem !important;
-    padding: 1.2rem 1.6rem !important;
-}
-#calculation-result {
-    font-size: 1.8rem !important;
-}
-
-/* Refined and balanced UI scaling */
-body {
-    font-size: 1.5rem;
-    line-height: 2;
-}
-h1 {
-    font-size: 2.2rem;
-}
-h2 {
-    font-size: 2rem;
-}
-h3, h4 {
-    font-size: 1.8rem;
-}
-label {
-    font-size: 1.4rem;
-    font-weight: 500;
-}
-.form-control {
-    font-size: 1.5rem !important;
-    padding: 1rem 1.4rem !important;
-}
-.table th, .table td {
-    font-size: 1.45rem;
-    vertical-align: middle;
-}
-.btn {
-    font-size: 1.5rem !important;
-    padding: 1.1rem 1.6rem !important;
-}
-#calculation-result {
-    font-size: 1.6rem !important;
-}
-#upcoming-charges-table thead th {
-    position: sticky;
-    top: 0;
-    background: white;
-    z-index: 1;
-}
-/* Enlarge Plotly modebar buttons for mobile accessibility */
-.js-plotly-plot .modebar {
-    transform: scale(1.8);
-    transform-origin: top right;
-    right: 10px !important;
-    top: 10px !important;
-}
-
-.card-body {
-    font-size: 1.4rem;
-    padding: 1.2rem;
-}
-.card-body p {
-    margin-bottom: 0.6rem;
-}
-.card-body .btn {
-    font-size: 1.3rem;
-    padding: 0.7rem 1.2rem;
-    width: 48%;
-}
-.card-body .btn-warning {
-    background-color: #ffc107;
-    color: black;
-}
-.card-body .btn-danger {
-    background-color: #dc3545;
-    color: white;
-}
-
-.card-body {
-    font-size: 1.6rem;
-}
-.card-body h5 {
-    font-size: 1.7rem;
-    font-weight: bold;
-}
-.card-body .row > div {
-    font-size: 1.5rem;
-}
-.card-body .btn {
-    font-size: 1.5rem;
-    padding: 0.9rem 1.4rem;
-}
-
-.modal-content {
-    font-size: 1.8rem;
-}
-.modal-title {
-    font-size: 2.2rem;
-    font-weight: bold;
-}
-.modal-body label {
-    font-size: 1.6rem;
-}
-.modal-body input, .modal-body select {
-    font-size: 1.7rem !important;
-    padding: 1.2rem !important;
-}
-.modal-footer .btn {
-    font-size: 1.6rem;
-    padding: 1rem 2rem;
-}
-
-.modal-content {
-    font-size: 2rem;
-}
-.modal-title {
-    font-size: 2.5rem;
-    font-weight: bold;
-}
-.modal-body label {
-    font-size: 2rem;
-}
-.modal-body input,
-.modal-body select {
-    font-size: 2rem !important;
-    padding: 1.4rem !important;
-    height: auto !important;
-}
-.modal-footer .btn {
-    font-size: 2rem;
-    padding: 1.2rem 2.2rem;
-}
-select.form-control {
-    -webkit-appearance: menulist !important;
-    appearance: menulist !important;
-    background-color: white;
-    color: black;
-}
-
-[id^="expense-group-"],
-[id^="income-group-"] {
-  display: block;
-}
 </style>
-<script>
-const incomes = JSON.parse(localStorage.getItem('incomes') || '[]');
-const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
-</script><script src="https://cdn.plot.ly/plotly-latest.min.js"></script></head>
+<style>
+/* Interactive Chart Modal */
+#chartDlg .modal{ width:min(980px,95vw); max-height:78vh; overflow:auto; }
+.chart-toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px}
+.chart-toolbar .btn.small{padding:6px 10px; font-size:12px}
+.chart-wrap{position:relative}
+#chartInteractive{width:100%; height:360px; display:block; border:1px solid var(--border); border-radius:10px; background:var(--card)}
+.chart-tooltip{
+  position:absolute; pointer-events:none; padding:6px 8px; font-size:12px;
+  background:rgba(17,24,39,.95); color:var(--text); border:1px solid var(--border);
+  border-radius:8px; transform:translate(8px,-100%); display:none; white-space:nowrap
+}
+.chart-legend{font-size:12px; color:var(--muted)}
+</style>
+
+</head>
 <body>
-<div class="d-flex justify-content-between align-items-center mb-4">
-<h1>Financial Planner</h1>
-<div class="menu-toggle">
-<button class="btn btn-light" id="menuButton"><i class="fas fa-bars"></i></button>
-<div class="menu-dropdown" id="menuDropdown">
-<a data-section="overview-section" href="#"><i class="fas fa-chart-line"></i><span>Financial Overview</span></a>
-<a data-section="expenses-section" href="#"><i class="fas fa-wallet"></i><span>Expenses</span></a>
-<a data-section="income-section" href="#"><i class="fas fa-hand-holding-usd"></i><span>Income</span></a>
-<a data-section="settings-section" href="#"><i class="fas fa-cog"></i><span>Settings</span></a>
-</div>
-</div>
-</div>
-<div class="toast-container">
-<div aria-atomic="true" aria-live="assertive" class="toast bg-info text-white" id="toastMessage" role="alert" style="display:none;">
-<div class="toast-body">Balance updated successfully!</div>
-</div>
-</div>
-<div class="main-section hidden-section" id="settings-section">
-<div class="card mb-4">
-<div class="card-body">
-<h2>Account Settings</h2>
-<form id="balance-form">
-<div class="form-group">
-<label for="starting-balance">Starting Balance:</label>
-<input class="form-control" id="starting-balance" placeholder="0.00" required="" type="number"/>
-</div>
-<button class="btn btn-primary" type="submit">Set Balance</button>
-</form>
-</div>
-</div>
-<div class="card mb-4">
-<div class="card-body"><h3 class="text-center mb-4">Data Management</h3><button class="btn btn-primary btn-lg btn-block mb-3" id="export-data">Export Data</button><label class="font-weight-bold" for="import-file">Import JSON File:</label><input class="form-control mb-2" id="import-file" type="file"/><button class="btn btn-success btn-lg btn-block" id="import-data">Import Data</button><p class="text-muted mt-2" style="font-size: 1.2rem;">Export your current data for backup or transfer. Import to restore saved records.</p></div>
-</div>
-<div class="card">
-<div class="card-body">
-<h4>Appearance</h4>
-<button class="btn btn-light" id="darkModeToggle">
-<span class="fas fa-moon" id="darkModeIcon"></span> Toggle Dark Mode
-            </button>
-</div>
-</div>
-</div>
-<div class="main-section hidden-section" id="expenses-section">
-<button class="btn btn-success btn-block mb-3" onclick="clearExpenseModal()">Add Expense</button><div class="card">
-<div class="card-body">
-<h2>Expenses</h2>
-<form id="expense-form">
-<div class="form-row align-items-end">
-<div class="form-group col-md-3">
-<label for="expense-description">Description</label>
-</div>
-<div class="form-group col-md-2">
-<label for="expense-amount">Amount</label>
-</div>
-<div class="form-group col-md-2">
-<label for="expense-date">Start Date</label>
-</div>
-<div class="form-group col-md-2">
-<label for="expense-end-date">End Date (opt)</label>
-</div>
-<div class="form-group col-md-2">
-<label for="expense-frequency">Frequency</label>
-</div>
-<div class="form-group col-md-1">
-</div>
-</div>
-</form>
-<div class="mb-4" id="expenses-cards"></div>
-</div>
-</div>
-</div>
-<div class="main-section hidden-section" id="income-section">
-<button class="btn btn-success btn-block mb-3" onclick="clearIncomeModal()">Add Income</button><div class="card">
-<div class="card-body">
-<h2>Income</h2>
-<form id="income-form">
-<div class="form-row align-items-end">
-<div class="form-group col-md-3">
-<label for="income-description">Description</label>
-</div>
-<div class="form-group col-md-2">
-<label for="income-amount">Amount</label>
-</div>
-<div class="form-group col-md-2">
-<label for="income-date">Start Date</label>
-</div>
-<div class="form-group col-md-2">
-<label for="income-end-date">End Date (opt)</label>
-</div>
-<div class="form-group col-md-2">
-<label for="income-frequency">Frequency</label>
-</div>
-<div class="form-group col-md-1">
-</div>
-</div>
-</form>
-<div class="mb-4" id="income-cards"></div>
-</div>
-</div>
-</div>
-<div class="main-section" id="overview-section">
-<div class="card">
-<div class="card-body">
-<form class="form-inline justify-content-center mb-3" id="calculate-form">
-<label class="mr-2 font-weight-bold" for="target-date">Target Date:</label>
-<input aria-label="Target date input for forecast" class="form-control" id="target-date" required="" style="width: 100%; font-size: 1.5rem; padding: 1rem;" title="Select your target date for financial forecast" type="date"/>
-</form><div class="mt-4 text-center font-weight-bold h5" id="calculation-result"></div>
-<form class="form-inline" id="chart-range-form">
-<input class="form-control mb-2 mr-sm-2" id="chart-start-date" style="display:none;" type="date"/>
-<input class="form-control mb-2 mr-sm-2" id="chart-end-date" style="display:none;" type="date"/>
-</form>
-<div id="chart-container" style="height: 35vh;"><div id="plotly-graph" style="width:100%; min-height:30vh; display:block;"></div></div>
-<div class="mt-2">
-<h3>Items Within Chart Range</h3>
-<div style="max-height: 35vh; overflow-y: auto;">
-    <table class="table table-striped" id="upcoming-charges-table">
-      <thead>
-        <tr>
-          <th>Description</th>
-          <th>Amount</th>
-          <th>Date</th>
-          <th>Frequency</th>
-          <th>Balance</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+<header>
+  <div class="container row" style="justify-content:space-between; align-items:center">
+    <div style="display:flex; align-items:center; gap:8px">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 3h18M3 12h18M3 21h18"/></svg>
+      <strong>Financial Planner <span class="badge" id="versionBadge"></span></strong>
+    </div>
+    <nav class="row" id="navTabs">
+      <div data-target="overview" class="tab active">Overview</div>
+      <div data-target="expenses" class="tab">Expenses</div>
+      <div data-target="income" class="tab">Income</div>
+      <div data-target="settings" class="tab">Settings</div>
+    </nav>
   </div>
-</div>
-</div>
-</div>
-</div>
-<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-<script>
-function calculateDailyNetAmount(date) {
-    let dailyIncome = 0, dailyExpense = 0;
-
-    incomes.forEach(income => {
-        const start = new Date(income.date);
-        const end = income.endDate ? new Date(income.endDate) : null;
-        start.setHours(0,0,0,0);
-        if (end) end.setHours(0,0,0,0);
-        if (start <= date && (!end || date <= end)) {
-            if (income.frequency === 'once' && date.getTime() === start.getTime()) dailyIncome += income.amount;
-            else if (income.frequency === 'weekly' && Math.floor((date - start)/(1000*60*60*24)) % 7 === 0) dailyIncome += income.amount;
-            else if (income.frequency === 'monthly' && date.getDate() === start.getDate()) dailyIncome += income.amount;
-            else if (income.frequency === 'yearly' && date.getDate() === start.getDate() && date.getMonth() === start.getMonth()) dailyIncome += income.amount;
-        }
-    });
-
-    expenses.forEach(expense => {
-        const start = new Date(expense.date);
-        const end = expense.endDate ? new Date(expense.endDate) : null;
-        start.setHours(0,0,0,0);
-        if (end) end.setHours(0,0,0,0);
-        if (start <= date && (!end || date <= end)) {
-            if (expense.frequency === 'once' && date.getTime() === start.getTime()) dailyExpense += expense.amount;
-            else if (expense.frequency === 'weekly' && Math.floor((date - start)/(1000*60*60*24)) % 7 === 0) dailyExpense += expense.amount;
-            else if (expense.frequency === 'monthly' && date.getDate() === start.getDate()) dailyExpense += expense.amount;
-            else if (expense.frequency === 'yearly' && date.getDate() === start.getDate() && date.getMonth() === start.getMonth()) dailyExpense += expense.amount;
-        }
-    });
-
-    return dailyIncome - dailyExpense;
-}
-</script><script>
-function updateChart() {
-    try {
-        const labels = [], dataBalance = [];
-        let startDate = new Date();
-        let endDate = new Date(document.getElementById("target-date").value);
-
-        startDate.setHours(0,0,0,0);
-        endDate.setHours(0,0,0,0);
-
-        let currentDate = new Date(startDate);
-        let balance = parseFloat(localStorage.getItem("startingBalance") || 0);
-        let lastBalance = balance;
-
-        while (currentDate <= endDate) {
-            balance += calculateDailyNetAmount(currentDate);
-            if (balance !== lastBalance || labels.length === 0 || currentDate.getTime() === endDate.getTime()) {
-                labels.push(currentDate.toISOString().split('T')[0]);
-                dataBalance.push(balance);
-                lastBalance = balance;
-            }
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-
-        const finalBalance = dataBalance[dataBalance.length - 1];
-        const displayText = "Estimated Balance on " + endDate.toDateString() + ": " +
-            finalBalance.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-        document.getElementById("calculation-result").innerHTML = "<p class='font-weight-bold'>" + displayText + "</p>";
-
-        const layout = {
-            title: "Balance Forecast",
-            xaxis: { title: "Date", type: "date" },
-            yaxis: { title: "Balance", tickprefix: "$" },
-            margin: { t: 50, r: 20, l: 50, b: 50 },
-            responsive: true
-        };
-
-        const trace = {
-            x: labels,
-            y: dataBalance,
-            type: 'scatter',
-            mode: 'lines+markers',
-            line: { color: 'blue' },
-            name: 'Balance'
-        };
-
-Plotly.newPlot("plotly-graph", [trace], layout, {
-    responsive: true,
-    displaylogo: false,
-    modeBarButtonsToRemove: ["zoom2d", "pan2d", "autoScale2d", "select2d", "lasso2d", "toImage", "zoomIn2d", "zoomOut2d", "hoverClosestCartesian", "hoverCompareCartesian", "toggleSpikelines"],
-    modeBarButtonsToKeep: ["resetScale2d"]
-});
-
-    } catch (e) {
-        document.getElementById("calculation-result").innerHTML = "<p class='text-danger'>Chart rendering failed: " + e.message + "</p>";
-    }
-        renderUpcomingCharges();
-}
-function renderUpcomingCharges() {
-    const tableBody = document.querySelector("#upcoming-charges-table tbody");
-    tableBody.innerHTML = "";
-
-    const startDate = new Date();
-    const endDate = new Date(document.getElementById("target-date").value);
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(0, 0, 0, 0);
-
-    let runningBalance = parseFloat(localStorage.getItem("startingBalance") || 0);
-    const rows = [];
-
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        const day = new Date(d);
-        day.setHours(0, 0, 0, 0);
-
-        const incomeMatches = [];
-        const expenseMatches = [];
-
-        JSON.parse(localStorage.getItem("incomes") || "[]").forEach(i => {
-            const s = new Date(i.date);
-            const e = i.endDate ? new Date(i.endDate) : null;
-            s.setHours(0, 0, 0, 0);
-            if (e) e.setHours(0, 0, 0, 0);
-            if (s <= day && (!e || day <= e)) {
-                const match = (
-                    (i.frequency === "once" && day.getTime() === s.getTime()) ||
-                    (i.frequency === "weekly" && (Math.floor((day - s) / (1000 * 60 * 60 * 24)) % 7 === 0)) ||
-                    (i.frequency === "monthly" && day.getDate() === s.getDate()) ||
-                    (i.frequency === "yearly" && day.getDate() === s.getDate() && day.getMonth() === s.getMonth())
-                );
-                if (match) incomeMatches.push(i);
-            }
-        });
-
-        JSON.parse(localStorage.getItem("expenses") || "[]").forEach(e => {
-            const s = new Date(e.date);
-            const eEnd = e.endDate ? new Date(e.endDate) : null;
-            s.setHours(0, 0, 0, 0);
-            if (eEnd) eEnd.setHours(0, 0, 0, 0);
-            if (s <= day && (!eEnd || day <= eEnd)) {
-                const match = (
-                    (e.frequency === "once" && day.getTime() === s.getTime()) ||
-                    (e.frequency === "weekly" && (Math.floor((day - s) / (1000 * 60 * 60 * 24)) % 7 === 0)) ||
-                    (e.frequency === "monthly" && day.getDate() === s.getDate()) ||
-                    (e.frequency === "yearly" && day.getDate() === s.getDate() && day.getMonth() === s.getMonth())
-                );
-                if (match) expenseMatches.push(e);
-            }
-        });
-
-        incomeMatches.forEach(i => {
-            runningBalance += i.amount;
-            rows.push({
-                description: i.description,
-                amount: i.amount,
-                date: day.toISOString().split("T")[0],
-                frequency: i.frequency,
-                balance: runningBalance
-            });
-        });
-
-        expenseMatches.forEach(e => {
-            runningBalance -= e.amount;
-            rows.push({
-                description: e.description,
-                amount: -e.amount,
-                date: day.toISOString().split("T")[0],
-                frequency: e.frequency,
-                balance: runningBalance
-            });
-        });
-    }
-
-    rows.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    rows.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.className = row.balance < 0 ? "table-danger" : "table-success";
-        tr.innerHTML = `
-            <td>${row.description}</td>
-            <td>${row.amount < 0 ? "-$" + Math.abs(row.amount).toLocaleString() : "$" + row.amount.toLocaleString()}</td>
-            <td>${row.date}</td>
-            <td>${row.frequency}</td>
-            <td>$${row.balance.toLocaleString()}</td>
-        `;
-        tableBody.appendChild(tr);
-    });
-}
-</script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<script>
-    const menuBtn = document.getElementById("menuButton");
-    const menuDropdown = document.getElementById("menuDropdown");
-    const mainSections = document.querySelectorAll(".main-section");
-    const toastMessage = document.getElementById("toastMessage");
-    let currentSection = document.querySelector(".main-section:not(.hidden-section)") || mainSections[0];
-
-    menuBtn.addEventListener("click", () => {
-        menuDropdown.classList.toggle("show");
-    });
-
-    menuDropdown.querySelectorAll("a").forEach(link => {
-        link.addEventListener("click", e => {
-            e.preventDefault();
-            const sectionId = e.target.getAttribute("data-section");
-            const newSection = document.getElementById(sectionId);
-            if (currentSection !== newSection) {
-                currentSection.classList.add("hidden-section");
-                newSection.classList.remove("hidden-section");
-                currentSection = newSection;
-                if (sectionId === "overview-section") updateChart();
-            }
-            menuDropdown.classList.remove("show");
-        });
-    });
-
-    const darkToggle = document.getElementById("darkModeToggle");
-    const darkIcon = document.getElementById("darkModeIcon");
-
-    darkToggle.addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
-        if (document.body.classList.contains("dark-mode")) {
-            localStorage.setItem("darkMode", "enabled");
-            darkIcon.classList.remove("fa-moon");
-            darkIcon.classList.add("fa-sun");
-        } else {
-            localStorage.setItem("darkMode", "disabled");
-            darkIcon.classList.remove("fa-sun");
-            darkIcon.classList.add("fa-moon");
-        }
-    });
-
-    if (localStorage.getItem("darkMode") === "enabled") {
-        document.body.classList.add("dark-mode");
-        darkIcon.classList.remove("fa-moon");
-        darkIcon.classList.add("fa-sun");
-    }
-
-    const savedBalance = localStorage.getItem("startingBalance");
-    if (savedBalance !== null && !isNaN(savedBalance)) {
-        document.getElementById("starting-balance").value = parseFloat(savedBalance);
-    }
-
-    const balanceForm = document.getElementById("balance-form");
-    balanceForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-        const balanceValue = parseFloat(document.getElementById("starting-balance").value);
-        if (!isNaN(balanceValue)) {
-            const roundedBalance = Math.round(balanceValue * 100) / 100;
-            localStorage.setItem("startingBalance", roundedBalance);
-            requestAnimationFrame(() => {
-                toastMessage.classList.remove("slide-down");
-                toastMessage.offsetHeight;
-                toastMessage.classList.add("slide-down");
-                toastMessage.style.display = "block";
-            });
-        }
-    });
-    document.getElementById("export-data").addEventListener("click", function () {
-        const data = {
-            expenses,
-            incomes,
-            startingBalance: parseFloat(localStorage.getItem("startingBalance") || 0)
-        };
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
-        const downloadAnchorNode = document.createElement("a");
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "financial_data.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-    });
-
-    document.getElementById("import-data").addEventListener("click", function () {
-        const fileInput = document.getElementById("import-file");
-        if (fileInput.files.length === 0) {
-            alert("Please select a file to import.");
-            return;
-        }
-        const file = fileInput.files[0];
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-            try {
-                const importedData = JSON.parse(e.target.result);
-
-                const loadedExpenses = importedData.expenses || [];
-                const loadedIncomes = importedData.incomes || [];
-                const loadedStartingBalance = importedData.startingBalance || 0;
-
-                expenses.length = 0;
-                incomes.length = 0;
-
-                expenses.push(...loadedExpenses.map(exp => ({
-                    description: exp.description,
-                    amount: exp.amount,
-                    frequency: exp.frequency,
-                    date: exp.date,
-                    endDate: exp.endDate ?? ""
-                })));
-
-                incomes.push(...loadedIncomes.map(inc => ({
-                    description: inc.description,
-                    amount: inc.amount,
-                    frequency: inc.frequency,
-                    date: inc.date,
-                    endDate: inc.endDate ?? ""
-                })));
-
-                localStorage.setItem("startingBalance", loadedStartingBalance);
-                localStorage.setItem("expenses", JSON.stringify(expenses));
-                localStorage.setItem("incomes", JSON.stringify(incomes));
-
-                document.getElementById("starting-balance").value = loadedStartingBalance;
-                renderExpenses();
-                renderIncomes();
-                alert("Data imported successfully.");
-            } catch (err) {
-                alert("Import failed: " + err.message);
-            }
-        };
-
-        reader.readAsText(file);
-    });
-    window.addEventListener("load", () => {
-
-        const today = new Date();
-        const endOfYear = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
-        document.getElementById("target-date").value = endOfYear.toISOString().split("T")[0];
-        updateChart();
-        
-        updateChart();
-    });
-</script>
-<script>
-document.getElementById("chart-start-date").addEventListener("input", updateChart);
-document.getElementById("chart-end-date").addEventListener("input", updateChart);
-</script>
-<script>
-  document.querySelectorAll('#menuDropdown a').forEach(link => {
-    link.onclick = function(e) {
-      e.preventDefault();
-      const sectionId = this.getAttribute('data-section');
-      document.querySelectorAll('.main-section').forEach(sec => sec.classList.add('hidden-section'));
-      document.getElementById(sectionId).classList.remove('hidden-section');
-      document.getElementById('menuDropdown').classList.remove('show');
-      if (sectionId === 'overview-section') updateChart();
-    };
-  });
-</script>
-<script>document.getElementById("target-date").addEventListener("input", updateChart);</script><script>
-function renderExpensesUpdated() {
-    const expenseTableBody = document.querySelector("#expenses-table tbody");
-    const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
-    expenseTableBody.innerHTML = "";
-    expenses.forEach((item, index) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${item.description}</td>
-            <td>${item.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-            <td>${item.date}</td>
-            <td>${item.endDate || ''}</td>
-            <td>${item.frequency}</td>
-            <td>
-              <button class="btn btn-sm btn-warning" onclick="editExpense(${index})">Edit</button>
-              <button class="btn btn-sm btn-danger" onclick="deleteExpense(${index})">Delete</button>
-            </td>`;
-        expenseTableBody.appendChild(tr);
-    });
-}
-
-function renderExpensesUpdated() {
-    const expenseCardsContainer = document.getElementById("expenses-cards");
-    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    expenseCardsContainer.innerHTML = "";
-    expenses.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `
-            <div class="card-body">
-                <h5 class="card-title font-weight-bold">${item.description}</h5>
-                <div class="row">
-                    <div class="col-6"><strong>Amount:</strong> $${item.amount.toFixed(2)}</div>
-                    <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                </div>
-                <div class="row">
-                    <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                    <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-                </div>
-                <div class="d-flex justify-content-between mt-2">
-                    <button class="btn btn-warning btn-sm" onclick="editExpense(${index})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteExpense(${index})">Delete</button>
-                </div>
-            </div>`;
-        expenseCardsContainer.appendChild(card);
-    });
-}
-window.renderExpenses = renderExpensesUpdated;
-</script><script>
-function renderIncomesUpdated() {
-    const incomeTableBody = document.querySelector("#income-table tbody");
-    const incomes = JSON.parse(localStorage.getItem('incomes') || '[]');
-    incomeTableBody.innerHTML = "";
-    incomes.forEach((item, index) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${item.description}</td>
-            <td>${item.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</td>
-            <td>${item.date}</td>
-            <td>${item.endDate || ''}</td>
-            <td>${item.frequency}</td>
-            <td>
-              <button class="btn btn-sm btn-warning" onclick="editIncome(${index})">Edit</button>
-              <button class="btn btn-sm btn-danger" onclick="deleteIncome(${index})">Delete</button>
-            </td>`;
-        incomeTableBody.appendChild(tr);
-    });
-}
-
-function renderIncomesUpdated() {
-    const incomeCardsContainer = document.getElementById("income-cards");
-    const incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    incomeCardsContainer.innerHTML = "";
-    incomes.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `
-            <div class="card-body">
-                <h5 class="card-title font-weight-bold">${item.description}</h5>
-                <div class="row">
-                    <div class="col-6"><strong>Amount:</strong> $${item.amount.toFixed(2)}</div>
-                    <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                </div>
-                <div class="row">
-                    <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                    <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-                </div>
-                <div class="d-flex justify-content-between mt-2">
-                    <button class="btn btn-warning btn-sm" onclick="editIncome(${index})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteIncome(${index})">Delete</button>
-                </div>
-            </div>`;
-        incomeCardsContainer.appendChild(card);
-    });
-}
-window.renderIncomes = renderIncomesUpdated;
-</script><script>window.addEventListener('load', function() { renderExpenses(); renderIncomes(); });</script><script>
-function renderExpensesUpdated() {
-    const expenseCardsContainer = document.getElementById("expenses-cards");
-    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    expenseCardsContainer.innerHTML = "";
-    expenses.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `
-            <div class="card-body">
-                <h5 class="card-title">${item.description}</h5>
-                <p class="card-text">
-                    <strong>Amount:</strong> $${item.amount.toFixed(2)}<br>
-                    <strong>Start:</strong> ${item.date}<br>
-                    <strong>End:</strong> ${item.endDate || "-"}<br>
-                    <strong>Frequency:</strong> ${item.frequency}
-                </p>
-                <div class="d-flex justify-content-between">
-                    <button class="btn btn-warning btn-sm" onclick="editExpense(${index})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteExpense(${index})">Delete</button>
-                </div>
-            </div>`;
-        expenseCardsContainer.appendChild(card);
-    });
-}
-
-function renderIncomes() {
-    const incomeCardsContainer = document.getElementById("income-cards");
-    const incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    incomeCardsContainer.innerHTML = "";
-    incomes.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `
-            <div class="card-body">
-                <h5 class="card-title">${item.description}</h5>
-                <p class="card-text">
-                    <strong>Amount:</strong> $${item.amount.toFixed(2)}<br>
-                    <strong>Start:</strong> ${item.date}<br>
-                    <strong>End:</strong> ${item.endDate || "-"}<br>
-                    <strong>Frequency:</strong> ${item.frequency}
-                </p>
-                <div class="d-flex justify-content-between">
-                    <button class="btn btn-warning btn-sm" onclick="editIncome(${index})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteIncome(${index})">Delete</button>
-                </div>
-            </div>`;
-        incomeCardsContainer.appendChild(card);
-    });
-}
-
-function renderExpensesUpdated() {
-    const expenseCardsContainer = document.getElementById("expenses-cards");
-    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    expenseCardsContainer.innerHTML = "";
-    expenses.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `
-            <div class="card-body">
-                <h5 class="card-title font-weight-bold">${item.description}</h5>
-                <div class="row">
-                    <div class="col-6"><strong>Amount:</strong> $${item.amount.toFixed(2)}</div>
-                    <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                </div>
-                <div class="row">
-                    <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                    <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-                </div>
-                <div class="d-flex justify-content-between mt-2">
-                    <button class="btn btn-warning btn-sm" onclick="editExpense(${index})">Edit</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteExpense(${index})">Delete</button>
-                </div>
-            </div>`;
-        expenseCardsContainer.appendChild(card);
-    });
-}
-window.renderExpenses = renderExpensesUpdated;
-</script><script>window.addEventListener('load', function() { renderExpenses(); renderIncomes(); });</script><script>
-function editExpense(index) {
-    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    const item = expenses[index];
-    document.getElementById("description").value = item.description;
-    document.getElementById("amount").value = item.amount;
-    document.getElementById("start-date").value = item.date;
-    document.getElementById("end-date").value = item.endDate || '';
-    document.getElementById("frequency").value = item.frequency;
-    document.getElementById("edit-index").value = index;
-}
-
-function deleteExpense(index) {
-    let expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    if (confirm("Delete this expense?")) {
-        expenses.splice(index, 1);
-        localStorage.setItem("expenses", JSON.stringify(expenses));
-        renderExpenses();
-        updateChart();
-    }
-}
-
-function editIncome(index) {
-    const incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    const item = incomes[index];
-    document.getElementById("description-income").value = item.description;
-    document.getElementById("amount-income").value = item.amount;
-    document.getElementById("start-date-income").value = item.date;
-    document.getElementById("end-date-income").value = item.endDate || '';
-    document.getElementById("frequency-income").value = item.frequency;
-    document.getElementById("edit-index-income").value = index;
-}
-
-function deleteIncome(index) {
-    let incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    if (confirm("Delete this income?")) {
-        incomes.splice(index, 1);
-        localStorage.setItem("incomes", JSON.stringify(incomes));
-        renderIncomes();
-        updateChart();
-    }
-}
-
-window.editExpense = editExpense;</script><script>
-function editExpense(index) {
-    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    const item = expenses[index];
-    document.getElementById("description").value = item.description;
-    document.getElementById("amount").value = item.amount;
-    document.getElementById("start-date").value = item.date;
-    document.getElementById("end-date").value = item.endDate || '';
-    document.getElementById("frequency").value = item.frequency;
-    document.getElementById("edit-index").value = index;
-}
-
-function deleteExpense(index) {
-    let expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    if (confirm("Delete this expense?")) {
-        expenses.splice(index, 1);
-        localStorage.setItem("expenses", JSON.stringify(expenses));
-        renderExpenses();
-        updateChart();
-    }
-}
-
-function editIncome(index) {
-    const incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    const item = incomes[index];
-    document.getElementById("description-income").value = item.description;
-    document.getElementById("amount-income").value = item.amount;
-    document.getElementById("start-date-income").value = item.date;
-    document.getElementById("end-date-income").value = item.endDate || '';
-    document.getElementById("frequency-income").value = item.frequency;
-    document.getElementById("edit-index-income").value = index;
-}
-
-function deleteIncome(index) {
-    let incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    if (confirm("Delete this income?")) {
-        incomes.splice(index, 1);
-        localStorage.setItem("incomes", JSON.stringify(incomes));
-        renderIncomes();
-        updateChart();
-    }
-}
-
-window.editExpense = editExpense;</script>
-<!-- Expense Modal -->
-<div aria-hidden="true" aria-labelledby="expenseModalLabel" class="modal fade" id="expenseModal" role="dialog" tabindex="-1">
-<div class="modal-dialog modal-dialog-centered" role="document">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title" id="expenseModalLabel">Add/Edit Expense</h5>
-<button aria-label="Close" class="close" data-dismiss="modal" onclick="$('#expenseModal').modal('hide')" type="button">
-<span aria-hidden="true">×</span>
-</button>
-</div>
-<div class="modal-body">
-<input id="expense-index" type="hidden"/>
-<div class="form-group">
-<label>Description</label>
-<input class="form-control" id="expense-desc" type="text"/>
-</div>
-<div class="form-group">
-<label>Amount</label>
-<input class="form-control" id="expense-amount" type="number"/>
-</div>
-<div class="form-group">
-<label>Start Date</label>
-<input class="form-control" id="expense-start" type="date"/>
-</div>
-<div class="form-group">
-<label>End Date (optional)</label>
-<input class="form-control" id="expense-end" type="date"/>
-</div>
-<div class="form-group">
-<label>Frequency</label>
-<select class="form-control" id="expense-frequency">
-<option value="once">Once</option>
-<option value="weekly">Weekly</option>
-<option value="monthly">Monthly</option>
-<option value="yearly">Yearly</option>
-</select>
-</div>
-</div>
-<div class="modal-footer">
-<button class="btn btn-secondary" onclick="$('#expenseModal').modal('hide')" type="button">Cancel</button>
-<button class="btn btn-primary" onclick="saveExpense()" type="button">Save</button>
-</div>
-</div>
-</div>
-</div>
-<!-- Income Modal -->
-<div aria-hidden="true" aria-labelledby="incomeModalLabel" class="modal fade" id="incomeModal" role="dialog" tabindex="-1">
-<div class="modal-dialog modal-dialog-centered" role="document">
-<div class="modal-content">
-<div class="modal-header">
-<h5 class="modal-title" id="incomeModalLabel">Add/Edit Income</h5>
-<button aria-label="Close" class="close" data-dismiss="modal" onclick="$('#incomeModal').modal('hide')" type="button">
-<span aria-hidden="true">×</span>
-</button>
-</div>
-<div class="modal-body">
-<input id="income-index" type="hidden"/>
-<div class="form-group">
-<label>Description</label>
-<input class="form-control" id="income-desc" type="text"/>
-</div>
-<div class="form-group">
-<label>Amount</label>
-<input class="form-control" id="income-amount" type="number"/>
-</div>
-<div class="form-group">
-<label>Start Date</label>
-<input class="form-control" id="income-start" type="date"/>
-</div>
-<div class="form-group">
-<label>End Date (optional)</label>
-<input class="form-control" id="income-end" type="date"/>
-</div>
-<div class="form-group">
-<label>Frequency</label>
-<select class="form-control" id="income-frequency">
-<option value="once">Once</option>
-<option value="weekly">Weekly</option>
-<option value="monthly">Monthly</option>
-<option value="yearly">Yearly</option>
-</select>
-</div>
-</div>
-<div class="modal-footer">
-<button class="btn btn-secondary" onclick="$('#incomeModal').modal('hide')" type="button">Cancel</button>
-<button class="btn btn-primary" onclick="saveIncome()" type="button">Save</button>
-</div>
-</div>
-</div>
-</div>
-<script>
-function saveExpense() {
-    const index = document.getElementById("expense-index").value;
-    const desc = document.getElementById("expense-desc").value;
-    const amount = parseFloat(document.getElementById("expense-amount").value);
-    const start = document.getElementById("expense-start").value;
-    const end = document.getElementById("expense-end").value;
-    const freq = document.getElementById("expense-frequency").value;
-
-    if (!desc || isNaN(amount) || !start || !freq) {
-        alert("Please fill out all required fields.");
-        return;
-    }
-
-    let expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    const data = { description: desc, amount, date: start, endDate: end, frequency: freq };
-
-    if (index === "") expenses.push(data);
-    else expenses[parseInt(index)] = data;
-
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-    $('#expenseModal').modal('hide');
-    renderExpenses();
-updateChart();
-    updateChart();
-}
-
-function saveIncome() {
-    const index = document.getElementById("income-index").value;
-    const desc = document.getElementById("income-desc").value;
-    const amount = parseFloat(document.getElementById("income-amount").value);
-    const start = document.getElementById("income-start").value;
-    const end = document.getElementById("income-end").value;
-    const freq = document.getElementById("income-frequency").value;
-
-    if (!desc || isNaN(amount) || !start || !freq) {
-        alert("Please fill out all required fields.");
-        return;
-    }
-
-    let incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    const data = { description: desc, amount, date: start, endDate: end, frequency: freq };
-
-    if (index === "") incomes.push(data);
-    else incomes[parseInt(index)] = data;
-
-    localStorage.setItem("incomes", JSON.stringify(incomes));
-    $('#incomeModal').modal('hide');
-    renderIncomes();
-updateChart();
-    updateChart();
-}
-
-function editExpense(index) {
-    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    const item = expenses[index];
-    document.getElementById("expense-index").value = index;
-    document.getElementById("expense-desc").value = item.description;
-    document.getElementById("expense-amount").value = item.amount;
-    document.getElementById("expense-start").value = item.date;
-    document.getElementById("expense-end").value = item.endDate || '';
-    document.getElementById("expense-frequency").value = item.frequency || 'once';
-    $('#expenseModal').modal('show');
-}
-
-function editIncome(index) {
-    const incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    const item = incomes[index];
-    document.getElementById("income-index").value = index;
-    document.getElementById("income-desc").value = item.description;
-    document.getElementById("income-amount").value = item.amount;
-    document.getElementById("income-start").value = item.date;
-    document.getElementById("income-end").value = item.endDate || '';
-    document.getElementById("income-frequency").value = item.frequency || "once";
-    $('#incomeModal').modal('show');
-}
-
-window.editExpense = editExpense;
-window.editIncome = editIncome;
-window.saveExpense = saveExpense;
-window.saveIncome = saveIncome;
-
-function clearExpenseModal() {
-    document.getElementById("expense-index").value = "";
-    document.getElementById("expense-desc").value = "";
-    document.getElementById("expense-amount").value = "";
-    document.getElementById("expense-start").value = "";
-    document.getElementById("expense-end").value = "";
-    document.getElementById("expense-frequency").value = "once";
-    $('#expenseModal').modal('show');
-}
-function clearIncomeModal() {
-    document.getElementById("income-index").value = "";
-    document.getElementById("income-desc").value = "";
-    document.getElementById("income-amount").value = "";
-    document.getElementById("income-start").value = "";
-    document.getElementById("income-end").value = "";
-    document.getElementById("income-frequency").value = "once";
-    $('#incomeModal').modal('show');
-}
-window.clearExpenseModal = clearExpenseModal;
-window.clearIncomeModal = clearIncomeModal;
-
-window.addEventListener('load', function() {
-    updateChart();
-});
-</script><script>
-function groupAndRenderItems(type) {
-    const container = document.getElementById(type + "-cards");
-    const items = JSON.parse(localStorage.getItem(type + "s") || "[]");
-    container.innerHTML = "";
-
-    const grouped = { once: [], weekly: [], monthly: [], yearly: [] };
-    items.sort((a, b) => new Date(a.date) - new Date(b.date));
-    items.forEach(item => grouped[item.frequency].push(item));
-
-    const freqNames = { once: "One-Time", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" };
-    const today = new Date();
-
-    for (const freq in grouped) {
-        if (grouped[freq].length === 0) continue;
-
-        let total = grouped[freq].reduce((sum, i) => sum + parseFloat(i.amount || 0), 0).toFixed(2);
-        const section = document.createElement("div");
-        const toggle = document.createElement("div");
-        const groupId = `${type}-group-${freq}`;
-        toggle.innerHTML = `<div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${groupId}')">
-            <strong>${freqNames[freq]} (${grouped[freq].length})</strong>
-            <span>Total: $${total}</span>
-        </div>`;
-        section.appendChild(toggle);
-
-        const groupContent = document.createElement("div");
-        groupContent.id = groupId;
-        groupContent.className = "mb-3";
-
-        grouped[freq].forEach((item, index) => {
-            const card = document.createElement("div");
-            card.className = "card mb-2 shadow-sm";
-            let highlight = "";
-            const itemDate = new Date(item.date);
-            if ((itemDate - today) / (1000 * 60 * 60 * 24) <= 30) highlight = " style='background-color: #fff8dc;'";
-
-            card.innerHTML = `<div class="card-body"${highlight}>
-                <h5 class="card-title font-weight-bold">${item.description}</h5>
-                <div class="row">
-                    <div class="col-6"><strong>Amount:</strong> $${parseFloat(item.amount).toFixed(2)}</div>
-                    <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                </div>
-                <div class="row">
-                    <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                    <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-                </div>
-                <div class="d-flex justify-content-end mt-2">
-                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${findIndexInOriginal(type, item)})" title="Edit">&#9998;</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${findIndexInOriginal(type, item)})" title="Delete">&#128465;</button>
-                </div>
-            </div>`;
-            groupContent.appendChild(card);
-        });
-
-        section.appendChild(groupContent);
-        container.appendChild(section);
-    }
-}
-
-function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function findIndexInOriginal(type, item) {
-    const items = JSON.parse(localStorage.getItem(type + "s") || "[]");
-    return items.findIndex(x =>
-        x.description === item.description &&
-        x.amount == item.amount &&
-        x.date === item.date &&
-        x.endDate === item.endDate &&
-        x.frequency === item.frequency
-    );
-}
-
-function toggleGroup(id) {
-    const el = document.getElementById(id);
-    if (el) el.style.display = (el.style.display === "none") ? "block" : "none";
-}
-
-// Replace render functions with grouped versions
-window.renderExpenses = () => groupAndRenderItems("expense");
-window.renderIncomes = () => groupAndRenderItems("income");
-</script><script>
-window.addEventListener('load', function() {
-  renderExpenses();
-  renderIncomes();
-});
-</script><script>
-function renderExpenses() {
-    const expenseCardsContainer = document.getElementById("expenses-cards");
-    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    expenseCardsContainer.innerHTML = "";
-    expenses.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `<div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="card-title font-weight-bold" style="font-size:2rem;">${item.description}</h5>
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-primary mr-3" onclick="editExpense(${index})" title="Edit">&#9998;</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense(${index})" title="Delete">&#128465;</button>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6"><strong>Amount:</strong> $${parseFloat(item.amount).toFixed(2)}</div>
-                <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-            </div>
-            <div class="row">
-                <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-            </div>
-        </div>`;
-        expenseCardsContainer.appendChild(card);
-    });
-}
-
-function renderIncomes() {
-    const incomeCardsContainer = document.getElementById("income-cards");
-    const incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    incomeCardsContainer.innerHTML = "";
-    incomes.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `<div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="card-title font-weight-bold" style="font-size:2rem;">${item.description}</h5>
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-primary mr-3" onclick="editIncome(${index})" title="Edit">&#9998;</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteIncome(${index})" title="Delete">&#128465;</button>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6"><strong>Amount:</strong> $${parseFloat(item.amount).toFixed(2)}</div>
-                <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-            </div>
-            <div class="row">
-                <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-            </div>
-        </div>`;
-        incomeCardsContainer.appendChild(card);
-    });
-}
-
-window.addEventListener('load', function() {
-    renderExpenses();
-    renderIncomes();
-});
-</script><script>window.addEventListener('load', function() { renderExpenses(); renderIncomes(); });</script><script>
-function renderExpenses() {
-    const expenseCardsContainer = document.getElementById("expenses-cards");
-    const expenses = JSON.parse(localStorage.getItem("expenses") || "[]");
-    expenseCardsContainer.innerHTML = "";
-    expenses.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `<div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="card-title font-weight-bold" style="font-size:2rem;">${item.description}</h5>
-                <div>
-                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="editExpense(${index})" title="Edit">&#9998;</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteExpense(${index})" title="Delete">&#128465;</button>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6"><strong>Amount:</strong> $${parseFloat(item.amount).toFixed(2)}</div>
-                <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-            </div>
-            <div class="row">
-                <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-            </div>
-        </div>`;
-        expenseCardsContainer.appendChild(card);
-    });
-}
-
-function renderIncomes() {
-    const incomeCardsContainer = document.getElementById("income-cards");
-    const incomes = JSON.parse(localStorage.getItem("incomes") || "[]");
-    incomeCardsContainer.innerHTML = "";
-    incomes.forEach((item, index) => {
-        const card = document.createElement("div");
-        card.className = "card mb-2 shadow-sm";
-        card.innerHTML = `<div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h5 class="card-title font-weight-bold" style="font-size:2rem;">${item.description}</h5>
-                <div>
-                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="editIncome(${index})" title="Edit">&#9998;</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteIncome(${index})" title="Delete">&#128465;</button>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-6"><strong>Amount:</strong> $${parseFloat(item.amount).toFixed(2)}</div>
-                <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-            </div>
-            <div class="row">
-                <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-            </div>
-        </div>`;
-        incomeCardsContainer.appendChild(card);
-    });
-}
-
-// Ensure the page load triggers these newly defined functions
-window.addEventListener('load', function() {
-    renderExpenses();
-    renderIncomes();
-});
-</script>
-<script>
-// === Enhanced grouping with Average and Annualized header ===
-function groupAndRenderItems(collectionKey) {
-    // collectionKey should be "expenses" or "incomes"
-    const containerId = collectionKey + "-cards";
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    const items = JSON.parse(localStorage.getItem(collectionKey) || "[]");
-    container.innerHTML = "";
-
-    const grouped = { once: [], weekly: [], monthly: [], yearly: [] };
-    items.sort((a, b) => new Date(a.date || a.startDate || 0) - new Date(b.date || b.startDate || 0));
-    items.forEach(item => {
-        grouped[item.frequency] = grouped[item.frequency] || [];
-        grouped[item.frequency].push(item);
-    });
-
-    const freqNames = { once: "One‑Time", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" };
-    const annualMultiplier = { once: 1, weekly: 52, monthly: 12, yearly: 1 };
-
-    for (const freq of ["once","weekly","monthly","yearly"]) {
-        const groupArr = grouped[freq];
-        if (!groupArr || groupArr.length === 0) continue;
-
-        const count = groupArr.length;
-        const total = groupArr.reduce((sum, i) => sum + parseFloat(i.amount || 0), 0);
-        const average = total / count;
-        const annualized = total * annualMultiplier[freq];
-
-        const section = document.createElement("div");
-
-        // Header
-        const header = document.createElement("div");
-        header.className = "bg-light p-2 mb-2 border d-flex justify-content-between align-items-center";
-        header.style.cursor = "pointer";
-        const groupId = `${collectionKey}-group-${freq}`;
-        header.innerHTML = `<strong>${freqNames[freq]} (${count})</strong>
-            <span>Avg: $${average.toFixed(2)} | Annual: $${annualized.toFixed(2)}</span>`;
-        header.addEventListener("click", () => toggleGroup(groupId));
-        section.appendChild(header);
-
-        // Content
-        const groupContent = document.createElement("div");
-        groupContent.id = groupId;
-        groupContent.className = "mb-3";
-
-        groupArr.forEach(item => {
-            const idx = items.indexOf(item);
-            const card = document.createElement("div");
-            card.className = "card mb-2 shadow-sm";
-            card.innerHTML = `<div class="card-body">
-                <h5 class="card-title font-weight-bold">${item.description}</h5>
-                <div class="row">
-                    <div class="col-6"><strong>Amount:</strong> $${parseFloat(item.amount).toFixed(2)}</div>
-                    <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                </div>
-                <div class="row">
-                    <div class="col-6"><strong>Start:</strong> ${item.date || item.startDate || "-"}</div>
-                    <div class="col-6"><strong>End:</strong> ${item.endDate || "-"}</div>
-                </div>
-                <div class="d-flex justify-content-end mt-2">
-                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${collectionKey.slice(0,-1).charAt(0).toUpperCase()+collectionKey.slice(1,-1)}(${idx})" title="Edit">&#x270E;</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="delete${collectionKey.slice(0,-1).charAt(0).toUpperCase()+collectionKey.slice(1,-1)}(${idx})" title="Delete">&#x1F5D1;</button>
-                </div>
-            </div>`;
-            groupContent.appendChild(card);
-        });
-
-        section.appendChild(groupContent);
-        container.appendChild(section);
-    }
-}
-
-// Override original renderers
-window.renderExpenses = () => groupAndRenderItems("expenses");
-window.renderIncomes  = () => groupAndRenderItems("incomes");
-</script>
-
-
-
-
-<script>
-// === Enhanced grouping with totals & overall summary ===
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function fmt(n){return Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function today(){const d=new Date();d.setHours(0,0,0,0);return d;}
-function active(item){return !item.endDate || new Date(item.endDate)>=today();}
-function containerId(t){return t==="expense"?"expenses-cards":"income-cards";}
-function groupAndRenderItems(type){
-    const container=document.getElementById(containerId(type)); if(!container) return;
-    const items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    container.innerHTML="";
-    // --- overall summary ---
-    const activeItems=items.filter(active);
-    const sumAll=activeItems.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-    const avgAll=activeItems.length?sumAll/activeItems.length:0;
-    const mult={once:1,weekly:52,monthly:12,yearly:1};
-    const annualAll=activeItems.reduce((a,it)=>a+parseFloat(it.amount||0)*mult[it.frequency],0);
-    const summary=document.createElement("div");
-    summary.className="bg-primary text-white p-2 mb-3";
-    summary.innerHTML=`<strong>All Active (${activeItems.length})</strong> | Sum: $${fmt(sumAll)} | Avg: $${fmt(avgAll)} | Annual: $${fmt(annualAll)}`;
-    container.appendChild(summary);
-    // --- groups ---
-    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
-    items.sort((a,b)=>new Date(a.date)-new Date(b.date));
-    items.forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-    for(const freq in grouped){
-        if(!grouped[freq].length) continue;
-        const activeGrp=grouped[freq].filter(active);
-        const sumGrp=activeGrp.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avgGrp=activeGrp.length?sumGrp/activeGrp.length:0;
-        const annualGrp=sumGrp*mult[freq];
-        const section=document.createElement("div");
-        const gid=`${type}-${freq}-grp`;
-        section.innerHTML=`<div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
-            <strong>${names[freq]} (${grouped[freq].length})</strong>
-            <span>Sum: $${fmt(sumGrp)} | Avg: $${fmt(avgGrp)} | Annual: $${fmt(annualGrp)}</span>
-        </div>`;
-        const body=document.createElement("div"); body.id=gid;
-        grouped[freq].forEach(it=>{
-            const idx=items.indexOf(it);
-            const card=document.createElement("div"); card.className="card mb-2 shadow-sm";
-            card.innerHTML=`<div class="card-body">
-                <h5 class="card-title font-weight-bold">${it.description}</h5>
-                <div class="row">
-                    <div class="col-6"><strong>Amount:</strong> $${fmt(it.amount)}</div>
-                    <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
-                </div>
-                <div class="row">
-                    <div class="col-6"><strong>Start:</strong> ${it.date}</div>
-                    <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
-                </div>
-                <div class="d-flex justify-content-end mt-2">
-                    <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                </div>
-            </div>`;
-            body.appendChild(card);
-        });
-        section.appendChild(body);
-        container.appendChild(section);
-    }
-}
-window.renderExpenses=()=>groupAndRenderItems("expense");
-window.renderIncomes=()=>groupAndRenderItems("income");
-})();
-</script>
-
-
-<script>
-// ===== Enhanced Grouping, Totals & Reliable Edit/Delete =====
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureIds(arr){
-    let changed=false;
-    arr.forEach(it=>{
-        if(!it.id){
-            it.id=uuidv4();
-            changed=true;
-        }
-    });
-    return changed;
-}
-function saveBack(type,arr){
-    localStorage.setItem(type+"s",JSON.stringify(arr));
-}
-function isActive(item){
-    if(!item.endDate) return true;
-    const today=new Date(); today.setHours(0,0,0,0);
-    return new Date(item.endDate)>=today;
-}
-function findIndexById(arr,id){
-    return arr.findIndex(i=>i.id===id);
-}
-function toggleGroup(id){
-    const el=document.getElementById(id);
-    if(!el) return;
-    el.style.display = el.style.display==='none'?'':'none';
-}
-function groupAndRenderItems(type){
-    const container=document.getElementById(type+"-cards");
-    if(!container) return;
-    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    if(ensureIds(items)) saveBack(type,items);
-
-    container.innerHTML="";
-
-    // === Top‑level totals ===
-    const activeAll=items.filter(isActive);
-    const topTotal=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-    const topAvg=activeAll.length?topTotal/activeAll.length:0;
-    const annualMult={once:1,weekly:52,monthly:12,yearly:1};
-    const topAnnual=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*annualMult[i.frequency],0);
-    const topHeader=document.createElement("div");
-    topHeader.className="bg-primary text-white p-2 mb-3 rounded";
-    topHeader.innerHTML=`<strong>All Active — Sum: $${formatCurrency(topTotal)} | Avg: $${formatCurrency(topAvg)} | Annual: $${formatCurrency(topAnnual)}</strong>`;
-    container.appendChild(topHeader);
-
-    // === Grouped totals ===
-    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
-    items.sort((a,b)=>new Date(a.date)-new Date(b.date));
-    items.forEach(it=>grouped[it.frequency]?.push(it));
-    const freqNames={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-
-    for(const freq in grouped){
-        if(grouped[freq].length===0) continue;
-        const active=grouped[freq].filter(isActive);
-        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avg=active.length?total/active.length:0;
-        const annual=total*annualMult[freq];
-
-        const section=document.createElement("div");
-        const gid=`${type}-group-${freq}`;
-        section.innerHTML=`
-        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
-            <strong>${freqNames[freq]} (${grouped[freq].length})</strong>
-            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
-        </div>`;
-        const body=document.createElement("div"); body.id=gid;
-
-        grouped[freq].forEach(item=>{
-            const idx=findIndexById(items,item.id);
-            const card=document.createElement("div");
-            card.className="card mb-2 shadow-sm";
-            card.innerHTML=`
-                <div class="card-body">
-                    <h5 class="card-title font-weight-bold">${item.description}</h5>
-                    <div class="row">
-                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(item.amount))}</div>
-                        <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                        <div class="col-6"><strong>End:</strong> ${item.endDate||"-"}</div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                    </div>
-                </div>`;
-            body.appendChild(card);
-        });
-        section.appendChild(body);
-        container.appendChild(section);
-    }
-}
-window.renderExpenses=()=>groupAndRenderItems("expense");
-window.renderIncomes=()=>groupAndRenderItems("income");
-})();
-</script>
-
-
-<script>
-// ===== Improved Grouping, Totals & Reliable Edit/Delete =====
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureIds(arr){let changed=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();changed=true;}});return changed;}
-function saveBack(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
-function isActive(item){if(!item.endDate) return true;const today=new Date();today.setHours(0,0,0,0);return new Date(item.endDate)>=today;}
-function findIndexById(arr,id){return arr.findIndex(i=>i.id===id);}
-function toggleGroup(id){const el=document.getElementById(id);if(!el)return;el.style.display=el.style.display==='none'?'':'none';}
-
-function groupAndRenderItems(type){
-    const containerId=(type==="expense"?"expenses":"income")+"-cards";
-    const container=document.getElementById(containerId);
-    if(!container) return;
-
-    // Deep copy to preserve original order for index referencing
-    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    if(ensureIds(items)) saveBack(type,items);
-
-    const allItems=items; // keep unsorted reference
-    const itemsSorted=[...items].sort((a,b)=>new Date(a.date)-new Date(b.date));
-
-    container.innerHTML="";
-
-    // === Top-level totals ===
-    const activeAll=allItems.filter(isActive);
-    const sumAll=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-    const avgAll=activeAll.length?sumAll/activeAll.length:0;
-    const mult={once:1,weekly:52,monthly:12,yearly:1};
-    const annualAll=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
-    const topDiv=document.createElement("div");
-    topDiv.className="bg-primary text-white p-2 mb-3 rounded";
-    topDiv.innerHTML=`<strong>All Active — Sum: $${formatCurrency(sumAll)} | Avg: $${formatCurrency(avgAll)} | Annual: $${formatCurrency(annualAll)}</strong>`;
-    container.appendChild(topDiv);
-
-    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
-    itemsSorted.forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-
-    for(const freq in grouped){
-        if(grouped[freq].length===0) continue;
-        const active=grouped[freq].filter(isActive);
-        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avg=active.length?total/active.length:0;
-        const annual=total*mult[freq];
-
-        const section=document.createElement("div");
-        const gid=`${type}-group-${freq}`;
-        section.innerHTML=`
-        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
-            <strong>${names[freq]} (${grouped[freq].length})</strong>
-            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
-        </div>`;
-        const body=document.createElement("div"); body.id=gid;
-
-        grouped[freq].forEach(item=>{
-            const idx=findIndexById(allItems,item.id);
-            const card=document.createElement("div");
-            card.className="card mb-2 shadow-sm";
-            card.innerHTML=`
-                <div class="card-body">
-                    <h5 class="card-title font-weight-bold">${item.description}</h5>
-                    <div class="row">
-                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(item.amount))}</div>
-                        <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                        <div class="col-6"><strong>End:</strong> ${item.endDate||"-"}</div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                    </div>
-                </div>`;
-            body.appendChild(card);
-        });
-        section.appendChild(body);
-        container.appendChild(section);
-    }
-}
-
-// Expose for legacy callers
-window.renderExpenses=()=>groupAndRenderItems('expense');
-window.renderIncomes=()=>groupAndRenderItems('income');
-window.renderExpensesUpdated=window.renderExpenses;
-window.renderIncomesUpdated=window.renderIncomes;
-
-// Auto-render on load
-document.addEventListener('DOMContentLoaded', ()=>{
-    groupAndRenderItems('expense');
-    groupAndRenderItems('income');
-});
-})();
-</script>
-
-
-<script>
-// ===== Grouping, Totals & Reliable Edit/Delete (v1.2.13) =====
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureIds(arr){let changed=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();changed=true;}});return changed;}
-function saveBack(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
-function isActive(item){if(!item.endDate) return true;const today=new Date();today.setHours(0,0,0,0);return new Date(item.endDate)>=today;}
-function findIndexById(arr,id){return arr.findIndex(i=>i.id===id);}
-function toggleGroup(id){const el=document.getElementById(id);if(!el)return;el.style.display=el.style.display==='none'?'':'none';}
-
-function groupAndRenderItems(type){
-    const containerId=(type==="expense"?"expenses":type)+"-cards";
-    const container=document.getElementById(containerId);
-    if(!container) return;
-
-    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    if(ensureIds(items)) saveBack(type,items);
-
-    container.innerHTML="";
-
-    const mult={once:1,weekly:52,monthly:12,yearly:1};
-
-    // === Top‑level totals (no average) ===
-    const activeAll=items.filter(isActive);
-    const totalSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-    const annualSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
-    const topHeader=document.createElement("div");
-    topHeader.className="bg-primary text-white p-2 mb-3 rounded";
-    topHeader.innerHTML=`<strong>Total Active: $${formatCurrency(totalSum)} | Annualized Total: $${formatCurrency(annualSum)}</strong>`;
-    container.appendChild(topHeader);
-
-    // === Grouping ===
-    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
-    items.sort((a,b)=>new Date(a.date)-new Date(b.date));
-    items.forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-
-    for(const freq in grouped){
-        if(grouped[freq].length===0) continue;
-        const active=grouped[freq].filter(isActive);
-        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avg=active.length?total/active.length:0;
-        const annual=total*mult[freq];
-
-        const section=document.createElement("div");
-        const gid=`${type}-group-${freq}`;
-        section.innerHTML=`
-        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
-            <strong>${names[freq]} (${grouped[freq].length})</strong>
-            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
-        </div>`;
-        const body=document.createElement("div"); body.id=gid;
-
-        grouped[freq].forEach(item=>{
-            const idx=findIndexById(items,item.id);
-            const card=document.createElement("div");
-            card.className="card mb-2 shadow-sm";
-            card.innerHTML=`
-                <div class="card-body">
-                    <h5 class="card-title font-weight-bold">${item.description}</h5>
-                    <div class="row">
-                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(item.amount))}</div>
-                        <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                        <div class="col-6"><strong>End:</strong> ${item.endDate||"-"}</div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                    </div>
-                </div>`;
-            body.appendChild(card);
-        });
-        section.appendChild(body);
-        container.appendChild(section);
-    }
-}
-window.renderExpenses=()=>groupAndRenderItems("expense");
-window.renderIncomes=()=>groupAndRenderItems("income");
-// call both on load for consistency
-document.addEventListener("DOMContentLoaded",()=>{
-    if(document.getElementById("expenses-cards")) window.renderExpenses();
-    if(document.getElementById("income-cards")) window.renderIncomes();
-});
-})();
-</script>
-
-
-<script>
-// ===== Grouping, Totals & Reliable Edit/Delete (v1.2.14) =====
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureIds(arr){let changed=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();changed=true;}});return changed;}
-function saveBack(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
-function isActive(item){if(!item.endDate) return true;const today=new Date();today.setHours(0,0,0,0);return new Date(item.endDate)>=today;}
-function findIndexById(arr,id){return arr.findIndex(i=>i.id===id);}
-function toggleGroup(id){const el=document.getElementById(id);if(!el)return;el.style.display=el.style.display==='none'?'':'none';}
-
-function groupAndRenderItems(type){
-    const containerId=(type==="expense"?"expenses":type)+"-cards";
-    const container=document.getElementById(containerId);
-    if(!container) return;
-
-    // original array as stored
-    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    if(ensureIds(items)) saveBack(type,items);
-
-    container.innerHTML="";
-
-    const mult={once:1,weekly:52,monthly:12,yearly:1};
-
-    // === Top banner (no avg) ===
-    const activeAll=items.filter(isActive);
-    const totalSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-    const annualSum=activeAll.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
-    const banner=document.createElement("div");
-    banner.className="bg-primary text-white p-2 mb-3 rounded";
-    banner.innerHTML=`<strong>Total Active: $${formatCurrency(totalSum)} | Annualized Total: $${formatCurrency(annualSum)}</strong>`;
-    container.appendChild(banner);
-
-    // Work with a sorted copy for grouping, leaving original order untouched
-    const sorted=items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
-    const groups={once:[],weekly:[],monthly:[],yearly:[]};
-    sorted.forEach(it=>groups[it.frequency]?.push(it));
-    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-
-    for(const freq in groups){
-        if(groups[freq].length===0) continue;
-        const active=groups[freq].filter(isActive);
-        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avg=active.length?total/active.length:0;
-        const annual=total*mult[freq];
-
-        const section=document.createElement("div");
-        const gid=`${type}-group-${freq}`;
-        section.innerHTML=`
-        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
-            <strong>${names[freq]} (${groups[freq].length})</strong>
-            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
-        </div>`;
-        const body=document.createElement("div"); body.id=gid;
-
-        groups[freq].forEach(item=>{
-            const idx=findIndexById(items,item.id); // index in original array
-            const card=document.createElement("div");
-            card.className="card mb-2 shadow-sm";
-            card.innerHTML=`
-                <div class="card-body">
-                    <h5 class="card-title font-weight-bold">${item.description}</h5>
-                    <div class="row">
-                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(item.amount))}</div>
-                        <div class="col-6"><strong>Frequency:</strong> ${item.frequency}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>Start:</strong> ${item.date}</div>
-                        <div class="col-6"><strong>End:</strong> ${item.endDate||"-"}</div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                    </div>
-                </div>`;
-            body.appendChild(card);
-        });
-        section.appendChild(body);
-        container.appendChild(section);
-    }
-}
-// Alias legacy update functions if they exist
-window.renderExpenses=()=>groupAndRenderItems("expense");
-window.renderIncomes=()=>groupAndRenderItems("income");
-document.addEventListener("DOMContentLoaded",()=>{
-    if(document.getElementById("expenses-cards")) window.renderExpenses();
-    if(document.getElementById("income-cards")) window.renderIncomes();
-});
-})();
-</script>
-
-
-<script>
-// ===== Grouping & Annualized Total (v1.2.16) =====
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureIds(arr){let c=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();c=true;}});return c;}
-function saveBack(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
-// Active if overlaps current calendar year
-function activeThisYear(it){
-    const curYear = new Date().getFullYear();
-    const start = new Date(it.date);
-    const end = it.endDate ? new Date(it.endDate) : null;
-    const yearStart = new Date(curYear,0,1);
-    const yearEnd = new Date(curYear,11,31,23,59,59,999);
-    if(start > yearEnd) return false;
-    if(end && end < yearStart) return false;
-    return true;
-}
-function findIndexById(arr,id){return arr.findIndex(i=>i.id===id);}
-function toggleGroup(id){const e=document.getElementById(id);if(e)e.style.display=e.style.display==='none'?'':'none';}
-
-function groupAndRenderItems(type){
-    const containerId=(type==="expense"?"expenses":type)+"-cards";
-    const container=document.getElementById(containerId);
-    if(!container) return;
-
-    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    if(ensureIds(items)) saveBack(type,items);
-    container.innerHTML="";
-
-    const mult={once:1,weekly:52,monthly:12,yearly:1};
-
-    // === Annualized banner ===
-    const activeYear=items.filter(activeThisYear);
-    const annualTotal=activeYear.reduce((s,i)=>s+parseFloat(i.amount||0)*mult[i.frequency],0);
-    const banner=document.createElement("div");
-    banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
-    banner.innerHTML=`<strong>ANNUALIZED&nbsp;TOTAL:&nbsp;$${formatCurrency(annualTotal)}</strong>`;
-    container.appendChild(banner);
-
-    // === Grouping ===
-    const groups={once:[],weekly:[],monthly:[],yearly:[]};
-    const sorted=items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
-    sorted.forEach(it=>groups[it.frequency]?.push(it));
-    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-
-    for(const f in groups){
-        if(groups[f].length===0) continue;
-        const active=groups[f].filter(activeThisYear);
-        const total=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avg=active.length?total/active.length:0;
-        const annual=total*mult[f];
-
-        const gid=`${type}-group-${f}`;
-        const section=document.createElement("div");
-        section.innerHTML=`
-        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
-            <strong>${names[f]} (${groups[f].length})</strong>
-            <span>Sum: $${formatCurrency(total)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
-        </div>`;
-        const body=document.createElement("div"); body.id=gid;
-
-        groups[f].forEach(it=>{
-            const idx=findIndexById(items,it.id);
-            const card=document.createElement("div");
-            card.className="card mb-2 shadow-sm";
-            card.innerHTML=`
-                <div class="card-body">
-                    <h5 class="card-title font-weight-bold">${it.description}</h5>
-                    <div class="row">
-                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(it.amount))}</div>
-                        <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>Start:</strong> ${it.date}</div>
-                        <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                    </div>
-                </div>`;
-            body.appendChild(card);
-        });
-        section.appendChild(body);
-        container.appendChild(section);
-    }
-}
-window.renderExpenses=()=>groupAndRenderItems("expense");
-window.renderIncomes=()=>groupAndRenderItems("income");
-document.addEventListener("DOMContentLoaded",()=>{
-    if(document.getElementById("expenses-cards")) window.renderExpenses();
-    if(document.getElementById("income-cards")) window.renderIncomes();
-});
-})();
-</script>
-
-
-<script>
-// ===== Accurate Annualized Calculation (v1.2.17) =====
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureIds(arr){let ch=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();ch=true;}});return ch;}
-function save(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
-
-const MS_DAY = 86400000;
-const year = new Date().getFullYear();
-const Y_START = new Date(year,0,1);
-const Y_END = new Date(year,11,31,23,59,59,999);
-
-function withinYearCount(item){
-    const freq=item.frequency;
-    const amount=parseFloat(item.amount||0);
-    const start=new Date(item.date);
-    const end=item.endDate? new Date(item.endDate): null;
-
-    // window of overlap with current year
-    const s = start>Y_START ? start : Y_START;
-    const e = end && end < Y_END ? end : Y_END;
-    if(s>e) return 0; // no overlap
-
-    let count=0;
-    switch(freq){
-        case 'once':
-            count = (start>=Y_START && start<=Y_END)?1:0;
-            break;
-        case 'weekly':
-            count = Math.floor((e - s)/ (7*MS_DAY)) + 1;
-            break;
-        case 'monthly':
-            count = (e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth()) + 1;
-            break;
-        case 'yearly':
-            count = 1;
-            break;
-        default:
-            count = 0;
-    }
-    return count;
-}
-
-function annualContribution(item){
-    return withinYearCount(item) * parseFloat(item.amount||0);
-}
-
-function activeThisYear(item){return withinYearCount(item)>0;}
-
-function findIdx(arr,id){return arr.findIndex(i=>i.id===id);}
-function toggle(id){const el=document.getElementById(id);if(el) el.style.display= el.style.display==='none'?'':'none';}
-
-function render(type){
-    const containerId=(type==="expense"?"expenses":type)+"-cards";
-    const container=document.getElementById(containerId);
-    if(!container) return;
-
-    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    if(ensureIds(items)) save(type,items);
-    container.innerHTML="";
-
-    // Banner annual total
-    const annualTotal=items.reduce((s,i)=>s+annualContribution(i),0);
-    const banner=document.createElement("div");
-    banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
-    banner.innerHTML=`<strong>ANNUALIZED&nbsp;TOTAL:&nbsp;$${formatCurrency(annualTotal)}</strong>`;
-    container.appendChild(banner);
-
-    // Grouping
-    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
-    items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-
-    for(const f in grouped){
-        if(grouped[f].length===0) continue;
-        const active=grouped[f].filter(activeThisYear);
-        const sum=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avg=active.length?sum/active.length:0;
-        const annual=active.reduce((s,i)=>s+annualContribution(i),0);
-
-        const gid=`${type}-group-${f}`;
-        const header=document.createElement("div");
-        header.innerHTML=`
-        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggle('${gid}')">
-            <strong>${names[f]} (${grouped[f].length})</strong>
-            <span>Sum: $${formatCurrency(sum)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
-        </div>`;
-        container.appendChild(header);
-
-        const body=document.createElement("div"); body.id=gid;
-
-        grouped[f].forEach(it=>{
-            const idx=findIdx(items,it.id);
-            const card=document.createElement("div");
-            card.className="card mb-2 shadow-sm";
-            card.innerHTML=`
-                <div class="card-body">
-                    <h5 class="card-title font-weight-bold">${it.description}</h5>
-                    <div class="row">
-                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(it.amount))}</div>
-                        <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>Start:</strong> ${it.date}</div>
-                        <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                    </div>
-                </div>`;
-            body.appendChild(card);
-        });
-        container.appendChild(body);
-    }
-}
-window.renderExpenses=()=>render("expense");
-window.renderIncomes=()=>render("income");
-document.addEventListener("DOMContentLoaded",()=>{
-    if(document.getElementById("expenses-cards")) window.renderExpenses();
-    if(document.getElementById("income-cards")) window.renderIncomes();
-});
-})();
-</script>
-
-
-<script>
-// ===== Accurate Annualized & Working Collapse (v1.2.18) =====
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function formatCurrency(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureIds(arr){let changed=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();changed=true;}});return changed;}
-function save(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
-
-const MS_DAY=86400000;
-const year=new Date().getFullYear();
-const Y_START=new Date(year,0,1);
-const Y_END=new Date(year,11,31,23,59,59,999);
-
-function withinYearCount(item){
-    const freq=item.frequency;
-    const amt=parseFloat(item.amount||0);
-    const start=new Date(item.date);
-    const end=item.endDate?new Date(item.endDate):null;
-    const s=start>Y_START?start:Y_START;
-    const e=end && end<Y_END?end:Y_END;
-    if(s>e) return 0;
-    switch(freq){
-        case 'once': return (start>=Y_START && start<=Y_END)?1:0;
-        case 'weekly': return Math.floor((e-s)/(7*MS_DAY))+1;
-        case 'monthly': return (e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth()) +1;
-        case 'yearly': return 1;
-        default: return 0;
-    }
-}
-function annualContribution(it){return withinYearCount(it)*parseFloat(it.amount||0);}
-function activeThisYear(it){return withinYearCount(it)>0;}
-
-function findIdx(arr,id){return arr.findIndex(i=>i.id===id);}
-
-// global collapse helper
-function toggleGroup(id){
-    const el=document.getElementById(id);
-    if(!el) return;
-    el.style.display = (el.style.display==='none'?'':'none');
-}
-window.toggleGroup=toggleGroup;
-
-function render(type){
-    const containerId=(type==="expense"?"expenses":type)+"-cards";
-    const container=document.getElementById(containerId);
-    if(!container) return;
-
-    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    if(ensureIds(items)) save(type,items);
-    container.innerHTML="";
-
-    // Annualized banner
-    const annualTotal=items.reduce((s,i)=>s+annualContribution(i),0);
-    const banner=document.createElement("div");
-    banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
-    banner.textContent=`ANNUALIZED TOTAL: $${formatCurrency(annualTotal)}`;
-    container.appendChild(banner);
-
-    // Grouping
-    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
-    items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-    const mult={once:1,weekly:52,monthly:12,yearly:1};
-
-    for(const f in grouped){
-        if(grouped[f].length===0) continue;
-        const active=grouped[f].filter(activeThisYear);
-        const sum=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avg=active.length?sum/active.length:0;
-        const annual=active.reduce((s,i)=>s+annualContribution(i),0);
-
-        const gid=`${type}-group-${f}`;
-        const header=document.createElement("div");
-        header.innerHTML=`
-        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
-            <strong>${names[f]} (${grouped[f].length})</strong>
-            <span>Sum: $${formatCurrency(sum)} | Avg: $${formatCurrency(avg)} | Annual: $${formatCurrency(annual)}</span>
-        </div>`;
-        container.appendChild(header);
-
-        const body=document.createElement("div");
-        body.id=gid;
-
-        grouped[f].forEach(it=>{
-            const idx=findIdx(items,it.id);
-            const card=document.createElement("div");
-            card.className="card mb-2 shadow-sm";
-            card.innerHTML=`
-                <div class="card-body">
-                    <h5 class="card-title font-weight-bold">${it.description}</h5>
-                    <div class="row">
-                        <div class="col-6"><strong>Amount:</strong> $${formatCurrency(parseFloat(it.amount))}</div>
-                        <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>Start:</strong> ${it.date}</div>
-                        <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                    </div>
-                </div>`;
-            body.appendChild(card);
-        });
-        container.appendChild(body);
-    }
-}
-window.renderExpenses=()=>render("expense");
-window.renderIncomes=()=>render("income");
-document.addEventListener("DOMContentLoaded",()=>{
-    if(document.getElementById("expenses-cards")) window.renderExpenses();
-    if(document.getElementById("income-cards")) window.renderIncomes();
-});
-})();
-</script>
-
-
-<script>
-// ===== Rolling‑Year Annualized & Collapse (v1.2.19) =====
-(function(){
-function capitalize(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuidv4(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureIds(arr){let ch=false;arr.forEach(it=>{if(!it.id){it.id=uuidv4();ch=true;}});return ch;}
-function save(type,arr){localStorage.setItem(type+"s",JSON.stringify(arr));}
-
-const MS_DAY=86400000;
-const TODAY=new Date(); TODAY.setHours(0,0,0,0);
-const R_END=new Date(TODAY); R_END.setFullYear(R_END.getFullYear()+1);
-
-function monthDiff(s,e){return (e.getFullYear()-s.getFullYear())*12 + (e.getMonth()-s.getMonth()) +1;}
-
-function periodCount(it){
-    const freq=it.frequency;
-    const start=new Date(it.date);
-    const end=it.endDate?new Date(it.endDate):null;
-
-    // clip to rolling window
-    let s = start > TODAY ? start : TODAY;
-    let e = end? (end < R_END ? end : R_END) : R_END;
-    if(s>e) return 0;
-
-    switch(freq){
-        case 'once':
-            return (start>=TODAY && start<=R_END)?1:0;
-        case 'weekly':
-            return Math.floor((e - s)/ (7*MS_DAY)) + 1;
-        case 'monthly':
-            return monthDiff(s,e);
-        case 'yearly':
-            return 1; // if overlaps window
-        default:
-            return 0;
-    }
-}
-function activeRolling(it){return periodCount(it)>0;}
-function annualContribution(it){return periodCount(it)*parseFloat(it.amount||0);}
-function findIdx(arr,id){return arr.findIndex(i=>i.id===id);}
-function toggleGroup(id){const el=document.getElementById(id);if(el) el.style.display = el.style.display==='none'?'':'none';}
-window.toggleGroup=toggleGroup;
-
-function render(type){
-    const containerId=(type==="expense"?"expenses":type)+"-cards";
-    const container=document.getElementById(containerId);
-    if(!container) return;
-
-    let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
-    if(ensureIds(items)) save(type,items);
-    container.innerHTML="";
-
-    // Banner annualized total
-    const annualTotal=items.reduce((sum,i)=>sum+annualContribution(i),0);
-    const banner=document.createElement("div");
-    banner.className="bg-primary text-white p-2 mb-3 rounded text-center";
-    banner.textContent=`ANNUALIZED TOTAL (next 12 months): $${fmt(annualTotal)}`;
-    container.appendChild(banner);
-
-    // Grouping
-    const grouped={once:[],weekly:[],monthly:[],yearly:[]};
-    items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
-    const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-
-    for(const f in grouped){
-        if(grouped[f].length===0) continue;
-        const active=grouped[f].filter(activeRolling);
-        const sum=active.reduce((s,i)=>s+parseFloat(i.amount||0),0);
-        const avg=active.length?sum/active.length:0;
-        const annual=active.reduce((s,i)=>s+annualContribution(i),0);
-
-        const gid=`${type}-group-${f}`;
-        const header=document.createElement("div");
-        header.innerHTML=`
-        <div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')">
-            <strong>${names[f]} (${grouped[f].length})</strong>
-            <span>Sum: $${fmt(sum)} | Avg: $${fmt(avg)} | Annual: $${fmt(annual)}</span>
-        </div>`;
-        container.appendChild(header);
-
-        const body=document.createElement("div"); body.id=gid;
-
-        grouped[f].forEach(it=>{
-            const idx=findIdx(items,it.id);
-            const card=document.createElement("div");
-            card.className="card mb-2 shadow-sm";
-            card.innerHTML=`
-                <div class="card-body">
-                    <h5 class="card-title font-weight-bold">${it.description}</h5>
-                    <div class="row">
-                        <div class="col-6"><strong>Amount:</strong> $${fmt(parseFloat(it.amount))}</div>
-                        <div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-6"><strong>Start:</strong> ${it.date}</div>
-                        <div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div>
-                    </div>
-                    <div class="d-flex justify-content-end mt-2">
-                        <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${capitalize(type)}(${idx})" title="Edit">&#9998;</button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="delete${capitalize(type)}(${idx})" title="Delete">&#128465;</button>
-                    </div>
-                </div>`;
-            body.appendChild(card);
-        });
-        container.appendChild(body);
-    }
-}
-window.renderExpenses=()=>render("expense");
-window.renderIncomes=()=>render("income");
-document.addEventListener("DOMContentLoaded",()=>{
-    if(document.getElementById("expenses-cards")) window.renderExpenses();
-    if(document.getElementById("income-cards")) window.renderIncomes();
-});
-})();
-</script>
-
-
-<script>
-// ===== Rolling‑Year Annualized Only (v1.2.20) =====
-(function(){
-function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function f(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uid(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureId(arr){let c=false;arr.forEach(it=>{if(!it.id){it.id=uid();c=true;}});return c;}
-function save(t,a){localStorage.setItem(t+"s",JSON.stringify(a));}
-
-const MS_DAY=86400000;
-const TODAY=new Date();TODAY.setHours(0,0,0,0);
-const END=new Date(TODAY);END.setFullYear(END.getFullYear()+1);
-
-function monthDiff(s,e){return (e.getFullYear()-s.getFullYear())*12+(e.getMonth()-s.getMonth())+1;}
-
-
-function count(it){
-  const TODAY=(function(d){d.setHours(0,0,0,0);return d;})(new Date());
-  const END=(function(d){d.setFullYear(d.getFullYear()+1);return d;})(new Date(TODAY));
-  const st=new Date(it.date);
-  const ed=it.endDate?new Date(it.endDate):null;
-
-  if(it.frequency==='once'){
-    return (st>=TODAY && st<=END && (!ed || st<=ed)) ? 1 : 0;
-  }
-
-  function nextDate(d,freq){
-    const nd=new Date(d);
-    switch(freq){
-      case 'weekly':
-        nd.setDate(nd.getDate()+7);
-        break;
-      case 'monthly': {
-        const day=nd.getDate();
-        nd.setMonth(nd.getMonth()+1);
-        if(nd.getDate()<day){ nd.setDate(0); }
-        break;
-      }
-      case 'yearly':
-        nd.setFullYear(nd.getFullYear()+1);
-        break;
-    }
-    return nd;
-  }
-
-  let next=new Date(st);
-  while(next<TODAY){
-    next=nextDate(next,it.frequency);
-  }
-  if((ed&&next>ed) || next>END) return 0;
-
-  let cnt=0;
-  while(next<=END && (!ed || next<=ed)){
-    cnt++;
-    next=nextDate(next,it.frequency);
-  }
-  return cnt;
-}
-
-function contrib(it){return count(it)*parseFloat(it.amount||0);}
-function active(it){return count(it)>0;}
-function idx(arr,id){return arr.findIndex(i=>i.id===id);}
-function tg(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none';}
-window.toggleGroup=tg;
-
-function render(type){
- const cid=(type==="expense"?"expenses":type)+"-cards",c=document.getElementById(cid);if(!c)return;
- let items=JSON.parse(localStorage.getItem(type+"s")||"[]");if(ensureId(items))save(type,items);c.innerHTML="";
- const ann=items.reduce((s,i)=>s+contrib(i),0);
- c.innerHTML+=`<div class="bg-primary text-white p-2 mb-3 rounded text-center"><strong>ANNUALIZED TOTAL (next 12 months): $${f(ann)}</strong></div>`;
- const g={once:[],weekly:[],monthly:[],yearly:[]};items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>g[it.frequency]?.push(it));
- const names={once:"One‑Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
- for(const freq in g){
-  if(!g[freq].length)continue;
-  const annual=g[freq].filter(active).reduce((s,i)=>s+contrib(i),0);
-  const gid=`${type}-group-${freq}`;
-  c.innerHTML+=`<div class='bg-light p-2 mb-2 border d-flex justify-content-between align-items-center' onclick="toggleGroup('${gid}')"><strong>${names[freq]} (${g[freq].length})</strong><span>Annual: $${f(annual)}</span></div>`;
-  const body=document.createElement("div");body.id=gid;
-  g[freq].forEach(it=>{
-   const i=idx(items,it.id);
-   body.innerHTML+=`<div class="card mb-2 shadow-sm"><div class="card-body"><h5 class="card-title font-weight-bold">${it.description}</h5><div class="row"><div class="col-6"><strong>Amount:</strong> $${f(parseFloat(it.amount))}</div><div class="col-6"><strong>Frequency:</strong> ${it.frequency}</div></div><div class="row"><div class="col-6"><strong>Start:</strong> ${it.date}</div><div class="col-6"><strong>End:</strong> ${it.endDate||"-"}</div></div><div class="d-flex justify-content-end mt-2"><button class="btn btn-sm btn-outline-primary mr-2" onclick="edit${cap(type)}(${i})" title="Edit">&#9998;</button><button class="btn btn-sm btn-outline-danger" onclick="delete${cap(type)}(${i})" title="Delete">&#128465;</button></div></div></div>`;
-  });
-  c.appendChild(body);
- }
-}
-window.renderExpenses=()=>render("expense");
-window.renderIncomes=()=>render("income");
-document.addEventListener("DOMContentLoaded",()=>{if(document.getElementById("expenses-cards"))window.renderExpenses();if(document.getElementById("income-cards"))window.renderIncomes();});
-})();
-</script>
-
-
-<script>
-// ===== Rolling‑Year Annualized Only (v1.2.21 ASCII) =====
-(function(){
-function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
-function fmt(n){return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function uuid(){return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));}
-function ensureId(arr){let ch=false;arr.forEach(it=>{if(!it.id){it.id=uuid();ch=true;}});return ch;}
-function save(t,a){localStorage.setItem(t+"s",JSON.stringify(a));}
-
-const MS_DAY=86400000;
-const TODAY=new Date();TODAY.setHours(0,0,0,0);
-const END=new Date(TODAY);END.setFullYear(END.getFullYear()+1);
-
-function monthDiff(s,e){return (e.getFullYear()-s.getFullYear())*12+(e.getMonth()-s.getMonth())+1;}
-
-function count(it){
- const st=new Date(it.date), ed=it.endDate?new Date(it.endDate):null;
- const s=st>TODAY?st:TODAY, e=ed&&ed<END?ed:END;
- if(s>e) return 0;
- switch(it.frequency){
-  case'once':return(st>=TODAY&&st<=END)?1:0;
-  case'weekly':return Math.floor((e-s)/(7*MS_DAY))+1;
-  case'monthly':return monthDiff(s,e);
-  case'yearly':return 1;
-  default:return 0;
- }
-}
-function contrib(it){return count(it)*parseFloat(it.amount||0);}
-function active(it){return count(it)>0;}
-function indexOf(arr,id){return arr.findIndex(i=>i.id===id);}
-function toggle(id){const el=document.getElementById(id);if(el) el.style.display=el.style.display==='none'?'':'none';}
-window.toggleGroup=toggle;
-
-function render(type){
- const cid=(type==="expense"?"expenses":type)+"-cards";
- const container=document.getElementById(cid); if(!container) return;
-
- let items=JSON.parse(localStorage.getItem(type+"s")||"[]");
- if(ensureId(items)) save(type,items);
- container.innerHTML="";
-
- const annualTotal=items.reduce((s,i)=>s+contrib(i),0);
- container.innerHTML+=`<div class="bg-primary text-white p-2 mb-3 rounded text-center"><strong>ANNUALIZED TOTAL (next 12 months): $${fmt(annualTotal)}</strong></div>`;
-
- const grouped={once:[],weekly:[],monthly:[],yearly:[]};
- items.slice().sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>grouped[it.frequency]?.push(it));
-
- const names={once:"One-Time",weekly:"Weekly",monthly:"Monthly",yearly:"Yearly"};
-
- for(const f in grouped){
-  if(!grouped[f].length) continue;
-  const annual=grouped[f].filter(active).reduce((s,i)=>s+contrib(i),0);
-  const gid=`${type}-group-${f}`;
-  container.innerHTML+=`<div class="bg-light p-2 mb-2 border d-flex justify-content-between align-items-center" onclick="toggleGroup('${gid}')"><strong>${names[f]} (${grouped[f].length})</strong><span>Annual: $${fmt(annual)}</span></div>`;
-  const body=document.createElement("div"); body.id=gid;
-
-  grouped[f].forEach(it=>{
-   const idx=indexOf(items,it.id);
-   body.innerHTML+=\`
-    <div class="card mb-2 shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title font-weight-bold">\${it.description}</h5>
-        <div class="row">
-          <div class="col-6"><strong>Amount:</strong> $\${fmt(parseFloat(it.amount))}</div>
-          <div class="col-6"><strong>Frequency:</strong> \${it.frequency}</div>
-        </div>
-        <div class="row">
-          <div class="col-6"><strong>Start:</strong> \${it.date}</div>
-          <div class="col-6"><strong>End:</strong> \${it.endDate||"-"}</div>
-        </div>
-        <div class="d-flex justify-content-end mt-2">
-          <button class="btn btn-sm btn-outline-primary mr-2" onclick="edit\${cap(type)}(\${idx})" title="Edit">&#9998;</button>
-          <button class="btn btn-sm btn-outline-danger" onclick="delete\${cap(type)}(\${idx})" title="Delete">&#128465;</button>
+</header>
+
+<main class="container">
+  <!-- Overview -->
+  <section id="overview" class="section active">
+    
+
+    <div class="grid cols-3">
+      <div class="card">
+        <div class="label">Target Date</div>
+        <input id="targetDate" type="date" class="input"/>
+        <div class="kpi" style="margin-top:8px"><span class="muted">Estimated Balance</span> <b id="estBalance">$0</b></div>
+        <div class="chips" style="margin-top:8px">
+          <div class="chip" data-range="90">3M</div>
+          <div class="chip active" data-range="180">6M</div>
+          <div class="chip" data-range="365">12M</div>
+          <div class="chip" data-range="730">24M</div>
         </div>
       </div>
-    </div>\`;
-  });
-  container.appendChild(body);
- }
-}
-window.renderExpenses=()=>render("expense");
-window.renderIncomes=()=>render("income");
-document.addEventListener("DOMContentLoaded",()=>{if(document.getElementById("expenses-cards")) window.renderExpenses(); if(document.getElementById("income-cards")) window.renderIncomes();});
-})();
-</script>
+      <div class="card">
+        <div class="label">Totals (next 12 months)</div>
+        <div class="grid cols-2">
+          <div><div class="muted">Income</div><b id="kpiIncome">$0</b></div>
+          <div><div class="muted">Expenses</div><b id="kpiExpense">$0</b></div>
+          <div><div class="muted">Net</div><b id="kpiNet">$0</b></div>
+          <div><div class="muted">Days to Negative</div><b id="kpiDays">–</b></div>
+        </div>
+      </div>
+      <!-- Move the overview chart here so it appears just above Quick Add in stacked/mobile layouts.  On wider screens this spans all three columns. -->
+      <div class="card" style="grid-column: span 3">
+        <canvas id="chart" height="120"></canvas>
+      </div>
+      <div class="card quick-add-card" style="grid-column: span 2">
+        <div class="label">Quick Add</div>
+        <div class="quick-add-grid">
+          <input id="qaDesc" class="input" placeholder="Description">
+          <input id="qaAmt" class="input" type="number" step="0.01" placeholder="Amount">
+          <select id="qaFreq" class="input">
+            <option value="once">once</option>
+            <option value="weekly">weekly</option>
+            <option value="monthly" selected>monthly</option>
+            <option value="yearly">yearly</option>
+          </select>
+          <input id="qaDate" type="date" class="input">
+          <button id="qaAddIncome" class="btn success">+ Income</button>
+          <button id="qaAddExpense" class="btn danger">+ Expense</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h2>Items Within Range</h2>
+      <table>
+        <thead><tr>
+          <th>Description</th><th>Amount</th><th>Date</th><th>Frequency</th><th>Balance</th>
+        </tr></thead>
+        <tbody id="rangeTable"></tbody>
+      </table>
+    </div>
+  </section>
 
+  <!-- Expenses -->
+  <section id="expenses" class="section">
+    <div class="row" style="justify-content:space-between; align-items:center">
+      <h2>Expenses</h2>
+      <button class="btn danger" id="btnAddExpense">Add Expense</button>
+    </div>
+    <div id="expenseGroups"></div>
+  </section>
+
+  <!-- Income -->
+  <section id="income" class="section">
+    <div class="row" style="justify-content:space-between; align-items:center">
+      <h2>Income</h2>
+      <button class="btn success" id="btnAddIncome">Add Income</button>
+    </div>
+    <div id="incomeGroups"></div>
+  </section>
+
+  <!-- Settings -->
+  <section id="settings" class="section">
+    <div class="grid cols-2">
+      <div class="card">
+        <h3>Account Settings</h3>
+        <div class="label">Starting Balance</div>
+        <input id="startingBalance" type="number" step="0.01" class="input">
+        <div class="row"><button id="btnSetBalance" class="btn primary" style="margin-top:10px">Set Balance</button></div>
+        <hr>
+        <div><span class="muted">Version:</span> <span id="settingsVersion"></span></div>
+      </div>
+
+      <div class="card">
+        <h3>Data Management</h3>
+        <div class="row">
+          <button id="btnExport" class="btn">Export Data</button>
+          <label class="btn"><input id="fileInput" type="file" accept=".json" style="display:none">Choose File</label>
+          <button id="btnImport" class="btn primary" disabled>Import Data</button>
+        </div>
+        <small class="muted">Export creates a JSON backup. Import restores saved records. Back-compatible with v1 JSON.</small>
+        <hr>
+        <h3>Preferences</h3>
+        <div class="label">Dark Mode</div>
+        <select id="prefTheme" class="input">
+          <option value="dark" selected>Dark</option>
+          <option value="light">Light</option>
+        </select>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div>Made for a single-file workflow. No build tools. Offline-ready.</div>
+</footer>
+
+<!-- Dialog -->
+
+<!-- Interactive Chart Dialog -->
+<div id="chartDlg" class="dialog">
+  <div class="modal">
+    <div class="row" style="justify-content:space-between; align-items:center">
+      <h3 style="margin:0">Interactive Balance Chart</h3>
+      <div class="chart-legend">Hover to inspect values.</div>
+    </div>
+    <!-- Modal controls: replicate target date, range selections and estimated balance -->
+    <div class="chart-modal-controls" style="margin-top:12px">
+      <div class="grid cols-3">
+        <div>
+          <div class="label">Target Date</div>
+          <input id="modalTargetDate" type="date" class="input">
+        </div>
+        <div>
+          <div class="label">Range</div>
+          <div class="chips" id="modalChips">
+            <div class="chip" data-range="90">3M</div>
+            <div class="chip" data-range="180">6M</div>
+            <div class="chip" data-range="365">12M</div>
+            <div class="chip" data-range="730">24M</div>
+          </div>
+        </div>
+        <div>
+          <!-- Show the estimated balance inline without duplicating the word "Balance" -->
+          <div class="label">Estimated Balance</div>
+          <div class="kpi" style="margin-top:4px"><b id="modalEstBalance">$0</b></div>
+        </div>
+      </div>
+    </div>
+    <!-- Chart range label sits above the chart; removed zoom/pan/reset controls -->
+    <div class="muted" id="chRangeLabel" style="margin-top:10px; text-align:right;"></div>
+    <div class="chart-wrap">
+      <canvas id="chartInteractive" height="480"></canvas>
+      <div class="chart-tooltip" id="chartTip"></div>
+    </div>
+    <div class="row" style="justify-content:flex-end; margin-top:12px">
+      <!-- Export button moved down next to the close button -->
+      <button class="btn" id="chExport">Export PNG</button>
+      <button class="btn" id="chartDlgClose">Close</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="dlg" class="dialog">
+  <div class="modal">
+    <h3 id="dlgTitle">Add Item</h3>
+    <div class="grid cols-2">
+      <div>
+        <div class="label">Type</div>
+        <select id="fType" class="input"><option value="expense">Expense</option><option value="income">Income</option></select>
+      </div>
+      <div>
+        <div class="label">Description</div>
+        <input id="fDesc" class="input" placeholder="Description">
+      </div>
+      <div>
+        <div class="label">Amount</div>
+        <input id="fAmount" class="input" type="number" step="0.01">
+      </div>
+      <div>
+        <div class="label">Start Date</div>
+        <input id="fDate" class="input" type="date">
+      </div>
+      <div>
+        <div class="label">End Date (optional)</div>
+        <input id="fEnd" class="input" type="date">
+      </div>
+      <div>
+        <div class="label">Frequency</div>
+        <select id="fFreq" class="input">
+          <option value="once">once</option>
+          <option value="weekly">weekly</option>
+          <option value="monthly">monthly</option>
+          <option value="yearly">yearly</option>
+        </select>
+      </div>
+    </div>
+    <div class="row" style="justify-content:flex-end; margin-top:12px">
+      <button id="btnCancel" class="btn">Cancel</button>
+      <button id="btnSave" class="btn primary">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Chart.js is normally loaded from a CDN.  In offline environments this
+     will fail, so we fall back to a simple canvas renderer below if the
+     Chart global isn't available. -->
+<!-- We omit the external Chart.js dependency and instead rely on a
+     lightweight custom renderer defined below.  This ensures the
+     application remains fully functional in offline or restricted
+     environments where CDN resources cannot be loaded. -->
+<script>
+// ---------- Utilities ----------
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+const fmt = n => (n<0?'-':'') + '$' + Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:2});
+const todayStr = ()=> new Date().toISOString().slice(0,10);
+const addDays = (d,n)=>{const x=new Date(d); x.setDate(x.getDate()+n); return x};
+const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
+const uuid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+
+// ---------- Store & Schema ----------
+const schemaVersion = '2.0.2';
+const defaults = ()=>({ 
+  version: schemaVersion,
+  settings: { theme:'dark' },
+  startingBalance: 0,
+  accounts: [{id:'acc-default', name:'Checking', type:'cash'}],
+  categories: [],
+  expenses: [], incomes: [],
+  rules: [], goals: [],
+});
+function migrate(data){
+  if(!data || typeof data!=='object') return defaults();
+  if(!data.version){
+    // v1 -> v2 migration
+    const d = defaults();
+    d.startingBalance = data.startingBalance||0;
+    d.expenses = (data.expenses||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||''}));
+    d.incomes = (data.incomes||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||''}));
+    return d;
+  }
+  // future migrations here
+  data.version = schemaVersion;
+  return data;
+}
+const store = {
+  key:'planner_v2',
+  data: migrate(JSON.parse(localStorage.getItem('planner_v2')||'null')),
+  save(){ localStorage.setItem(this.key, JSON.stringify(this.data)); publish(); },
+  load(json){ this.data = migrate(json); this.save(); },
+};
+
+// ---------- Pub/Sub ----------
+const listeners = new Set();
+function subscribe(fn){ listeners.add(fn); return ()=>listeners.delete(fn); }
+function publish(){ listeners.forEach(fn=>fn(store.data)); }
+
+// ---------- Recurrence engine ----------
+function* occurrences(item, fromDate, toDate){
+  const start = new Date(item.date);
+  const end   = item.endDate ? new Date(item.endDate) : null;
+  let cur = new Date(start);
+  const to = new Date(toDate);
+  const step = (d)=>{
+    switch(item.frequency){
+      case 'weekly': d.setDate(d.getDate()+7); break;
+      case 'monthly': d.setMonth(d.getMonth()+1); break;
+      case 'yearly': d.setFullYear(d.getFullYear()+1); break;
+      default: d.setDate(d.getDate()+36500); // once
+    }
+  };
+  // move to first on/after fromDate
+  while(cur < new Date(fromDate)) step(cur);
+  while(cur <= to && (!end || cur <= end)){
+    yield new Date(cur);
+    if(item.frequency==='once') break;
+    step(cur);
+  }
+}
+
+// ---------- Selectors & Calculations ----------
+function getHorizon(){
+  const t = $('#targetDate').value || todayStr();
+  return new Date(t);
+}
+function itemsInRange(from, to){
+  const all = [];
+  const push = (it, sign)=>{
+    for(const dt of occurrences(it, from, to)){
+      all.push({description: it.description, amount: it.amount*sign, date: dt, frequency: it.frequency});
+    }
+  };
+  store.data.incomes.forEach(i=>push(i, +1));
+  store.data.expenses.forEach(e=>push(e, -1));
+  all.sort((a,b)=>a.date-b.date);
+  return all;
+}
+function simulateBalance(toDate){
+  const startBal = Number(store.data.startingBalance||0);
+  const from = new Date();
+  const items = itemsInRange(from, toDate);
+  let bal = startBal, daysToNeg = null;
+  const series = [];
+  // seed today
+  series.push({x: new Date(from), y: bal});
+  for(const ev of items){
+    bal += ev.amount;
+    series.push({x: new Date(ev.date), y: bal});
+    if(bal<0 && daysToNeg===null){
+      daysToNeg = Math.ceil((ev.date - from)/86400000);
+    }
+  }
+  if(series.length===1){ series.push({x: toDate, y: bal}); }
+  return {series, endBalance: bal, daysToNeg, items};
+}
+function totalNext12m(){
+  const from = new Date();
+  const to = addDays(from, 365);
+  let inc=0, exp=0;
+  const add = (v,f)=>{
+    for(const d of occurrences(v, from, to)){
+      if(f==='inc') inc += v.amount;
+      else exp += v.amount;
+    }
+  };
+  store.data.incomes.forEach(v=>add(v,'inc'));
+  store.data.expenses.forEach(v=>add(v,'exp'));
+  return {inc, exp, net: inc-exp};
+}
+
+// ---------- Rendering ----------
+let chart;
+
+/**
+ * Draw a simple line chart on the provided canvas.  This is used as a
+ * fallback when the Chart.js library cannot be loaded (for example in
+ * offline environments).  It expects an array of points with `.x` (Date)
+ * and `.y` (number) properties.  The chart is rendered with a blue
+ * line and basic axes.  If less than two points are provided the
+ * function returns early.
+ * @param {HTMLCanvasElement} canvas 
+ * @param {Array<{x: Date, y: number}>} series
+ */
+function drawLineChart(canvas, series) {
+  const ctx = canvas.getContext('2d');
+  // resize canvas to the current element dimensions
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight || 120;
+  canvas.width = width;
+  canvas.height = height;
+  ctx.clearRect(0, 0, width, height);
+  if (!series || series.length < 2) return;
+  // compute x and y ranges
+  const xs = series.map(p => p.x.getTime());
+  const ys = series.map(p => p.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  // ensure non-zero range to avoid division by zero
+  const dx = maxX - minX || 1;
+  const dy = maxY - minY || 1;
+  const padX = 40;
+  const padY = 20;
+  // choose colours based on current theme
+  const computed = getComputedStyle(document.documentElement);
+  const lineColor = computed.getPropertyValue('--accent-2') || '#3b82f6';
+  const axisColor = computed.getPropertyValue('--muted') || '#9ca3af';
+  ctx.strokeStyle = axisColor.trim();
+  ctx.lineWidth = 1;
+  // draw axes (y axis on left, x axis at bottom)
+  ctx.beginPath();
+  ctx.moveTo(padX, padY);
+  ctx.lineTo(padX, height - padY);
+  ctx.lineTo(width - padX, height - padY);
+  ctx.stroke();
+  // draw zero line if within range
+  if (minY < 0 && maxY > 0) {
+    const zeroY = height - padY - ((0 - minY) / dy) * (height - 2 * padY);
+    ctx.beginPath();
+    ctx.moveTo(padX, zeroY);
+    ctx.lineTo(width - padX, zeroY);
+    ctx.strokeStyle = axisColor.trim();
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // draw line
+  ctx.strokeStyle = lineColor.trim();
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  series.forEach((pt, idx) => {
+    const x = padX + ((pt.x.getTime() - minX) / dx) * (width - 2 * padX);
+    const y = height - padY - ((pt.y - minY) / dy) * (height - 2 * padY);
+    if (idx === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+function renderOverview(){
+  const from = new Date();
+  // Determine the horizon: if a chip is active in the overview, use its range; otherwise use the manually selected target date.
+  let to;
+  const activeChip = document.querySelector('#overview .chip.active');
+  if(activeChip) {
+    const rangeDays = Number(activeChip.getAttribute('data-range') || 180);
+    to = addDays(from, rangeDays);
+    // sync the target date input with the chip selection
+    $('#targetDate').value = to.toISOString().slice(0, 10);
+  } else {
+    const val = $('#targetDate').value;
+    to = val ? new Date(val) : addDays(from, 180);
+  }
+
+  const { series, endBalance, daysToNeg, items } = simulateBalance(to);
+  $('#estBalance').textContent = fmt(endBalance);
+
+  const t12 = totalNext12m();
+  $('#kpiIncome').textContent = fmt(t12.inc);
+  $('#kpiExpense').textContent = fmt(t12.exp);
+  $('#kpiNet').textContent = fmt(t12.net);
+  $('#kpiDays').textContent = daysToNeg==null? '–' : daysToNeg + ' days';
+
+  // chart
+  const canvas = $('#chart');
+  // Render the time series on our custom canvas renderer.  We avoid
+  // external dependencies to ensure the chart works in offline
+  // environments.  See drawLineChart() above for implementation details.
+  drawLineChart(canvas, series);
+
+  // Build rows with cumulative balance
+  const tbody = $('#rangeTable');
+  tbody.innerHTML='';
+  const rows = [];
+  let bal = Number(store.data.startingBalance||0);
+  const fmtDate = d=>new Date(d).toISOString().slice(0,10);
+  for(const ev of items){
+    bal += ev.amount;
+    rows.push({
+      description: ev.description,
+      amount: ev.amount,
+      date: fmtDate(ev.date),
+      frequency: ev.frequency,
+      balance: bal
+    });
+  }
+  // Apply sorting if a key is selected
+  const st = sortState.overview;
+  if(st.key){
+    rows.sort((a,b)=>{
+      let v1 = a[st.key];
+      let v2 = b[st.key];
+      // convert types for proper comparison
+      if(st.key==='amount' || st.key==='balance'){
+        v1 = Number(v1); v2 = Number(v2);
+      }
+      if(st.key==='date'){
+        v1 = new Date(v1); v2 = new Date(v2);
+      }
+      // description and frequency stay as strings
+      if(v1 < v2) return st.asc ? -1 : 1;
+      if(v1 > v2) return st.asc ? 1 : -1;
+      return 0;
+    });
+  }
+  // Render sorted rows
+  for(const row of rows){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${row.description}</td><td>${fmt(row.amount)}</td><td>${row.date}</td><td>${row.frequency}</td><td>${fmt(row.balance)}</td>`;
+    tbody.appendChild(tr);
+  }
+  // Attach sorting handlers to header after rendering
+  attachOverviewSortHandlers();
+}
+function groupByFreq(list){
+  const g = {once:[], weekly:[], monthly:[], yearly:[]};
+  list.forEach(x=> (g[x.frequency]||g.once).push(x) );
+  const order = ['once','weekly','monthly','yearly'];
+  return order.map(k=>({key:k, items:g[k]}));
+}
+function annualize(item){
+  switch(item.frequency){
+    case 'weekly': return item.amount*52;
+    case 'monthly': return item.amount*12;
+    case 'yearly': return item.amount;
+    default: return item.amount;
+  }
+}
+function renderGroups(el, items, type){
+  el.innerHTML='';
+  const groups = groupByFreq(items);
+  for(const group of groups){
+    // Sort items within each frequency group using the current sort state (if any)
+    const st = sortState[type];
+    if(st && st.key){
+      group.items.sort((a,b)=>compareExpense(a,b,st.key,st.asc));
+    }
+    const wrapper = document.createElement('div');
+    const total = group.items.reduce((s,x)=>s+annualize(x),0);
+    wrapper.className='card';
+    wrapper.innerHTML = `<h3 style="display:flex;justify-content:space-between;align-items:center">${group.key[0].toUpperCase()+group.key.slice(1)} <span class="muted">Annual: ${fmt(total)}</span></h3>`;
+    const table = document.createElement('table');
+    // Remove the Frequency column header; frequency is implied by the group label
+    table.innerHTML = `<thead><tr><th>Description</th><th>Amount</th><th>Start</th><th>End</th><th></th></tr></thead>`;
+    const tbody = document.createElement('tbody');
+    for(const it of group.items){
+      const tr = document.createElement('tr');
+      // Omit the frequency cell; the group indicates the frequency already
+      tr.innerHTML = `
+        <td>${it.description}</td>
+        <td>${fmt(it.amount)}</td>
+        <td>${it.date}</td>
+        <td>${it.endDate||'-'}</td>
+        <td class="actions">
+          <button class="btn" data-act="edit" data-id="${it.id}">✏️</button>
+          <button class="btn" data-act="del" data-id="${it.id}">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    // Attach sorting behavior to the header cells of this table
+    addSortHandlers(table, type);
+    wrapper.appendChild(table);
+    el.appendChild(wrapper);
+  }
+  // wiring for edit/delete
+  el.querySelectorAll('button[data-act]').forEach(btn=>{
+    const id = btn.dataset.id;
+    const act = btn.dataset.act;
+    btn.onclick = ()=>{
+      if(act==='edit') openDialog(type, store.data[type].find(x=>x.id===id));
+      if(act==='del'){
+        if(confirm('Delete this item?')){
+          store.data[type]=store.data[type].filter(x=>x.id!==id);
+          store.save();
+        }
+      }
+    };
+  });
+}
+function renderExpenses(){ renderGroups($('#expenseGroups'), store.data.expenses, 'expenses'); }
+function renderIncome(){ renderGroups($('#incomeGroups'), store.data.incomes, 'incomes'); }
+function renderSettings(){
+  $('#startingBalance').value = store.data.startingBalance||0;
+  $('#prefTheme').value = store.data.settings?.theme || 'dark';
+  $('#settingsVersion').textContent = store.data.version;
+  $('#versionBadge').textContent = store.data.version;
+}
+
+// ---------------- Sorting configuration and helpers ----------------
+// Keep track of sorting state for each table. Each entry stores the current key and direction.
+const sortState = {
+  overview: { key: null, asc: true },
+  expenses: { key: null, asc: true },
+  incomes: { key: null, asc: true }
+};
+
+// Comparator function for expense/income items. Handles numbers, strings and dates.
+function compareExpense(a, b, key, asc){
+  let v1, v2;
+  if(key === 'amount'){
+    v1 = a.amount; v2 = b.amount;
+  } else if(key === 'description'){
+    v1 = (a.description || '').toLowerCase();
+    v2 = (b.description || '').toLowerCase();
+  } else if(key === 'date'){
+    v1 = new Date(a.date || ''); v2 = new Date(b.date || '');
+  } else if(key === 'end'){
+    v1 = a.endDate ? new Date(a.endDate) : new Date(8640000000000000);
+    v2 = b.endDate ? new Date(b.endDate) : new Date(8640000000000000);
+  } else {
+    v1 = a[key]; v2 = b[key];
+  }
+  if(v1 < v2) return asc ? -1 : 1;
+  if(v1 > v2) return asc ? 1 : -1;
+  return 0;
+}
+
+// Attach click handlers to expenses/incomes table headers for sorting
+function addSortHandlers(table, type){
+  const ths = table.querySelectorAll('thead th');
+  const keyMap = ['description','amount','date','end'];
+  ths.forEach((th, idx)=>{
+    const key = keyMap[idx];
+    if(!key) return;
+    th.style.cursor = 'pointer';
+    th.onclick = ()=>{
+      const st = sortState[type];
+      if(st.key === key){ st.asc = !st.asc; } else { st.key = key; st.asc = true; }
+      store.data[type].sort((a,b)=>compareExpense(a,b,st.key,st.asc));
+      store.save();
+      if(type === 'expenses') renderExpenses(); else renderIncome();
+    };
+  });
+}
+
+// Attach click handlers to the items within range table headers for sorting
+function attachOverviewSortHandlers(){
+  const rangeTable = document.querySelector('#rangeTable');
+  if(!rangeTable) return;
+  const table = rangeTable.closest('table');
+  if(!table) return;
+  const ths = table.querySelectorAll('thead th');
+  const keyMap = ['description','amount','date','frequency','balance'];
+  ths.forEach((th, idx)=>{
+    const key = keyMap[idx];
+    if(!key) return;
+    th.style.cursor = 'pointer';
+    th.onclick = ()=>{
+      const st = sortState.overview;
+      if(st.key === key){ st.asc = !st.asc; } else { st.key = key; st.asc = true; }
+      renderOverview();
+    };
+  });
+}
+
+// ---------- Dialogs ----------
+let editingId=null, editingType='expenses';
+function openDialog(type, item){
+  editingType = type;
+  $('#dlgTitle').textContent = (item?'Edit ':'Add ') + (type==='expenses'?'Expense':'Income');
+  $('#fType').value = type==='expenses'?'expense':'income';
+  $('#fDesc').value = item?.description || '';
+  $('#fAmount').value = item?.amount || '';
+  $('#fDate').value = item?.date || todayStr();
+  $('#fEnd').value = item?.endDate || '';
+  $('#fFreq').value = item?.frequency || 'monthly';
+  editingId = item?.id || null;
+  $('#dlg').style.display='flex';
+  $('#fDesc').focus();
+}
+function closeDialog(){ $('#dlg').style.display='none'; }
+$('#btnCancel').onclick = closeDialog;
+$('#btnSave').onclick = ()=>{
+  const type = $('#fType').value==='expense'?'expenses':'incomes';
+  const obj = {
+    id: editingId || uuid(),
+    description: $('#fDesc').value.trim()||'Untitled',
+    amount: Number($('#fAmount').value||0),
+    date: $('#fDate').value||todayStr(),
+    endDate: $('#fEnd').value||'',
+    frequency: $('#fFreq').value
+  };
+  if(editingId){
+    const arr = store.data[type];
+    const ix = arr.findIndex(x=>x.id===editingId);
+    arr[ix]=obj;
+  } else {
+    store.data[type].push(obj);
+  }
+  store.save();
+  closeDialog();
+};
+
+// ---------- Events ----------
+$('#navTabs').onclick = e=>{
+  const t = e.target.closest('.tab'); if(!t) return;
+  $$('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
+  $$('.section').forEach(x=>x.classList.remove('active'));
+  $('#'+t.dataset.target).classList.add('active');
+  publish(); // trigger rerender visible section
+};
+$('#btnAddExpense').onclick = ()=>openDialog('expenses');
+$('#btnAddIncome').onclick = ()=>openDialog('incomes');
+
+// Quick add
+$('#qaAddExpense').onclick = ()=>{
+  const d=$('#qaDesc').value, a=Number($('#qaAmt').value||0), f=$('#qaFreq').value, dt=$('#qaDate').value||todayStr();
+  if(!d||!a) return toast('Please enter description and amount');
+  store.data.expenses.push({id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f});
+  store.save(); $('#qaDesc').value=''; $('#qaAmt').value='';
+};
+$('#qaAddIncome').onclick = ()=>{
+  const d=$('#qaDesc').value, a=Number($('#qaAmt').value||0), f=$('#qaFreq').value, dt=$('#qaDate').value||todayStr();
+  if(!d||!a) return toast('Please enter description and amount');
+  store.data.incomes.push({id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f});
+  store.save(); $('#qaDesc').value=''; $('#qaAmt').value='';
+};
+
+// Chips (overview) - clicking a range chip will activate it and redraw.  Only
+// operate on the chips within the overview to avoid interfering with modal chips.
+document.querySelectorAll('#overview .chip').forEach(ch => {
+  ch.onclick = () => {
+    document.querySelectorAll('#overview .chip').forEach(x => x.classList.remove('active'));
+    ch.classList.add('active');
+    publish();
+  };
+});
+
+// Target date manual change
+$('#targetDate').onchange = ()=>{
+  // align chips to custom (remove active chips only in the overview) and redraw
+  document.querySelectorAll('#overview .chip.active').forEach(ch => ch.classList.remove('active'));
+  publish();
+};
+
+// Settings
+$('#btnSetBalance').onclick = ()=>{ store.data.startingBalance = Number($('#startingBalance').value||0); store.save(); toast('Balance updated'); };
+$('#prefTheme').onchange = ()=>{ store.data.settings.theme = $('#prefTheme').value; store.save(); applyTheme(); };
+
+// Import/Export
+$('#fileInput').onchange = ()=> $('#btnImport').disabled = !$('#fileInput').files?.length;
+$('#btnImport').onclick = async ()=>{
+  const file = $('#fileInput').files[0]; if(!file) return;
+  const text = await file.text();
+  try{ const json = JSON.parse(text); store.load(json); toast('Import successful'); }
+  catch{ toast('Invalid JSON'); }
+};
+$('#btnExport').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(store.data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'financial_data.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+};
+
+// ---------- Toast ----------
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 1800); }
+
+// ---------- Theme ----------
+function applyTheme(){
+  const theme = store.data.settings?.theme || 'dark';
+  if(theme==='light'){
+    document.documentElement.style.setProperty('--bg','#f3f4f6');
+    document.documentElement.style.setProperty('--panel','#ffffff');
+    document.documentElement.style.setProperty('--card','#ffffff');
+    document.documentElement.style.setProperty('--text','#111827');
+    document.documentElement.style.setProperty('--muted','#4b5563');
+    document.documentElement.style.setProperty('--border','#e5e7eb');
+    document.documentElement.style.setProperty('--header-gradient-start','rgba(255,255,255,0.7)');
+    document.documentElement.style.setProperty('--header-gradient-end','rgba(255,255,255,0.2)');
+  } else {
+    document.documentElement.style.setProperty('--bg','#0f172a');
+    document.documentElement.style.setProperty('--panel','#111827');
+    document.documentElement.style.setProperty('--card','#0b1220');
+    document.documentElement.style.setProperty('--text','#e5e7eb');
+    document.documentElement.style.setProperty('--muted','#9ca3af');
+    document.documentElement.style.setProperty('--border','#1f2937');
+    document.documentElement.style.setProperty('--header-gradient-start','rgba(0,0,0,0.7)');
+    document.documentElement.style.setProperty('--header-gradient-end','rgba(0,0,0,0.2)');
+  }
+}
+
+// ---------- Subscriptions ----------
+subscribe((state)=>{
+  // only render the active section to keep snappy
+  if($('#overview').classList.contains('active')) renderOverview();
+  if($('#expenses').classList.contains('active')) renderExpenses();
+  if($('#income').classList.contains('active')) renderIncome();
+  if($('#settings').classList.contains('active')) renderSettings();
+});
+
+// ---------- Init ----------
+(function init(){
+  // seed demo if empty (first run)
+  if(!store.data.incomes.length && !store.data.expenses.length){
+    const t=todayStr();
+    store.data.startingBalance=1416;
+    store.data.incomes=[
+      {id:uuid(), description:'CME', amount:1559, date:t, frequency:'weekly', endDate:''},
+      {id:uuid(), description:'RCC', amount:1152, date:t, frequency:'once', endDate:''},
+      {id:uuid(), description:'PC RCF', amount:5100, date:t, frequency:'monthly', endDate:''},
+    ];
+    store.data.expenses=[
+      {id:uuid(), description:'Grocery', amount:160, date:t, frequency:'weekly', endDate:''},
+      {id:uuid(), description:'Netflix', amount:33, date:'2024-09-30', frequency:'monthly', endDate:''},
+      {id:uuid(), description:'Disney+', amount:15, date:'2024-10-10', frequency:'monthly', endDate:''},
+      {id:uuid(), description:'T-Mobile', amount:100, date:'2024-10-13', frequency:'monthly', endDate:''},
+      {id:uuid(), description:'Mazda Buyout', amount:20000, date:'2026-08-03', frequency:'once', endDate:'2026-08-03'}
+    ];
+    store.save();
+  } else { publish(); } // trigger first render
+  applyTheme();
+  $('#versionBadge').textContent = store.data.version;
+  renderSettings();
+  // select default chip 6M
+  publish();
+})();
+// ---------- Interactive Chart Modal ----------
+let chartSeriesFull = [];
+let viewStartIdx = 0;
+let viewEndIdx = 0;
+
+function openChartModal() {
+  // Initialize modal controls, then show the dialog and render the chart.  Rendering after setting
+  // display ensures the canvas has a width and height.  Without this order, the
+  // chart may appear blank until resized.
+  initModalControls();
+  $('#chartDlg').style.display = 'flex';
+  // Defer rendering slightly to allow layout to update
+  setTimeout(() => {
+    updateModalChart();
+  }, 0);
+}
+
+function closeChartModal() { $('#chartDlg').style.display = 'none'; }
+
+$('#chart').addEventListener('click', openChartModal);
+$('#chartDlgClose').addEventListener('click', closeChartModal);
+
+function updateRangeLabel(){
+  const s = chartSeriesFull[viewStartIdx];
+  const e = chartSeriesFull[viewEndIdx];
+  if(!s || !e) return;
+  const fmtD = (d)=> d.toISOString().slice(0,10);
+  $('#chRangeLabel').textContent = fmtD(s.x) + ' → ' + fmtD(e.x);
+}
+
+// Initialize the modal controls based on the current overview state.  This
+// function copies the target date and active range chip from the overview
+// into the modal controls so that the chart reflects the same horizon.  If
+// no chip is active in the main overview, the modal chips will be cleared
+// and the date field used as is.
+function initModalControls() {
+  // copy date from main target date or default to today
+  const mainDate = $('#targetDate').value || todayStr();
+  $('#modalTargetDate').value = mainDate;
+  // replicate active chip state
+  const mainActive = document.querySelector('#overview .chip.active');
+  // reset modal chips
+  document.querySelectorAll('#modalChips .chip').forEach(ch => ch.classList.remove('active'));
+  if(mainActive) {
+    const range = mainActive.getAttribute('data-range');
+    document.querySelectorAll('#modalChips .chip').forEach(ch => {
+      if(ch.getAttribute('data-range') === range) ch.classList.add('active');
+    });
+  }
+}
+
+// Compute series and balance for the modal based on the selected target date.  This
+// function updates the global chartSeriesFull and resets the view window.  It
+// also updates the estimated balance display and range label.
+function updateModalChart() {
+  const dateStr = $('#modalTargetDate').value || todayStr();
+  const to = new Date(dateStr);
+  const {series, endBalance} = simulateBalance(to);
+  chartSeriesFull = series;
+  if(chartSeriesFull.length < 2) {
+    toast('Not enough data to display');
+    return;
+  }
+  viewStartIdx = 0;
+  viewEndIdx = chartSeriesFull.length - 1;
+  $('#modalEstBalance').textContent = fmt(endBalance);
+  drawInteractive();
+  updateRangeLabel();
+}
+
+// Attach event handlers for the modal controls.  Runs once on script load.
+(function attachModalHandlers(){
+  document.addEventListener('DOMContentLoaded', () => {
+    const modalDate = document.getElementById('modalTargetDate');
+    if(modalDate) {
+      modalDate.addEventListener('change', () => {
+        document.querySelectorAll('#modalChips .chip').forEach(ch => ch.classList.remove('active'));
+        updateModalChart();
+      });
+    }
+    // Chip click
+    document.querySelectorAll('#modalChips .chip').forEach(ch => {
+      ch.addEventListener('click', () => {
+        document.querySelectorAll('#modalChips .chip').forEach(c => c.classList.remove('active'));
+        ch.classList.add('active');
+        const range = Number(ch.getAttribute('data-range') || 180);
+        const to = addDays(new Date(), range);
+        document.getElementById('modalTargetDate').value = to.toISOString().slice(0,10);
+        updateModalChart();
+      });
+    });
+  });
+})();
+
+function clampIdx(i){ return Math.max(0, Math.min(i, chartSeriesFull.length-1)); }
+
+function currentWindow(){
+  return chartSeriesFull.slice(viewStartIdx, viewEndIdx+1);
+}
+
+function zoom(factor){
+  // factor >1 zooms in (narrower window), <1 zooms out (wider window)
+  const len = viewEndIdx - viewStartIdx + 1;
+  // avoid zooming in too far (keep at least 5 points visible)
+  if(len <= 5 && factor > 1) return;
+  const center = Math.floor((viewStartIdx + viewEndIdx) / 2);
+  let newHalf = Math.max(3, Math.floor(len / (2 * factor)));
+  viewStartIdx = clampIdx(center - newHalf);
+  viewEndIdx   = clampIdx(center + newHalf);
+  drawInteractive();
+  updateRangeLabel();
+}
+
+function pan(steps){
+  // steps positive to pan right, negative to pan left.  Pan by a fraction of
+  // the current window size for smoother navigation.
+  const windowSize = viewEndIdx - viewStartIdx + 1;
+  const shift = steps * Math.max(1, Math.floor(windowSize * 0.25));
+  let newStart = viewStartIdx + shift;
+  let newEnd   = viewEndIdx + shift;
+  // clamp to boundaries and maintain window size
+  if(newStart < 0) {
+    newStart = 0;
+    newEnd = newStart + windowSize - 1;
+  }
+  if(newEnd > chartSeriesFull.length - 1) {
+    newEnd = chartSeriesFull.length - 1;
+    newStart = newEnd - (windowSize - 1);
+    if(newStart < 0) newStart = 0;
+  }
+  viewStartIdx = newStart;
+  viewEndIdx   = newEnd;
+  drawInteractive();
+  updateRangeLabel();
+}
+
+// Attach chart control handlers only if the respective elements exist
+const zoomInBtn = $('#chZoomIn');
+if (zoomInBtn) zoomInBtn.addEventListener('click', ()=>zoom(1.5));
+const zoomOutBtn = $('#chZoomOut');
+if (zoomOutBtn) zoomOutBtn.addEventListener('click', ()=>zoom(1/1.5));
+const panLeftBtn = $('#chPanLeft');
+if (panLeftBtn) panLeftBtn.addEventListener('click', ()=>pan(-1));
+const panRightBtn = $('#chPanRight');
+if (panRightBtn) panRightBtn.addEventListener('click', ()=>pan(1));
+const resetBtn = $('#chReset');
+if (resetBtn) resetBtn.addEventListener('click', ()=>{
+  viewStartIdx = 0;
+  viewEndIdx   = chartSeriesFull.length - 1;
+  drawInteractive();
+  updateRangeLabel();
+});
+const exportBtn = $('#chExport');
+if (exportBtn) exportBtn.addEventListener('click', ()=>{
+  // export a clean version of the current chart with a light background and date range
+  const winSeries = currentWindow();
+  const rangeTitle = document.getElementById('chRangeLabel').textContent || '';
+  const canvasWidth = document.getElementById('chartInteractive').clientWidth;
+  const canvasHeight = document.getElementById('chartInteractive').clientHeight + 40;
+  const exportCanvas = document.createElement('canvas');
+  exportCanvas.width = canvasWidth;
+  exportCanvas.height = canvasHeight;
+  drawChartOn(exportCanvas, winSeries, { title: rangeTitle });
+  const url = exportCanvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'balance_chart.png';
+  a.click();
+});
+
+function drawInteractive(){
+  const canvas = $('#chartInteractive');
+  const ctx = canvas.getContext('2d');
+  const series = currentWindow();
+  const dpr = window.devicePixelRatio || 1;
+  const width = canvas.clientWidth;
+  const height = canvas.clientHeight || 480;
+  canvas.width = Math.floor(width * dpr);
+  canvas.height = Math.floor(height * dpr);
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0,0,width,height);
+  if(series.length<2) return;
+  const xs = series.map(p=>p.x.getTime());
+  const ys = series.map(p=>p.y);
+  const minX = Math.min(...xs), maxX = Math.max(...xs);
+  const minY = Math.min(...ys), maxY = Math.max(...ys);
+  const dx = (maxX-minX)||1, dy=(maxY-minY)||1;
+  const padX=48, padY=28;
+  const computed = getComputedStyle(document.documentElement);
+  const lineColor = (computed.getPropertyValue('--accent-2')||'#3b82f6').trim();
+  const axisColor = (computed.getPropertyValue('--muted')||'#9ca3af').trim();
+  const textColor = (computed.getPropertyValue('--text')||'#e5e7eb').trim();
+  // axes
+  ctx.strokeStyle = axisColor; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(padX, padY); ctx.lineTo(padX, height-padY); ctx.lineTo(width-padX, height-padY); ctx.stroke();
+  // ticks (y)
+  ctx.fillStyle = textColor; ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
+  const yTicks = 4;
+  for(let i=0;i<=yTicks;i++){
+    const val = minY + (i*(dy/yTicks));
+    const y = height - padY - (i*(height-2*padY)/yTicks);
+    ctx.fillText(fmt(val), 6, y+4);
+    ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(width-padX, y); ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.stroke();
+  }
+  // zero line
+  if(minY<0 && maxY>0){
+    const zy = height - padY - ((0-minY)/dy)*(height-2*padY);
+    ctx.beginPath(); ctx.moveTo(padX, zy); ctx.lineTo(width-padX, zy); ctx.setLineDash([4,4]); ctx.strokeStyle=axisColor; ctx.stroke(); ctx.setLineDash([]);
+  }
+  // line
+  ctx.strokeStyle = lineColor; ctx.lineWidth=2; ctx.beginPath();
+  series.forEach((pt, i)=>{
+    const x = padX + ((pt.x.getTime()-minX)/dx)*(width-2*padX);
+    const y = height - padY - ((pt.y-minY)/dy)*(height-2*padY);
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }); ctx.stroke();
+
+  // store scales for hover
+  canvas._chartScale = { minX, maxX, minY, maxY, padX, padY, width, height, series };
+}
+
+/**
+ * Draw a static chart onto the provided canvas using a light theme.  This
+ * helper is used for PNG export so that the downloaded image is readable
+ * regardless of the site's dark mode.  It renders a title (date range)
+ * above the chart area.  The chart is drawn with black axes, grey grid
+ * lines and a blue line for the balance series.
+ * @param {HTMLCanvasElement} canvas The canvas to draw on
+ * @param {Array<{x: Date, y: number}>} series The data series to render
+ * @param {Object} opts Additional options: { title: string }
+ */
+function drawChartOn(canvas, series, opts = {}) {
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  // clear & white background
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+  const title = opts.title || '';
+  // Title area height
+  const topMargin = 30;
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 16px system-ui, -apple-system, Segoe UI, Roboto';
+  if(title) {
+    ctx.fillText(title, 10, 20);
+  }
+  if(!series || series.length < 2) return;
+  // compute ranges
+  const xs = series.map(p => p.x.getTime());
+  const ys = series.map(p => p.y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const dx = (maxX - minX) || 1;
+  const dy = (maxY - minY) || 1;
+  // chart area padding
+  const padX = 48;
+  const padY = 40;
+  const chartTop = topMargin;
+  const chartHeight = height - chartTop - padY;
+  const chartBottom = chartTop + chartHeight;
+  // axes
+  ctx.strokeStyle = '#333333';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padX, chartTop);
+  ctx.lineTo(padX, chartBottom);
+  ctx.lineTo(width - padX, chartBottom);
+  ctx.stroke();
+  // y ticks
+  ctx.fillStyle = '#333333';
+  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
+  const yTicks = 4;
+  for(let i = 0; i <= yTicks; i++) {
+    const val = minY + (i * dy / yTicks);
+    const y = chartBottom - (i * chartHeight / yTicks);
+    ctx.fillText(fmt(val), 4, y + 4);
+    ctx.beginPath();
+    ctx.moveTo(padX, y);
+    ctx.lineTo(width - padX, y);
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.stroke();
+  }
+  // zero line
+  if(minY < 0 && maxY > 0) {
+    const zy = chartBottom - ((0 - minY) / dy) * chartHeight;
+    ctx.beginPath();
+    ctx.moveTo(padX, zy);
+    ctx.lineTo(width - padX, zy);
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#666666';
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  // line
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  series.forEach((pt, i) => {
+    const x = padX + ((pt.x.getTime() - minX) / dx) * (width - 2 * padX);
+    const y = chartBottom - ((pt.y - minY) / dy) * chartHeight;
+    if(i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+
+function canvasXYToData(canvas, evt){
+  const rect = canvas.getBoundingClientRect();
+  const x = evt.clientX - rect.left;
+  const y = evt.clientY - rect.top;
+  return {x,y};
+}
+
+function onChartHover(evt){
+  const canvas = $('#chartInteractive');
+  const tip = $('#chartTip');
+  const sc = canvas._chartScale;
+  if(!sc) return;
+  const pos = canvasXYToData(canvas, evt);
+  const {minX, maxX, minY, maxY, padX, padY, width, height, series} = sc;
+  if(pos.x < padX || pos.x > width - padX || pos.y < padY || pos.y > height - padY){
+    tip.style.display='none'; canvas.style.cursor='default'; return;
+  }
+  canvas.style.cursor='crosshair';
+  const rel = (pos.x - padX) / (width - 2*padX);
+  const time = minX + rel * (maxX - minX);
+  // find nearest index
+  let nearest = 0, best = Infinity;
+  for(let i=0;i<series.length;i++){
+    const d = Math.abs(series[i].x.getTime()-time);
+    if(d<best){ best=d; nearest=i; }
+  }
+  const pt = series[nearest];
+  const px = padX + ((pt.x.getTime()-minX)/(maxX-minX||1))*(width-2*padX);
+  const py = height - padY - ((pt.y-minY)/(maxY-minY||1))*(height-2*padY);
+  // redraw to add crosshair without accumulating
+  drawInteractive();
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(px, padY); ctx.lineTo(px, height-padY); ctx.moveTo(padX, py); ctx.lineTo(width-padX, py); ctx.stroke();
+  ctx.restore();
+  // tooltip
+  //
+  tip.style.display='block';
+  tip.textContent = pt.x.toISOString().slice(0,10) + ' • ' + fmt(pt.y);
+  let left = px + 10;
+  let top = py - 10;
+  // keep inside
+  const wrap = canvas.parentElement.getBoundingClientRect();
+  if(left + 160 > wrap.width) left = px - 170;
+  if(top < 0) top = py + 20;
+  tip.style.transform = 'translate(0,0)';
+  tip.style.left = Math.round(left) + 'px';
+  tip.style.top = Math.round(top) + 'px';
+}
+
+function onChartLeave(){
+  $('#chartTip').style.display='none';
+  drawInteractive();
+}
+
+$('#chartInteractive').addEventListener('mousemove', onChartHover);
+$('#chartInteractive').addEventListener('mouseleave', onChartLeave);
+
+
+document.getElementById('chartDlg').addEventListener('transitionend', function(e) {
+  if (e.propertyName === 'display' || e.propertyName === 'opacity') {
+    if (document.getElementById('chartDlg').style.display === 'flex') {
+      if (typeof drawInteractive === 'function') {
+        drawInteractive();
+        if (typeof updateRangeLabel === 'function') updateRangeLabel();
+      }
+    }
+  }
+});
+
+</script>
 </body>
 </html>
