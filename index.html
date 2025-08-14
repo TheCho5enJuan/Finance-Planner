@@ -341,10 +341,10 @@ const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
 const uuid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
 // ---------- Store & Schema ----------
-const schemaVersion = '2.0.27';
+const schemaVersion = '2.0.28';
 const defaults = ()=>({ 
   version: schemaVersion,
-  settings: { theme:'dark' },
+  settings: { theme:'dark', targetDate:'' },
   startingBalance: 0,
   accounts: [{id:'acc-default', name:'Checking', type:'cash'}],
   categories: [],
@@ -361,6 +361,9 @@ function migrate(data){
     d.incomes = (data.incomes||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||''}));
     return d;
   }
+  // ensure new settings fields
+  data.settings = data.settings || { theme:'dark' };
+  if(typeof data.settings.targetDate === 'undefined') data.settings.targetDate = '';
   // future migrations here
   data.version = schemaVersion;
   return data;
@@ -522,6 +525,12 @@ function drawLineChart(canvas, series) {
 }
 function renderOverview(){
   const from = new Date();
+  const savedTD = store.data.settings && store.data.settings.targetDate || '';
+  if(savedTD){
+    $('#targetDate').value = savedTD;
+    document.querySelectorAll('#overview .chip.active').forEach(ch=>ch.classList.remove('active'));
+  }
+
   // Determine the horizon: if a chip is active in the overview, use its range; otherwise use the manually selected target date.
   let to;
   const activeChip = document.querySelector('#overview .chip.active');
@@ -816,15 +825,25 @@ document.querySelectorAll('#overview .chip').forEach(ch => {
   ch.onclick = () => {
     document.querySelectorAll('#overview .chip').forEach(x => x.classList.remove('active'));
     ch.classList.add('active');
+    const rangeDays = Number(ch.getAttribute('data-range') || 180);
+    const to = addDays(new Date(), rangeDays);
+    const iso = to.toISOString().slice(0,10);
+    $('#targetDate').value = iso;
+    store.data.settings = store.data.settings || { theme:'dark' };
+    store.data.settings.targetDate = iso;
+    store.save();
     publish();
   };
 });
 
-// Target date manual change
+/// Target date manual change
 $('#targetDate').onchange = ()=>{
   // align chips to custom (remove active chips only in the overview) and redraw
   document.querySelectorAll('#overview .chip.active').forEach(ch => ch.classList.remove('active'));
-  publish();
+  // persist
+  store.data.settings = store.data.settings || { theme:'dark' };
+  store.data.settings.targetDate = $('#targetDate').value || '';
+  store.save();
 };
 
 // Settings
