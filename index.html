@@ -131,7 +131,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         <div class="kpi" style="margin-top:8px"><span class="muted">Estimated Balance</span> <b id="estBalance">$0</b></div>
         <div class="chips" style="margin-top:8px">
           <div class="chip" data-range="90">3M</div>
-          <div class="chip" data-range="180">6M</div>
+          <div class="chip active" data-range="180">6M</div>
           <div class="chip" data-range="365">12M</div>
           <div class="chip" data-range="730">24M</div>
         </div>
@@ -157,6 +157,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
           <select id="qaFreq" class="input">
             <option value="once">once</option>
             <option value="weekly">weekly</option>
+            <option value="biweekly">bi-weekly</option>
             <option value="monthly" selected>monthly</option>
             <option value="yearly">yearly</option>
           </select>
@@ -167,7 +168,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
       </div>
     </div>
     <div class="card" style="margin-top:12px">
-      <h2>Items Within Range</h2>
+      <div style="display:flex; align-items:center; gap:8px"><h2 style="margin:0">Items Within Range</h2><div style="margin-left:auto"><input id="rangeSearch" class="input" placeholder="Search…" style="max-width:220px" /></div></div>
       <table>
         <thead><tr>
           <th>Description</th><th>Amount</th><th>Date</th><th>Frequency</th><th>Balance</th>
@@ -224,15 +225,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         </select>
       </div>
     </div>
-  
-    <div class="card" style="margin-top:12px">
-      <div class="label">Diagnostics</div>
-      <div class="row" style="gap:8px; flex-wrap:wrap">
-        <button id="btnHealthCheck" class="btn">Run Health Check</button>
-      </div>
-      <small class="muted">Runs a quick sanity test of key functions and DOM nodes.</small>
-    </div>
-    </section>
+  </section>
 </main>
 
 <footer>
@@ -315,6 +308,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         <select id="fFreq" class="input">
           <option value="once">once</option>
           <option value="weekly">weekly</option>
+          <option value="biweekly">bi-weekly</option>
           <option value="monthly">monthly</option>
           <option value="yearly">yearly</option>
         </select>
@@ -347,10 +341,10 @@ const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
 const uuid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
 // ---------- Store & Schema ----------
-const schemaVersion = '2.0.22';
+const schemaVersion = '2.0.27';
 const defaults = ()=>({ 
   version: schemaVersion,
-  settings: { theme:'dark', targetDate:'' },
+  settings: { theme:'dark' },
   startingBalance: 0,
   accounts: [{id:'acc-default', name:'Checking', type:'cash'}],
   categories: [],
@@ -368,8 +362,6 @@ function migrate(data){
     return d;
   }
   // future migrations here
-  data.settings = data.settings || { theme:'dark' };
-  if(typeof data.settings.targetDate === 'undefined') data.settings.targetDate = '';
   data.version = schemaVersion;
   return data;
 }
@@ -394,6 +386,7 @@ function* occurrences(item, fromDate, toDate){
   const step = (d)=>{
     switch(item.frequency){
       case 'weekly': d.setDate(d.getDate()+7); break;
+      case 'biweekly': d.setDate(d.getDate()+14); break;
       case 'monthly': d.setMonth(d.getMonth()+1); break;
       case 'yearly': d.setFullYear(d.getFullYear()+1); break;
       default: d.setDate(d.getDate()+36500); // once
@@ -529,9 +522,6 @@ function drawLineChart(canvas, series) {
 }
 function renderOverview(){
   const from = new Date();
-  const savedTD = (store.data.settings && store.data.settings.targetDate) || '';
-  if(savedTD){ $('#targetDate').value = savedTD; document.querySelectorAll('#overview .chip.active').forEach(ch=>ch.classList.remove('active')); }
-
   // Determine the horizon: if a chip is active in the overview, use its range; otherwise use the manually selected target date.
   let to;
   const activeChip = document.querySelector('#overview .chip.active');
@@ -565,6 +555,7 @@ function renderOverview(){
   const tbody = $('#rangeTable');
   tbody.innerHTML='';
   const rows = [];
+  const searchTerm = (document.getElementById('rangeSearch')?.value || '').trim().toLowerCase();
   let bal = Number(store.data.startingBalance||0);
   const fmtDate = d=>new Date(d).toISOString().slice(0,10);
   for(const ev of items){
@@ -597,7 +588,10 @@ function renderOverview(){
     });
   }
   // Render sorted rows
-  for(const row of rows){
+  const _rows = searchTerm ? rows.filter(r => (
+    String(r.description||'').toLowerCase().includes(searchTerm)
+  )) : rows;
+  for(const row of _rows){
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${row.description}</td><td>${fmt(row.amount)}</td><td>${row.date}</td><td>${row.frequency}</td><td>${fmt(row.balance)}</td>`;
     tbody.appendChild(tr);
@@ -606,14 +600,15 @@ function renderOverview(){
   attachOverviewSortHandlers();
 }
 function groupByFreq(list){
-  const g = {once:[], weekly:[], monthly:[], yearly:[]};
+  const g = {once:[], weekly:[], biweekly:[], monthly:[], yearly:[]};
   list.forEach(x=> (g[x.frequency]||g.once).push(x) );
-  const order = ['once','weekly','monthly','yearly'];
+  const order = ['once','weekly','biweekly','monthly','yearly'];
   return order.map(k=>({key:k, items:g[k]}));
 }
 function annualize(item){
   switch(item.frequency){
     case 'weekly': return item.amount*52;
+    case 'biweekly': return item.amount*26;
     case 'monthly': return item.amount*12;
     case 'yearly': return item.amount;
     default: return item.amount;
@@ -631,7 +626,8 @@ function renderGroups(el, items, type){
     const wrapper = document.createElement('div');
     const total = group.items.reduce((s,x)=>s+annualize(x),0);
     wrapper.className='card';
-    wrapper.innerHTML = `<h3 style="display:flex;justify-content:space-between;align-items:center">${group.key[0].toUpperCase()+group.key.slice(1)} <span class="muted">Annual: ${fmt(total)}</span></h3>`;
+    const nameText = (group.key==='biweekly' ? 'Bi-weekly' : (group.key[0].toUpperCase()+group.key.slice(1)));
+    wrapper.innerHTML = `<h3 style="display:flex;justify-content:space-between;align-items:center">${nameText} <span class="muted">Annual: ${fmt(total)}</span></h3>`;
     const table = document.createElement('table');
     // Remove the Frequency column header; frequency is implied by the group label
     table.innerHTML = `<thead><tr><th>Description</th><th>Amount</th><th>Start</th><th>End</th><th></th></tr></thead>`;
@@ -785,13 +781,10 @@ $('#btnSave').onclick = ()=>{
   closeDialog();
 };
 
-// ---------- Diagnostics ----------
-window.addEventListener('error', (e)=>{
-  if(window.showToast){ showToast('Error: ' + (e.message||'unknown'), 'danger', 3500); }
-});
-window.addEventListener('unhandledrejection', (e)=>{
-  if(window.showToast){ showToast('Unhandled: ' + (e.reason && e.reason.message || e.reason || 'unknown'), 'danger', 3500); }
-});
+
+// Search filter for Items Within Range
+const _rs = document.getElementById('rangeSearch');
+if(_rs){ _rs.oninput = ()=>{ try{ renderOverview(); }catch(e){} }; }
 // ---------- Events ----------
 $('#navTabs').onclick = e=>{
   const t = e.target.closest('.tab'); if(!t) return;
@@ -823,44 +816,18 @@ document.querySelectorAll('#overview .chip').forEach(ch => {
   ch.onclick = () => {
     document.querySelectorAll('#overview .chip').forEach(x => x.classList.remove('active'));
     ch.classList.add('active');
-    const rangeDays = Number(ch.getAttribute('data-range')||180);
-    const to = addDays(new Date(), rangeDays);
-    const iso = to.toISOString().slice(0,10);
-    $('#targetDate').value = iso;
-    store.data.settings = store.data.settings || { theme:'dark' };
-    store.data.settings.targetDate = iso;
-    store.save();
     publish();
   };
 });
 
 // Target date manual change
 $('#targetDate').onchange = ()=>{
+  // align chips to custom (remove active chips only in the overview) and redraw
   document.querySelectorAll('#overview .chip.active').forEach(ch => ch.classList.remove('active'));
-  store.data.settings = store.data.settings || { theme:'dark' };
-  store.data.settings.targetDate = $('#targetDate').value || '';
-  store.save();
   publish();
 };
 
-
-// Health Check
-$('#btnHealthCheck') && ($('#btnHealthCheck').onclick = ()=>{
-  const checks = [];
-  const ok = (name, cond)=> checks.push((cond? '✅ ' : '❌ ') + name);
-  try{
-    ok('store exists', !!window.store && !!store.data);
-    ok('settings.targetDate exists', store.data && store.data.settings && ('targetDate' in store.data.settings));
-    ok('#targetDate input', !!$('#targetDate'));
-    ok('#chart canvas', !!$('#chart'));
-    ok('#rangeTable tbody', !!$('#rangeTable'));
-    ok('simulateBalance()', typeof simulateBalance === 'function');
-    ok('drawLineChart()', typeof drawLineChart === 'function');
-    ok('drawInteractive()', typeof drawInteractive === 'function');
-    ok('drawChartOn()', typeof drawChartOn === 'function');
-  }catch(e){ checks.push('❌ exception: ' + e.message); }
-  showToast(checks.join(' | '), checks.some(x=>x.startsWith('❌')) ? 'danger' : 'success', 5000);
-});// Settings
+// Settings
 $('#btnSetBalance').onclick = ()=>{ store.data.startingBalance = Number($('#startingBalance').value||0); store.save(); toast('Balance updated'); };
 $('#prefTheme').onchange = ()=>{ store.data.settings.theme = $('#prefTheme').value; store.save(); applyTheme(); };
 
@@ -919,7 +886,24 @@ subscribe((state)=>{
 
 // ---------- Init ----------
 (function init(){
-  publish();
+  // seed demo if empty (first run)
+  if(!store.data.incomes.length && !store.data.expenses.length){
+    const t=todayStr();
+    store.data.startingBalance=1416;
+    store.data.incomes=[
+      {id:uuid(), description:'CME', amount:1559, date:t, frequency:'weekly', endDate:''},
+      {id:uuid(), description:'RCC', amount:1152, date:t, frequency:'once', endDate:''},
+      {id:uuid(), description:'PC RCF', amount:5100, date:t, frequency:'monthly', endDate:''},
+    ];
+    store.data.expenses=[
+      {id:uuid(), description:'Grocery', amount:160, date:t, frequency:'weekly', endDate:''},
+      {id:uuid(), description:'Netflix', amount:33, date:'2024-09-30', frequency:'monthly', endDate:''},
+      {id:uuid(), description:'Disney+', amount:15, date:'2024-10-10', frequency:'monthly', endDate:''},
+      {id:uuid(), description:'T-Mobile', amount:100, date:'2024-10-13', frequency:'monthly', endDate:''},
+      {id:uuid(), description:'Mazda Buyout', amount:20000, date:'2026-08-03', frequency:'once', endDate:'2026-08-03'}
+    ];
+    store.save();
+  } else { publish(); } // trigger first render
   applyTheme();
   $('#versionBadge').textContent = store.data.version;
   renderSettings();
@@ -1082,15 +1066,13 @@ const exportBtn = $('#chExport');
 if (exportBtn) exportBtn.addEventListener('click', ()=>{
   // export a clean version of the current chart with a light background and date range
   const winSeries = currentWindow();
-  const endBal = winSeries.length ? winSeries[winSeries.length-1].y : 0;
-  const rangeTitle = (document.getElementById('chRangeLabel')||{}).textContent || '';
-  const title = 'Estimated Balance ' + fmt(endBal);
+  const rangeTitle = document.getElementById('chRangeLabel').textContent || '';
   const canvasWidth = document.getElementById('chartInteractive').clientWidth;
-  const canvasHeight = document.getElementById('chartInteractive').clientHeight + 60;
+  const canvasHeight = document.getElementById('chartInteractive').clientHeight + 40;
   const exportCanvas = document.createElement('canvas');
   exportCanvas.width = canvasWidth;
   exportCanvas.height = canvasHeight;
-  drawChartOn(exportCanvas, winSeries, { title, subtitle: rangeTitle });
+  drawChartOn(exportCanvas, winSeries, { title: rangeTitle });
   const url = exportCanvas.toDataURL('image/png');
   const a = document.createElement('a');
   a.href = url;
@@ -1167,16 +1149,13 @@ function drawChartOn(canvas, series, opts = {}) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, width, height);
   const title = opts.title || '';
-  const subtitle = opts.subtitle || '';
   // Title area height
-  const topMargin = 42;
+  const topMargin = 30;
   ctx.fillStyle = '#111827';
-  ctx.textAlign = 'center';
   ctx.font = 'bold 16px system-ui, -apple-system, Segoe UI, Roboto';
-  if(title){ ctx.fillText(title, width/2, 18); }
-  ctx.font = '14px system-ui, -apple-system, Segoe UI, Roboto';
-  if(subtitle){ ctx.fillText(subtitle, width/2, 36); }
-  ctx.textAlign = 'left';
+  if(title) {
+    ctx.fillText(title, 10, 20);
+  }
   if(!series || series.length < 2) return;
   // compute ranges
   const xs = series.map(p => p.x.getTime());
