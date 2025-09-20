@@ -910,16 +910,8 @@ subscribe((state)=>{
     const t=todayStr();
     store.data.startingBalance=1416;
     store.data.incomes=[
-      {id:uuid(), description:'CME', amount:1559, date:t, frequency:'weekly', endDate:''},
-      {id:uuid(), description:'RCC', amount:1152, date:t, frequency:'once', endDate:''},
-      {id:uuid(), description:'PC RCF', amount:5100, date:t, frequency:'monthly', endDate:''},
     ];
     store.data.expenses=[
-      {id:uuid(), description:'Grocery', amount:160, date:t, frequency:'weekly', endDate:''},
-      {id:uuid(), description:'Netflix', amount:33, date:'2024-09-30', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'Disney+', amount:15, date:'2024-10-10', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'T-Mobile', amount:100, date:'2024-10-13', frequency:'monthly', endDate:''},
-      {id:uuid(), description:'Mazda Buyout', amount:20000, date:'2026-08-03', frequency:'once', endDate:'2026-08-03'}
     ];
     store.save();
   } else { publish(); } // trigger first render
