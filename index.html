@@ -908,7 +908,7 @@ subscribe((state)=>{
   // seed demo if empty (first run)
   if(!store.data.incomes.length && !store.data.expenses.length){
     const t=todayStr();
-    store.data.startingBalance=1416;
+    store.data.startingBalance=0;
     store.data.incomes=[
     ];
     store.data.expenses=[
