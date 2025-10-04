@@ -201,9 +201,19 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
     <div class="grid cols-2">
       <div class="card">
         <h3>Account Settings</h3>
-        <div class="label">Starting Balance</div>
-        <input id="startingBalance" type="number" step="0.01" class="input">
-        <div class="row"><button id="btnSetBalance" class="btn primary" style="margin-top:10px">Set Balance</button></div>
+        <div class="grid cols-2">
+          <div>
+            <div class="label">Checking Balance</div>
+            <input id="checkingBalance" type="number" step="0.01" class="input">
+          </div>
+          <div>
+            <div class="label">Savings Balance</div>
+            <input id="savingsBalance" type="number" step="0.01" class="input">
+          </div>
+        </div>
+        <div class="label" style="margin-top:10px">Starting Balance (auto)</div>
+        <input id="startingBalanceRO" type="number" step="0.01" class="input" readonly>
+        <div class="row"><button id="btnSaveAccounts" class="btn primary" style="margin-top:10px">Save Accounts</button></div>
         <hr>
         <div><span class="muted">Version:</span> <span id="settingsVersion"></span></div>
       </div>
@@ -341,11 +351,12 @@ const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
 const uuid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
 // ---------- Store & Schema ----------
-const schemaVersion = '2.0.28';
+const schemaVersion = '2.0.32';
 const defaults = ()=>({ 
   version: schemaVersion,
   settings: { theme:'dark', targetDate:'' },
   startingBalance: 0,
+  balances: { checking: 0, savings: 0 },
   accounts: [{id:'acc-default', name:'Checking', type:'cash'}],
   categories: [],
   expenses: [], incomes: [],
@@ -365,9 +376,24 @@ function migrate(data){
   data.settings = data.settings || { theme:'dark' };
   if(typeof data.settings.targetDate === 'undefined') data.settings.targetDate = '';
   // future migrations here
+  // v2.0.32: one-time, idempotent balances migration guarded by flag
+  const already = localStorage.getItem(MIG_FLAG)==='1';
+  if(!already){
+    if(!data.balances){
+      data.balances = { checking: Number(data.startingBalance || 0), savings: 0 };
+    }else{
+      if(typeof data.balances.checking === 'undefined') data.balances.checking = 0;
+      if(typeof data.balances.savings  === 'undefined') data.balances.savings  = 0;
+    }
+    localStorage.setItem(MIG_FLAG,'1');
+  }
+  // Keep legacy field equal to the sum (no additive adjustments)
+  data.startingBalance = Number((Number(data.balances?.checking)||0) + (Number(data.balances?.savings)||0));
+  data.startingBalance = Number((Number(data.balances.checking)||0) + (Number(data.balances.savings)||0));
   data.version = schemaVersion;
   return data;
 }
+const MIG_FLAG='planner_v2_balances_migrated';
 const store = {
   key:'planner_v2',
   data: migrate(JSON.parse(localStorage.getItem('planner_v2')||'null')),
@@ -422,7 +448,7 @@ function itemsInRange(from, to){
   return all;
 }
 function simulateBalance(toDate){
-  const startBal = Number(store.data.startingBalance||0);
+  const startBal = Number(((Number(store.data.balances?.checking)||0) + (Number(store.data.balances?.savings)||0)) || store.data.startingBalance || 0);
   const from = new Date();
   const items = itemsInRange(from, toDate);
   let bal = startBal, daysToNeg = null;
@@ -565,7 +591,7 @@ function renderOverview(){
   tbody.innerHTML='';
   const rows = [];
   const searchTerm = (document.getElementById('rangeSearch')?.value || '').trim().toLowerCase();
-  let bal = Number(store.data.startingBalance||0);
+  let bal = Number(((Number(store.data.balances?.checking)||0) + (Number(store.data.balances?.savings)||0)) || store.data.startingBalance || 0);
   const fmtDate = d=>new Date(d).toISOString().slice(0,10);
   for(const ev of items){
     bal += ev.amount;
@@ -679,7 +705,13 @@ function renderGroups(el, items, type){
 function renderExpenses(){ renderGroups($('#expenseGroups'), store.data.expenses, 'expenses'); }
 function renderIncome(){ renderGroups($('#incomeGroups'), store.data.incomes, 'incomes'); }
 function renderSettings(){
-  $('#startingBalance').value = store.data.startingBalance||0;
+  const chk = Number(store.data.balances?.checking || 0);
+  const sav = Number(store.data.balances?.savings || 0);
+  const sum = chk + sav;
+  const sb = Number(store.data.startingBalance || 0);
+  const cEl = $('#checkingBalance'); if(cEl) cEl.value = chk;
+  const sEl = $('#savingsBalance');  if(sEl) sEl.value = sav;
+  const ro  = $('#startingBalanceRO'); if(ro) ro.value = sum || sb || 0;
   $('#prefTheme').value = store.data.settings?.theme || 'dark';
   $('#settingsVersion').textContent = store.data.version;
   $('#versionBadge').textContent = store.data.version;
@@ -847,8 +879,28 @@ $('#targetDate').onchange = ()=>{
 };
 
 // Settings
-$('#btnSetBalance').onclick = ()=>{ store.data.startingBalance = Number($('#startingBalance').value||0); store.save(); toast('Balance updated'); };
+$('#btnSaveAccounts').onclick = ()=>{
+  const chk = Number($('#checkingBalance').value || 0);
+  const sav = Number($('#savingsBalance').value || 0);
+  store.data.balances = { checking: chk, savings: sav };
+  store.data.startingBalance = chk + sav; // maintain compatibility
+  store.save();
+  toast('Accounts saved');
+  renderSettings();
+};
 $('#prefTheme').onchange = ()=>{ store.data.settings.theme = $('#prefTheme').value; store.save(); applyTheme(); };
+
+// live recompute on input
+['checkingBalance','savingsBalance'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el){
+    el.oninput = ()=>{
+      const chk = Number($('#checkingBalance').value || 0);
+      const sav = Number($('#savingsBalance').value || 0);
+      const ro = $('#startingBalanceRO'); if(ro) ro.value = chk + sav;
+    };
+  }
+});
 
 // Import/Export
 $('#fileInput').onchange = ()=> $('#btnImport').disabled = !$('#fileInput').files?.length;
@@ -908,7 +960,7 @@ subscribe((state)=>{
   // seed demo if empty (first run)
   if(!store.data.incomes.length && !store.data.expenses.length){
     const t=todayStr();
-    store.data.startingBalance=0;
+    store.data.startingBalance=0; store.data.balances = store.data.balances || { checking: 0, savings: 0 };
     store.data.incomes=[
     ];
     store.data.expenses=[
