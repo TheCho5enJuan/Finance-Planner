@@ -351,7 +351,7 @@ const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
 const uuid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
 
 // ---------- Store & Schema ----------
-const schemaVersion = '2.0.32';
+const schemaVersion = '2.0.33';
 const defaults = ()=>({ 
   version: schemaVersion,
   settings: { theme:'dark', targetDate:'' },
@@ -368,14 +368,17 @@ function migrate(data){
     // v1 -> v2 migration
     const d = defaults();
     d.startingBalance = data.startingBalance||0;
-    d.expenses = (data.expenses||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||''}));
-    d.incomes = (data.incomes||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||''}));
+    d.expenses = (data.expenses||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||'', category: x.category || ''}));
+    d.incomes = (data.incomes||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||'', category: x.category || ''}));
     return d;
   }
   // ensure new settings fields
   data.settings = data.settings || { theme:'dark' };
   if(typeof data.settings.targetDate === 'undefined') data.settings.targetDate = '';
   // future migrations here
+  // v2.0.33: ensure category field exists on all items
+  if(Array.isArray(data.expenses)){ data.expenses = data.expenses.map(x=>({...x, category: (typeof x.category==='string'? x.category : '')})); }
+  if(Array.isArray(data.incomes)){  data.incomes  = data.incomes.map(x=>({...x, category: (typeof x.category==='string'? x.category : '')})); }
   // v2.0.32: one-time, idempotent balances migration guarded by flag
   const already = localStorage.getItem(MIG_FLAG)==='1';
   if(!already){
@@ -841,13 +844,13 @@ $('#btnAddIncome').onclick = ()=>openDialog('incomes');
 $('#qaAddExpense').onclick = ()=>{
   const d=$('#qaDesc').value, a=Number($('#qaAmt').value||0), f=$('#qaFreq').value, dt=$('#qaDate').value||todayStr();
   if(!d||!a) return toast('Please enter description and amount');
-  store.data.expenses.push({id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f});
+  store.data.expenses.push({id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f, category: ($('#qaCat')?.value||'')});
   store.save(); $('#qaDesc').value=''; $('#qaAmt').value='';
 };
 $('#qaAddIncome').onclick = ()=>{
   const d=$('#qaDesc').value, a=Number($('#qaAmt').value||0), f=$('#qaFreq').value, dt=$('#qaDate').value||todayStr();
   if(!d||!a) return toast('Please enter description and amount');
-  store.data.incomes.push({id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f});
+  store.data.incomes.push({id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f, category: ($('#qaCat')?.value||'')});
   store.save(); $('#qaDesc').value=''; $('#qaAmt').value='';
 };
 
