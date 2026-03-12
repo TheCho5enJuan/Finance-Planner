@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Deal or No Deal: Gold Career v5.2.0</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --gold: #f59e0b;
+            --blue: #2563eb;
+            --red: #dc2626;
+            --panel: rgba(15, 23, 42, 0.98);
+        }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background-color: var(--bg);
+            font-family: -apple-system, system-ui, sans-serif;
+            color: white; user-select: none; -webkit-tap-highlight-color: transparent;
+        }
+        canvas { display: block; touch-action: none; width: 100%; height: 100%; }
+
+        /* UI Overlays */
+        #ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+
+        #career-header {
+            position: absolute; top: 0; left: 0; width: 100%; height: 60px;
+            background: rgba(0,0,0,0.9); display: flex; align-items: center;
+            padding: 0 15px; box-sizing: border-box; font-size: 0.75rem; font-weight: bold;
+            border-bottom: 1px solid rgba(255,215,0,0.3); backdrop-filter: blur(15px);
+        }
+        #xp-bar-outer { flex: 1; height: 10px; background: #1e293b; margin: 0 15px; border-radius: 5px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        #xp-bar-inner { width: 0%; height: 100%; background: var(--gold); transition: width 1s ease-out; }
+
+        .modal {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--panel); border: 2px solid var(--gold);
+            padding: 25px; border-radius: 32px; text-align: center;
+            display: none; pointer-events: auto; width: 88%; max-width: 420px;
+            box-shadow: 0 0 150px rgba(0,0,0,1);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            from { transform: translate(-50%, -40%) scale(0.9); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .offer-val {
+            font-size: 3.5rem; font-weight: 900; color: var(--gold);
+            margin: 5px 0; font-family: 'Courier New', monospace;
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));
+        }
+
+        .btn-box { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; width: 100%; }
+        .row { display: flex; gap: 12px; width: 100%; }
+        .btn {
+            padding: 15px; font-size: 1.1rem; font-weight: bold;
+            border-radius: 16px; cursor: pointer; border: none;
+            transition: all 0.1s; display: flex; align-items: center; justify-content: center;
+            height: 60px; min-height: 60px; max-height: 60px; box-sizing: border-box;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3); text-transform: uppercase;
+            flex-grow: 0; flex-shrink: 0;
+        }
+        .row .btn { flex: 1; }
+        .btn:active { transform: scale(0.96) translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.3); }
+        .btn-deal { background: #10b981; color: white; }
+        .btn-no-deal { background: #ef4444; color: white; }
+        .btn-counter { background: #6366f1; color: white; font-size: 0.85rem; }
+
+        #start-overlay, #results-overlay {
+            position: fixed; inset: 0; background: radial-gradient(circle, #1e293b, #020617);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; text-align: center; padding: 25px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="career-header">
+    <span id="rank-name" style="width: 70px;">INTERN</span>
+    <div id="xp-bar-outer"><div id="xp-bar-inner"></div></div>
+    <span id="career-total">$0</span>
+</div>
+
+<div id="start-overlay">
+    <div style="font-size: 0.75rem; letter-spacing: 5px; opacity: 0.5; margin-bottom: 5px;">PRODUCER'S CUT</div>
+    <h1 style="color: var(--gold); font-size: 3.8rem; margin: 0; font-weight: 900; letter-spacing: -2px;">GOLD</h1>
+    <p style="opacity: 0.6; letter-spacing: 3px; font-size: 0.8rem; margin-top: -5px;">CAREER EDITION</p>
+    <button class="btn btn-deal" style="width: 280px; margin-top: 40px;" onclick="startGame()">ENTER STUDIO</button>
+</div>
+
+<div id="results-overlay" style="display: none;">
+    <h1 id="res-title" style="color: var(--gold); font-size: 3rem; margin: 0;">RESULTS</h1>
+    <div id="res-body" style="font-size: 1.3rem; margin: 20px 0; line-height: 1.4;"></div>
+    <div style="font-size: 1.1rem; color: var(--gold); font-weight: bold; margin-bottom: 30px;" id="xp-gain-text">+0 XP</div>
+    <button class="btn btn-deal" style="width: 280px;" onclick="location.reload()">NEXT GAME</button>
+</div>
+
+<div id="ui-layer">
+    <div id="banker-modal" class="modal">
+        <p id="banker-quote" style="font-style: italic; font-size: 0.95rem; opacity: 0.8; margin-bottom: 10px;"></p>
+        <div class="offer-val" id="offer-display">$0</div>
+        <div class="btn-box">
+            <div class="row">
+                <button class="btn btn-deal" onclick="handleAction('DEAL')">DEAL</button>
+                <button class="btn btn-no-deal" onclick="handleAction('NO_DEAL')">NO DEAL</button>
+            </div>
+            <button class="btn btn-counter" onclick="triggerCounter()">NEGOTIATE OFFER</button>
+        </div>
+    </div>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+    // --- Persistence System ---
+    const Ranks = ["Intern", "Assistant", "Contestant", "Pro", "Star", "Idol", "Mogul", "Tycoon", "Legend", "Billionaire"];
+    let career = { earnings: 0, level: 1, xp: 0 };
+    
+    function loadCareer() {
+        const saved = localStorage.getItem('dond_gold_career_v5');
+        if (saved) career = JSON.parse(saved);
+        updateProgUI();
+    }
+
+    function saveCareer(win) {
+        career.earnings += win;
+        const gainedXP = Math.floor(win / 100);
+        career.xp += gainedXP;
+        while (career.xp >= career.level * 1000) {
+            career.xp -= career.level * 1000;
+            career.level++;
+        }
+        localStorage.setItem('dond_gold_career_v5', JSON.stringify(career));
+        return gainedXP;
+    }
+
+    function updateProgUI() {
+        document.getElementById('career-total').innerText = '$' + career.earnings.toLocaleString();
+        document.getElementById('rank-name').innerText = Ranks[Math.min(career.level - 1, 9)].toUpperCase();
+        const xpTarget = career.level * 1000;
+        const xpPerc = (career.xp / xpTarget) * 100;
+        document.getElementById('xp-bar-inner').style.width = xpPerc + '%';
+    }
+
+    // --- Audio Engine ---
+    class AudioSystem {
+        constructor() { this.ctx = null; this.master = null; }
+        init() {
+            try {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.master = this.ctx.createGain(); this.master.connect(this.ctx.destination);
+                this.master.gain.value = 0.35;
+                this.playDrone();
+                this.heartbeat();
+            } catch(e) {}
+        }
+        playDrone() {
+            const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+            o.type = 'triangle'; o.frequency.value = 55; g.gain.value = 0.05;
+            o.connect(g); g.connect(this.master); o.start();
+        }
+        heartbeat() {
+            if (!this.ctx) return;
+            const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+            o.frequency.setValueAtTime(60, this.ctx.currentTime);
+            o.frequency.exponentialRampToValueAtTime(30, this.ctx.currentTime + 0.12);
+            g.gain.setValueAtTime(0.12, this.ctx.currentTime);
+            g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.12);
+            o.connect(g); g.connect(this.master); o.start(); o.stop(this.ctx.currentTime + 0.12);
+            
+            const tempo = state ? 1200 - (state.round * 110) : 1200;
+            setTimeout(() => this.heartbeat(), Math.max(tempo, 400));
+        }
+        playFX(f, t='sine') {
+            if(!this.ctx) return;
+            const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
+            o.type = t; o.frequency.setValueAtTime(f, this.ctx.currentTime);
+            o.frequency.exponentialRampToValueAtTime(f/2, this.ctx.currentTime + 0.5);
+            g.gain.setValueAtTime(0.2, this.ctx.currentTime);
+            g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
+            o.connect(g); g.connect(this.master); o.start(); o.stop(this.ctx.currentTime + 0.5);
+        }
+    }
+
+    // --- Core Renderer ---
+    const audio = new AudioSystem();
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const VALUES = [0.01, 1, 5, 10, 25, 50, 75, 100, 200, 300, 400, 500, 750, 1000, 5000, 10000, 25000, 50000, 75000, 100000, 200000, 300000, 400000, 500000, 750000, 1000000];
+    const ROUNDS = [6, 5, 4, 3, 2, 1, 1, 1, 1];
+
+    let state = {
+        phase: 'LOBBY', cases: [], board: [], playerCase: null,
+        round: 0, openedInRound: 0, activeOffer: 0, dpr: 1, shake: 0
+    };
+
+    function resize() {
+        state.dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * state.dpr;
+        canvas.height = window.innerHeight * state.dpr;
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+
+        const w = window.innerWidth; const h = window.innerHeight;
+        
+        // Pushing everything down to clear the 60px header
+        const boardY = 100; // Increased to clear header and instruction text
+        const boardH = h * 0.20;
+        const gridY = boardY + boardH + 20; 
+        const gridH = h * 0.44;
+        const podiumY = gridY + gridH + 12;
+
+        const cols = 4; const rows = 7;
+        const cellW = (w * 0.94) / cols; const cellH = gridH / rows;
+        
+        state.cases.forEach((c, i) => {
+            c.w = cellW * 0.88; c.h = cellH * 0.84;
+            c.x = (w * 0.03) + (i % cols * cellW) + (cellW / 2);
+            c.y = gridY + (Math.floor(i / cols) * cellH) + (cellH / 2);
+        });
+        
+        state.layout = { boardY, boardH, gridY, gridH, podiumY };
+    }
+
+    class Case {
+        constructor(id, val) { this.id = id; this.val = val; this.open = false; this.isPlayer = false; }
+        draw() {
+            ctx.save(); ctx.beginPath(); ctx.translate(this.x, this.y);
+            if (this.open) {
+                ctx.globalAlpha = 0.12; ctx.strokeStyle = 'white'; ctx.setLineDash([4, 4]);
+                ctx.strokeRect(-this.w/2, -this.h/2, this.w, this.h);
+                ctx.restore(); return;
+            }
+            const g = ctx.createLinearGradient(-this.w/2, -this.h/2, this.w/2, this.h/2);
+            g.addColorStop(0, this.isPlayer ? '#fbbf24' : '#cbd5e1');
+            g.addColorStop(1, this.isPlayer ? '#b45309' : '#334155');
+            ctx.fillStyle = g; ctx.shadowBlur = this.isPlayer ? 15 : 6; ctx.shadowColor = 'black';
+            ctx.roundRect(-this.w/2, -this.h/2, this.w, this.h, 12); ctx.fill();
+            ctx.fillStyle = this.isPlayer ? '#451a03' : '#0f172a';
+            ctx.font = `bold ${this.h * 0.5}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+            ctx.fillText(this.id, 0, 0); ctx.restore();
+        }
+        contains(mx, my) {
+            return mx > this.x - this.w/2 && mx < this.x + this.w/2 && my > this.y - this.h/2 && my < this.y + this.h/2;
+        }
+    }
+
+    function startGame() {
+        document.getElementById('start-overlay').style.display = 'none';
+        audio.init(); loadCareer();
+        state.board = VALUES.map(v => ({ v, out: false }));
+        let shuffled = [...VALUES].sort(() => Math.random() - 0.5);
+        for(let i=0; i<26; i++) state.cases.push(new Case(i+1, shuffled[i]));
+        state.phase = 'SELECT';
+        resize();
+        window.requestAnimationFrame(loop);
+    }
+
+    function loop() {
+        if(state.phase === 'LOBBY') return;
+        const w = window.innerWidth; const h = window.innerHeight;
+        ctx.setTransform(state.dpr, 0, 0, state.dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        
+        if (state.shake > 0) {
+            ctx.translate((Math.random()-0.5)*state.shake, (Math.random()-0.5)*state.shake);
+            state.shake *= 0.92; if(state.shake < 0.1) state.shake = 0;
+        }
+
+        const bg = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, h);
+        bg.addColorStop(0, '#1e293b'); bg.addColorStop(1, '#020617');
+        ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+        drawValueBoard(w, h);
+        state.cases.forEach(c => c.draw());
+        if(state.playerCase) drawPodium(w, h);
+        
+        // DRAW INSTRUCTIONS - Pushed down to clear the 60px header
+        ctx.save(); ctx.beginPath();
+        ctx.textAlign = 'center'; ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 20px sans-serif';
+        let txt = "";
+        if(state.phase === 'SELECT') txt = "CHOOSE YOUR LUCKY CASE";
+        else if(state.phase === 'PLAY') {
+            const rem = ROUNDS[state.round] - state.openedInRound;
+            txt = `OPEN ${rem} MORE ${rem === 1 ? 'CASE' : 'CASES'}`;
+        } else if(state.phase === 'BANKER') txt = "INCOMING BANKER CALL...";
+        ctx.fillText(txt, w/2, 90); ctx.restore();
+
+        window.requestAnimationFrame(loop);
+    }
+
+    function drawValueBoard(w, h) {
+        const { boardY, boardH } = state.layout;
+        const itemH = boardH / 13; const colW = (w/2) - 15;
+        for(let i=0; i<26; i++) {
+            const it = state.board[i]; const isR = i >= 13;
+            const x = isR ? w/2 + 5 : 10; const y = boardY + (i % 13) * itemH;
+            ctx.save(); ctx.beginPath();
+            ctx.globalAlpha = it.out ? 0.08 : 1;
+            ctx.fillStyle = isR ? '#7f1d1d' : '#1e3a8a';
+            ctx.roundRect(x, y, colW, itemH-3, 6); ctx.fill();
+            ctx.fillStyle = 'white'; ctx.font = `bold ${itemH*0.75}px monospace`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(format(it.v), x + colW/2, y + itemH/2);
+            ctx.restore();
+        }
+    }
+
+    function drawPodium(w, h) {
+        const y = state.layout.podiumY;
+        ctx.save(); ctx.beginPath();
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+        ctx.roundRect(w/2 - 75, y, 150, 75, 18); ctx.fill();
+        ctx.beginPath();
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 3;
+        ctx.roundRect(w/2 - 75, y, 150, 75, 18); ctx.stroke();
+        ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign='center';
+        ctx.fillText("PODIUM CASE", w/2, y + 22);
+        ctx.font = 'bold 40px sans-serif'; ctx.fillText(state.playerCase.id, w/2, y + 58);
+        ctx.restore();
+    }
+
+    function format(v) { return v < 1 ? '$' + v.toFixed(2) : '$' + v.toLocaleString(); }
+
+    function handleInput(clientX, clientY) {
+        if (state.phase === 'BANKER') return;
+        const rect = canvas.getBoundingClientRect();
+        const x = clientX - rect.left; const y = clientY - rect.top;
+        state.cases.forEach(c => {
+            if (c.contains(x, y)) {
+                if (c.open) return;
+                if (state.phase === 'SELECT') {
+                    c.isPlayer = true; state.playerCase = c; state.phase = 'PLAY';
+                    audio.playFX(440);
+                } else if (state.phase === 'PLAY' && !c.isPlayer) {
+                    c.open = true; const b = state.board.find(it => it.v === c.val); b.out = true;
+                    state.openedInRound++; audio.playFX(c.val >= 10000 ? 110 : 880, c.val >= 10000 ? 'sawtooth' : 'sine');
+                    if(c.val >= 100000) state.shake = 15;
+                    if (state.openedInRound >= ROUNDS[state.round]) {
+                        state.phase = 'BANKER'; setTimeout(() => {
+                            const rem = state.board.filter(b => !b.out);
+                            const ev = rem.reduce((a,b)=>a+b.v,0)/rem.length;
+                            state.activeOffer = Math.floor(ev * (0.2 + (state.round*0.12)));
+                            document.getElementById('offer-display').innerText = format(state.activeOffer);
+                            document.getElementById('banker-quote').innerText = "Take the money. Don't be a fool.";
+                            document.getElementById('banker-modal').style.display = 'block';
+                        }, 1100);
+                    }
+                }
+            }
+        });
+    }
+
+    function handleAction(type) {
+        document.getElementById('banker-modal').style.display = 'none';
+        if (type === 'DEAL') endGame(state.activeOffer, `Deal accepted for <b>${format(state.activeOffer)}</b>!`);
+        else {
+            state.round++; state.openedInRound = 0; state.phase = 'PLAY';
+            const remCount = state.board.filter(b => !b.out).length;
+            if (remCount === 2) {
+                const win = state.playerCase.val;
+                endGame(win, `Final Case win: <b>${format(win)}</b>!`);
+            }
+        }
+    }
+
+    function endGame(win, msg) {
+        const xp = saveCareer(win);
+        document.getElementById('res-body').innerHTML = `${msg}<br><br>Your podium case #${state.playerCase.id} had ${format(state.playerCase.val)}`;
+        document.getElementById('xp-gain-text').innerText = `+${xp.toLocaleString()} XP EARNED`;
+        document.getElementById('results-overlay').style.display = 'flex';
+        updateProgUI();
+    }
+
+    function triggerCounter() {
+        const val = parseInt(prompt("Name your price:")?.replace(/[^0-9]/g, ''));
+        if (val && val < state.activeOffer * 1.1) handleAction('DEAL');
+        else { alert("THE BANKER REJECTS!"); handleAction('NO_DEAL'); }
+    }
+
+    canvas.addEventListener('touchstart', e => { handleInput(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, {passive: false});
+    canvas.addEventListener('mousedown', e => handleInput(e.clientX, e.clientY));
+    window.addEventListener('resize', resize);
+</script>
+</body>
+</html>
