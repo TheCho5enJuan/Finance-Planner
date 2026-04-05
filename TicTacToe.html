@@ -1,593 +1,113 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Sun, Moon, Sparkles, RotateCcw, Trophy, Volume2, VolumeX, Users, User, Play, Bomb, Zap, CircleDashed, History, FastForward, Crosshair, RefreshCw } from 'lucide-react';
-
-const THEMES = {
-  light: {
-    bg: 'bg-slate-100', text: 'text-slate-800',
-    card: 'bg-white shadow-xl border border-slate-200',
-    cell: 'bg-slate-50 border-2 border-slate-200 transition-colors',
-    drawText: 'text-slate-500',
-    btn: 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300',
-    activeBtn: 'bg-blue-600 text-white border border-blue-600 shadow-md',
-    headerScore: 'bg-slate-50 border border-slate-200',
-    input: 'bg-slate-50 border border-slate-300 focus:border-blue-500 text-slate-800',
-  },
-  dark: {
-    bg: 'bg-slate-900', text: 'text-slate-100',
-    card: 'bg-slate-800 shadow-2xl border border-slate-700',
-    cell: 'bg-slate-800 border-2 border-slate-700 transition-colors',
-    drawText: 'text-slate-400',
-    btn: 'bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700',
-    activeBtn: 'bg-blue-500 text-white border border-blue-500 shadow-lg shadow-blue-500/20',
-    headerScore: 'bg-slate-900/50 border border-slate-700',
-    input: 'bg-slate-900 border border-slate-600 focus:border-blue-400 text-white',
-  },
-  neon: {
-    bg: 'bg-[#05050f]', text: 'text-cyan-300',
-    card: 'bg-[#090915] shadow-[0_0_30px_rgba(34,211,238,0.1)] border border-cyan-500/30',
-    cell: 'bg-[#05050f]/50 border border-cyan-500/30 transition-all',
-    drawText: 'text-cyan-600 drop-shadow-[0_0_5px_rgba(8,145,178,0.8)]',
-    btn: 'bg-transparent hover:bg-cyan-950/30 text-cyan-600 hover:text-cyan-300 border border-cyan-800 hover:border-cyan-400',
-    activeBtn: 'bg-cyan-950 text-cyan-200 border border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.4)]',
-    headerScore: 'bg-black/40 border border-cyan-500/20',
-    input: 'bg-black/50 border border-cyan-800 focus:border-cyan-400 text-cyan-100 shadow-[inset_0_0_10px_rgba(34,211,238,0.1)]',
-  }
-};
-
-const PLAYER_COLORS = {
-  light: [
-    { text: 'text-blue-500', bg: 'bg-blue-500' },
-    { text: 'text-rose-500', bg: 'bg-rose-500' },
-    { text: 'text-emerald-500', bg: 'bg-emerald-500' },
-    { text: 'text-amber-500', bg: 'bg-amber-500' },
-    { text: 'text-violet-500', bg: 'bg-violet-500' },
-    { text: 'text-cyan-500', bg: 'bg-cyan-500' },
-    { text: 'text-slate-500', bg: 'bg-slate-500' },
-    { text: 'text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-rose-500', bg: 'bg-gradient-to-br from-blue-500 to-rose-500' },
-    { text: 'text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-emerald-500', bg: 'bg-gradient-to-br from-amber-500 to-emerald-500' }
-  ],
-  dark: [
-    { text: 'text-blue-400', bg: 'bg-blue-400' },
-    { text: 'text-rose-400', bg: 'bg-rose-400' },
-    { text: 'text-emerald-400', bg: 'bg-emerald-400' },
-    { text: 'text-amber-400', bg: 'bg-amber-400' },
-    { text: 'text-violet-400', bg: 'bg-violet-400' },
-    { text: 'text-cyan-400', bg: 'bg-cyan-400' },
-    { text: 'text-slate-300', bg: 'bg-slate-300' },
-    { text: 'text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-rose-400', bg: 'bg-gradient-to-br from-blue-400 to-rose-400' },
-    { text: 'text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-emerald-400', bg: 'bg-gradient-to-br from-amber-400 to-emerald-400' }
-  ],
-  neon: [
-    { text: 'text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]', bg: 'bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]' },
-    { text: 'text-fuchsia-400 drop-shadow-[0_0_8px_rgba(217,70,239,0.8)]', bg: 'bg-fuchsia-400 shadow-[0_0_8px_rgba(217,70,239,0.8)]' },
-    { text: 'text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,0.8)]', bg: 'bg-lime-400 shadow-[0_0_8px_rgba(163,230,53,0.8)]' },
-    { text: 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]', bg: 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]' },
-    { text: 'text-purple-500 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]', bg: 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]' },
-    { text: 'text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]', bg: 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]' },
-    { text: 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]', bg: 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]' },
-    { text: 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-400 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]', bg: 'bg-gradient-to-r from-cyan-400 to-fuchsia-400 shadow-[0_0_8px_rgba(217,70,239,0.5)]' },
-    { text: 'text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]', bg: 'bg-gradient-to-r from-yellow-400 to-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]' }
-  ]
-};
-
-const HAZARD_DESCRIPTIONS = {
-  bomb: "Destroys all adjacent pieces.",
-  double: "Grants you an immediate extra turn.",
-  blackhole: "Sucks a random opponent's piece into the void.",
-  wipe: "Destroys the entire row and column.",
-  steal: "Converts a random opponent's piece into yours."
-};
-
-// Dynamic Win Checker: Requires 3 for 3x3, 4 for 4x4, 5 for 5x5
-const checkWinDynamic = (board, size) => {
-  const target = size; 
-  const getCell = (r, c) => board[r * size + c];
-
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c <= size - target; c++) {
-      let val = getCell(r, c);
-      if (val && Array.from({ length: target }).every((_, i) => getCell(r, c + i) === val)) {
-        return { winner: val, line: Array.from({ length: target }).map((_, i) => r * size + c + i) };
-      }
-    }
-  }
-
-  for (let c = 0; c < size; c++) {
-    for (let r = 0; r <= size - target; r++) {
-      let val = getCell(r, c);
-      if (val && Array.from({ length: target }).every((_, i) => getCell(r + i, c) === val)) {
-        return { winner: val, line: Array.from({ length: target }).map((_, i) => (r + i) * size + c) };
-      }
-    }
-  }
-
-  for (let r = 0; r <= size - target; r++) {
-    for (let c = 0; c <= size - target; c++) {
-      let val1 = getCell(r, c);
-      if (val1 && Array.from({ length: target }).every((_, i) => getCell(r + i, c + i) === val1)) {
-        return { winner: val1, line: Array.from({ length: target }).map((_, i) => (r + i) * size + c + i) };
-      }
-      let val2 = getCell(r, c + target - 1);
-      if (val2 && Array.from({ length: target }).every((_, i) => getCell(r + i, c + target - 1 - i) === val2)) {
-        return { winner: val2, line: Array.from({ length: target }).map((_, i) => (r + i) * size + c + target - 1 - i) };
-      }
-    }
-  }
-  return null;
-};
-
-export default function App() {
-  const [appState, setAppState] = useState('setup'); 
-  const [theme, setTheme] = useState('dark');
-  const [mode, setMode] = useState('standard');
-  const [gridSize, setGridSize] = useState(3);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  
-  const [players, setPlayers] = useState({ 
-    1: { name: 'Player 1', symbol: '❌', colorIndex: 0 }, 
-    2: { name: 'Player 2', symbol: '⭕', colorIndex: 1 } 
-  });
-  const [scores, setScores] = useState({ 1: 0, 2: 0, Draws: 0 });
-  const [matchHistory, setMatchHistory] = useState([]);
-
-  const [board, setBoard] = useState(Array(9).fill(null));
-  const [p1IsNext, setP1IsNext] = useState(true);
-  const [p1Moves, setP1Moves] = useState([]); 
-  const [p2Moves, setP2Moves] = useState([]); 
-  const [hazards, setHazards] = useState({});
-  const [winnerData, setWinnerData] = useState(null); 
-  const [isDraw, setIsDraw] = useState(false);
-  
-  const [movesLog, setMovesLog] = useState([]);
-  const [isReplaying, setIsReplaying] = useState(false);
-  const [replayIndex, setReplayIndex] = useState(0);
-  const [replaySpeed, setReplaySpeed] = useState(500);
-  const [activeTooltip, setActiveTooltip] = useState(null);
-
-  const audioCtxRef = useRef(null);
-
-  const playSound = (type) => {
-    if (!soundEnabled) return;
-    try {
-      if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      const now = ctx.currentTime;
-
-      if (type === 'click-p1' || type === 'click-p2') {
-        osc.type = 'sine'; osc.frequency.setValueAtTime(type === 'click-p1' ? 600 : 400, now);
-        osc.frequency.exponentialRampToValueAtTime(type === 'click-p1' ? 300 : 200, now + 0.1);
-        gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-        osc.start(now); osc.stop(now + 0.1);
-      } else if (type === 'explosion') {
-        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.exponentialRampToValueAtTime(10, now + 0.3);
-        gain.gain.setValueAtTime(0.8, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-        osc.start(now); osc.stop(now + 0.3);
-      } else if (type === 'magic') {
-        osc.type = 'triangle'; osc.frequency.setValueAtTime(800, now); osc.frequency.linearRampToValueAtTime(1600, now + 0.2);
-        gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-        osc.start(now); osc.stop(now + 0.2);
-      } else if (type === 'win') {
-        osc.type = 'square'; [400, 500, 600, 800].forEach((f, i) => osc.frequency.setValueAtTime(f, now + i * 0.1));
-        gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0, now + 0.6);
-        osc.start(now); osc.stop(now + 0.6);
-      }
-    } catch (e) {}
-  };
-
-  const spawnHazard = (currentBoard) => {
-    if (mode !== 'chaos') return {};
-    if (Math.random() > 0.4) return {}; 
-    const emptySpots = currentBoard.map((v, i) => v === null ? i : null).filter(v => v !== null);
-    if (emptySpots.length === 0) return {};
-    const randomSpot = emptySpots[Math.floor(Math.random() * emptySpots.length)];
-    const types = ['bomb', 'double', 'blackhole', 'wipe', 'steal'];
-    return { [randomSpot]: types[Math.floor(Math.random() * types.length)] };
-  };
-
-  const processMove = (index, currentBoard, isP1) => {
-    let newBoard = [...currentBoard];
-    let skipTurnChange = false;
-    let newHazards = { ...hazards };
-    const hazard = newHazards[index];
-    
-    newBoard[index] = isP1 ? 1 : 2;
-    
-    if (hazard) {
-      delete newHazards[index];
-      if (hazard === 'bomb') {
-        playSound('explosion');
-        const r = Math.floor(index / gridSize); const c = index % gridSize;
-        const neighbors = [index, index - 1, index + 1, index - gridSize, index + gridSize];
-        neighbors.forEach(n => {
-          if (n >= 0 && n < gridSize * gridSize) {
-            const nr = Math.floor(n / gridSize); const nc = n % gridSize;
-            if (Math.abs(r - nr) <= 1 && Math.abs(c - nc) <= 1) newBoard[n] = null;
-          }
-        });
-      } else if (hazard === 'double') {
-        playSound('magic');
-        skipTurnChange = true;
-      } else if (hazard === 'blackhole') {
-        playSound('explosion');
-        const oppId = isP1 ? 2 : 1;
-        const filled = newBoard.map((v, i) => v === oppId && i !== index ? i : null).filter(v => v !== null);
-        if (filled.length > 0) newBoard[filled[Math.floor(Math.random() * filled.length)]] = null;
-      } else if (hazard === 'wipe') {
-        playSound('explosion');
-        const r = Math.floor(index / gridSize); const c = index % gridSize;
-        for (let i = 0; i < gridSize; i++) {
-          newBoard[r * gridSize + i] = null;
-          newBoard[i * gridSize + c] = null;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/lucide-icons@latest/dist/style.css">
+    <title>Tic Tac Toe</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f3f4f6;
         }
-      } else if (hazard === 'steal') {
-        playSound('magic');
-        const oppId = isP1 ? 2 : 1;
-        const oppPieces = newBoard.map((v, i) => v === oppId && i !== index ? i : null).filter(v => v !== null);
-        if (oppPieces.length > 0) {
-          newBoard[oppPieces[Math.floor(Math.random() * oppPieces.length)]] = isP1 ? 1 : 2;
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
         }
-      }
-    } else {
-      playSound(isP1 ? 'click-p1' : 'click-p2');
-    }
-    
-    return { newBoard, skipTurnChange, newHazards: { ...newHazards, ...spawnHazard(newBoard) } };
-  };
-
-  const handleCellClick = (index) => {
-    if (board[index] || winnerData || isDraw || isReplaying) return;
-
-    let { newBoard, skipTurnChange, newHazards } = processMove(index, board, p1IsNext);
-    let newP1Moves = [...p1Moves]; let newP2Moves = [...p2Moves];
-
-    if (mode === 'infinite') {
-      const currentMoves = p1IsNext ? newP1Moves : newP2Moves;
-      if (currentMoves.length === gridSize) {
-        newBoard[currentMoves.shift()] = null;
-      }
-      currentMoves.push(index);
-    }
-
-    setBoard(newBoard); setHazards(newHazards);
-    if (p1IsNext) setP1Moves(newP1Moves); else setP2Moves(newP2Moves);
-    
-    setMovesLog(prev => [...prev, { board: [...newBoard], p1IsNext, hazards: { ...newHazards } }]);
-
-    const winData = checkWinDynamic(newBoard, gridSize);
-    
-    if (winData) {
-      setWinnerData(winData);
-      setScores(prev => ({ ...prev, [winData.winner]: prev[winData.winner] + 1 }));
-      setMatchHistory(prev => [{ winner: winData.winner, date: new Date().toLocaleTimeString(), moves: movesLog.length + 1 }, ...prev]);
-      setTimeout(() => playSound('win'), 100);
-    } else if (!newBoard.includes(null)) {
-      setIsDraw(true);
-      setScores(prev => ({ ...prev, Draws: prev.Draws + 1 }));
-      setMatchHistory(prev => [{ winner: 'Draw', date: new Date().toLocaleTimeString(), moves: movesLog.length + 1 }, ...prev]);
-    } else {
-      if (!skipTurnChange) setP1IsNext(!p1IsNext);
-    }
-  };
-
-  const startReplay = () => {
-    if (movesLog.length === 0) return;
-    setIsReplaying(true); setReplayIndex(0); setWinnerData(null); setIsDraw(false); setReplaySpeed(500);
-  };
-
-  const toggleReplaySpeed = () => {
-    setReplaySpeed(prev => prev === 500 ? 150 : 500);
-  };
-
-  useEffect(() => {
-    if (isReplaying) {
-      if (replayIndex < movesLog.length) {
-        const timer = setTimeout(() => {
-          setBoard(movesLog[replayIndex].board);
-          setHazards(movesLog[replayIndex].hazards);
-          setReplayIndex(prev => prev + 1);
-          playSound('click-p1');
-        }, replaySpeed);
-        return () => clearTimeout(timer);
-      } else {
-        setIsReplaying(false);
-        const winData = checkWinDynamic(board, gridSize);
-        if (winData) {
-          setWinnerData(winData);
-          playSound('win');
-        } else setIsDraw(true);
-      }
-    }
-  }, [isReplaying, replayIndex, movesLog, board, gridSize, replaySpeed]);
-
-  // Auto-hide the tooltip after 3 seconds
-  useEffect(() => {
-    if (activeTooltip) {
-      const timer = setTimeout(() => setActiveTooltip(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [activeTooltip]);
-
-  const resetGame = () => {
-    setBoard(Array(gridSize * gridSize).fill(null));
-    setP1Moves([]); setP2Moves([]); setP1IsNext(true);
-    setWinnerData(null); setIsDraw(false); setHazards({}); setMovesLog([]); setIsReplaying(false);
-  };
-
-  const startGame = () => {
-    // Basic validation & preventing identical choices
-    let p1Symbol = players[1].symbol.trim() || '❌';
-    let p2Symbol = players[2].symbol.trim() || '⭕';
-    let p1ColorIndex = players[1].colorIndex;
-    let p2ColorIndex = players[2].colorIndex;
-
-    // Prevent matching symbols
-    if (p1Symbol === p2Symbol) {
-      p2Symbol = p1Symbol === '❌' ? '⭕' : '❌'; 
-    }
-    
-    // Prevent matching colors
-    if (p1ColorIndex === p2ColorIndex) {
-      p2ColorIndex = (p1ColorIndex + 1) % PLAYER_COLORS[theme].length;
-    }
-
-    setPlayers(prev => ({
-      1: { ...prev[1], symbol: p1Symbol, colorIndex: p1ColorIndex },
-      2: { ...prev[2], symbol: p2Symbol, colorIndex: p2ColorIndex }
-    }));
-
-    setScores({ 1: 0, 2: 0, Draws: 0 }); 
-    setMatchHistory([]); 
-    resetGame(); 
-    setAppState('game'); 
-    playSound('win');
-  };
-
-  const activeTheme = THEMES[theme];
-  const currentPlayer = p1IsNext ? 1 : 2;
-  const p1Color = PLAYER_COLORS[theme][players[1].colorIndex] || PLAYER_COLORS[theme][0];
-  const p2Color = PLAYER_COLORS[theme][players[2].colorIndex] || PLAYER_COLORS[theme][1];
-
-  let fadingIndex = -1;
-  if (mode === 'infinite' && !winnerData && !isDraw && !isReplaying) {
-    if (p1IsNext && p1Moves.length === gridSize) fadingIndex = p1Moves[0];
-    if (!p1IsNext && p2Moves.length === gridSize) fadingIndex = p2Moves[0];
-  }
-
-  const Confetti = () => {
-    if (!winnerData || isReplaying) return null;
-    const isNeon = theme === 'neon';
-    const colors = isNeon
-      ? ['#22d3ee', '#d946ef', '#a3e635', '#facc15'] 
-      : ['#3b82f6', '#f43f5e', '#eab308', '#22c55e', '#a855f7']; 
-    
-    return (
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-[100]">
-        <style>{`
-          @keyframes confetti-fall {
-            0% { transform: translate3d(0, -10vh, 0) rotateX(0) rotateY(0) rotateZ(0); opacity: 1; }
-            100% { transform: translate3d(var(--drift), 110vh, 0) rotateX(var(--rotX)) rotateY(var(--rotY)) rotateZ(var(--rotZ)); opacity: 1; }
-          }
-        `}</style>
-        {Array.from({ length: 80 }).map((_, i) => {
-          const color = colors[i % colors.length];
-          const size = Math.random() * 8 + 6;
-          const isCircle = i % 3 === 0;
-          const left = Math.random() * 100;
-          const duration = 2 + Math.random() * 3;
-          const delay = Math.random() * 0.5;
-          const drift = (Math.random() - 0.5) * 200 + 'px';
-          const rotX = Math.random() * 720 + 'deg';
-          const rotY = Math.random() * 720 + 'deg';
-          const rotZ = Math.random() * 720 + 'deg';
-          
-          return (
-            <div
-              key={i}
-              className={`absolute top-[-10%] ${isCircle ? 'rounded-full' : 'rounded-sm'}`}
-              style={{
-                left: `${left}%`,
-                width: `${size}px`,
-                height: `${isCircle ? size : size * 1.5}px`,
-                backgroundColor: color,
-                boxShadow: isNeon ? `0 0 10px ${color}, 0 0 20px ${color}` : 'none',
-                '--drift': drift,
-                '--rotX': rotX,
-                '--rotY': rotY,
-                '--rotZ': rotZ,
-                animation: `confetti-fall ${duration}s ${delay}s linear forwards`,
-              }}
-            />
-          );
-        })}
-      </div>
-    );
-  };
-
-  return (
-    <div className={`h-[100dvh] w-full overflow-hidden flex flex-col items-center justify-center p-3 sm:p-4 transition-colors duration-500 font-sans ${activeTheme.bg} ${activeTheme.text}`}>
-      <Confetti />
-      <div className="w-full max-w-md h-full flex flex-col py-2 relative z-10">
-        
-        {/* Header Controls */}
-        <div className="flex justify-between items-center shrink-0 mb-2">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Tic Tac Toe</h1>
-            {appState === 'game' && <p className="text-xs sm:text-sm opacity-70">Grid: {gridSize}x{gridSize} | {mode.toUpperCase()}</p>}
-          </div>
-          <div className="flex gap-2">
-            <button onClick={() => setSoundEnabled(!soundEnabled)} className={`p-2.5 sm:p-3 rounded-full transition-all ${activeTheme.btn}`}>
-              {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} opacity={0.5} />}
-            </button>
-            <button onClick={() => setTheme(theme === 'light' ? 'dark' : theme === 'dark' ? 'neon' : 'light')} className={`p-2.5 sm:p-3 rounded-full transition-all ${activeTheme.btn}`}>
-              {theme === 'light' && <Sun size={18} />} {theme === 'dark' && <Moon size={18} />} {theme === 'neon' && <Sparkles size={18} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Setup Screen */}
-        {appState === 'setup' && (
-          <div className="flex-1 flex flex-col justify-center gap-4 py-2 overflow-y-auto no-scrollbar">
-            <div className={`p-4 rounded-2xl ${activeTheme.card} border-t-4 border-t-blue-500`}>
-              <div className="flex gap-3">
-                <input type="text" value={players[1].name} onChange={e => setPlayers(prev => ({...prev, 1: {...prev[1], name: e.target.value}}))} className={`flex-1 p-3 rounded-lg text-sm outline-none transition-all ${activeTheme.input}`} placeholder="Player 1" maxLength={10} />
-                <input type="text" value={players[1].symbol} onChange={e => setPlayers(prev => ({...prev, 1: {...prev[1], symbol: e.target.value}}))} className={`w-16 p-3 rounded-lg text-xl text-center outline-none transition-all ${activeTheme.input}`} maxLength={2} />
-              </div>
-              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-500/20">
-                {PLAYER_COLORS[theme].map((c, i) => (
-                  <button key={i} onClick={() => setPlayers(prev => ({...prev, 1: {...prev[1], colorIndex: i}}))} className={`w-8 h-8 rounded-full ${c.bg} transition-all ${players[1].colorIndex === i ? 'scale-110 ring-2 ring-offset-2 ring-offset-transparent ring-slate-400' : 'opacity-60 hover:opacity-100'}`} />
-                ))}
-              </div>
-            </div>
-            <div className={`p-4 rounded-2xl ${activeTheme.card} border-t-4 border-t-rose-500`}>
-              <div className="flex gap-3">
-                <input type="text" value={players[2].name} onChange={e => setPlayers(prev => ({...prev, 2: {...prev[2], name: e.target.value}}))} className={`flex-1 p-3 rounded-lg text-sm outline-none transition-all ${activeTheme.input}`} placeholder="Player 2" maxLength={10} />
-                <input type="text" value={players[2].symbol} onChange={e => setPlayers(prev => ({...prev, 2: {...prev[2], symbol: e.target.value}}))} className={`w-16 p-3 rounded-lg text-xl text-center outline-none transition-all ${activeTheme.input}`} maxLength={2} />
-              </div>
-              <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-500/20">
-                {PLAYER_COLORS[theme].map((c, i) => (
-                  <button key={i} onClick={() => setPlayers(prev => ({...prev, 2: {...prev[2], colorIndex: i}}))} className={`w-8 h-8 rounded-full ${c.bg} transition-all ${players[2].colorIndex === i ? 'scale-110 ring-2 ring-offset-2 ring-offset-transparent ring-slate-400' : 'opacity-60 hover:opacity-100'}`} />
-                ))}
-              </div>
-            </div>
-            
-            <div className={`p-4 rounded-2xl ${activeTheme.card} space-y-3`}>
-              <p className="text-sm font-bold opacity-80">Grid Size & Win Condition</p>
-              <div className="flex gap-2">
-                {[3, 4, 5].map(size => (
-                  <button key={size} onClick={() => setGridSize(size)} className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${gridSize === size ? activeTheme.activeBtn : activeTheme.btn}`}>
-                    {size}x{size}
-                  </button>
-                ))}
-              </div>
-              <p className="text-sm font-bold opacity-80 mt-2">Game Mode</p>
-              <div className="flex gap-2">
-                {['standard', 'infinite', 'chaos'].map(m => (
-                  <button key={m} onClick={() => setMode(m)} className={`flex-1 py-2 rounded-lg font-bold text-xs transition-all ${mode === m ? activeTheme.activeBtn : activeTheme.btn}`}>{m.toUpperCase()}</button>
-                ))}
-              </div>
-            </div>
-
-            <button onClick={startGame} className={`w-full mt-2 flex items-center justify-center gap-2 py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${activeTheme.activeBtn}`}>
-              <Play size={20} fill="currentColor" /> Start Match
-            </button>
-          </div>
-        )}
-      
-        {/* History Screen */}
-        {appState === 'history' && (
-          <div className="flex-1 flex flex-col py-4 overflow-y-auto no-scrollbar">
-             <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><History /> Match History</h2>
-             <div className="space-y-3 flex-1">
-               {matchHistory.length === 0 && <p className="opacity-50 text-center mt-10">No matches played yet.</p>}
-               {matchHistory.map((match, i) => (
-                 <div key={i} className={`p-4 rounded-xl ${activeTheme.card} flex justify-between items-center`}>
-                    <span className="font-bold text-lg">{match.winner === 'Draw' ? 'Draw' : players[match.winner].name}</span>
-                    <span className="text-sm opacity-60">{match.moves} moves | {match.date}</span>
-                 </div>
-               ))}
-             </div>
-             <button onClick={() => setAppState('game')} className={`w-full py-4 rounded-xl font-bold text-lg transition-all ${activeTheme.btn}`}>Back to Game</button>
-          </div>
-        )}
-
-        {/* Game Screen */}
-        {appState === 'game' && (
-          <>
-            <div className={`flex justify-between items-center p-3 rounded-2xl shrink-0 my-2 ${activeTheme.headerScore}`}>
-              <div className="text-center flex-1">
-                <p className={`text-xs font-semibold truncate ${p1Color.text}`}>{players[1].name}</p>
-                <p className="text-xl font-bold">{players[1].symbol} {scores[1]}</p>
-              </div>
-              <div className="text-center flex-1 border-x border-slate-500/20">
-                <p className="text-xs font-semibold opacity-70">Draws</p>
-                <p className="text-xl font-bold opacity-90">{scores.Draws}</p>
-              </div>
-              <div className="text-center flex-1">
-                <p className={`text-xs font-semibold truncate ${p2Color.text}`}>{players[2].name}</p>
-                <p className="text-xl font-bold">{scores[2]} {players[2].symbol}</p>
-              </div>
-            </div>
-
-            <div className="text-center min-h-[3.5rem] flex flex-col items-center justify-center shrink-0 mb-1">
-              {isReplaying ? (
-                 <div className="flex items-center gap-2 font-bold text-amber-500 animate-pulse"><FastForward size={20}/> Replaying Match {replaySpeed === 150 ? '(Fast)' : ''}...</div>
-              ) : winnerData ? (
-                <div className={`flex items-center gap-2 text-lg font-bold animate-bounce ${winnerData.winner === 1 ? p1Color.text : p2Color.text}`}>
-                  <Trophy size={20} /> {players[winnerData.winner].name} Wins!
-                </div>
-              ) : isDraw ? (
-                <div className={`text-lg font-bold ${activeTheme.drawText}`}>It's a Draw!</div>
-              ) : (
-                <div className="text-base font-medium">Turn: <span className={`text-xl font-black ${p1IsNext ? p1Color.text : p2Color.text}`}>{players[currentPlayer].name} {players[currentPlayer].symbol}</span></div>
-              )}
-              {mode === 'chaos' && (
-                <div className="relative flex justify-center w-full">
-                  <div className={`flex flex-wrap justify-center gap-x-3 gap-y-1 mt-1 text-[10px] sm:text-xs opacity-70 font-semibold ${activeTheme.text}`}>
-                    <button onClick={() => setActiveTooltip('bomb')} className="flex items-center gap-1 hover:opacity-100 transition-opacity"><Bomb size={12}/> Bomb</button>
-                    <button onClick={() => setActiveTooltip('double')} className="flex items-center gap-1 hover:opacity-100 transition-opacity"><Zap size={12}/> Double</button>
-                    <button onClick={() => setActiveTooltip('blackhole')} className="flex items-center gap-1 hover:opacity-100 transition-opacity"><CircleDashed size={12}/> Void</button>
-                    <button onClick={() => setActiveTooltip('wipe')} className="flex items-center gap-1 hover:opacity-100 transition-opacity"><Crosshair size={12}/> Wipe</button>
-                    <button onClick={() => setActiveTooltip('steal')} className="flex items-center gap-1 hover:opacity-100 transition-opacity"><RefreshCw size={12}/> Steal</button>
-                  </div>
-                  {activeTooltip && (
-                    <div className="absolute top-full mt-2 z-[60] p-2 rounded-lg shadow-xl text-xs font-bold bg-slate-800 text-white border border-slate-600 max-w-[260px] text-center animate-in fade-in zoom-in duration-200">
-                      {HAZARD_DESCRIPTIONS[activeTooltip]}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 min-h-0 w-full flex items-center justify-center py-2 px-1">
-              <div className={`relative w-full max-w-[340px] max-h-full aspect-square p-2 sm:p-3 rounded-3xl ${activeTheme.card}`}>
-                <div className="w-full h-full relative z-10" style={{ display: 'grid', gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${gridSize}, minmax(0, 1fr))`, gap: gridSize > 3 ? '6px' : '8px' }}>
-                  {board.map((cellPlayerId, index) => {
-                    const isWinningCell = winnerData?.line.includes(index);
-                    const hazard = hazards[index];
-                    
-                    let winStyles = '';
-                    if (isWinningCell) {
-                      winStyles = theme === 'neon' ? 'shadow-[inset_0_0_20px_rgba(255,255,255,0.2)] z-20 bg-white/5' : 'bg-black/5 z-20';
-                    }
-
-                    return (
-                      <button key={index} onClick={() => handleCellClick(index)} disabled={winnerData || isDraw || cellPlayerId !== null || isReplaying}
-                        className={`w-full h-full rounded-lg sm:rounded-xl flex items-center justify-center block relative overflow-hidden touch-manipulation select-none ${activeTheme.cell} ${cellPlayerId ? 'cursor-default' : 'active:scale-95'} ${winStyles}`}>
-                        
-                        {hazard && !cellPlayerId && (
-                          <span className={`absolute inset-0 flex items-center justify-center opacity-50 animate-pulse ${gridSize > 3 ? 'text-2xl' : 'text-3xl'}`}>
-                            {hazard === 'bomb' ? <Bomb/> : hazard === 'double' ? <Zap/> : hazard === 'blackhole' ? <CircleDashed/> : hazard === 'wipe' ? <Crosshair/> : <RefreshCw/>}
-                          </span>
-                        )}
-                        
-                        <span className={`absolute inset-0 flex items-center justify-center pointer-events-none transition-all duration-300 transform leading-none ${gridSize === 5 ? 'text-3xl sm:text-4xl' : gridSize === 4 ? 'text-4xl sm:text-5xl' : 'text-5xl sm:text-6xl'} ${!cellPlayerId ? 'scale-0 opacity-0' : 'scale-100 opacity-100'} ${cellPlayerId === 1 ? p1Color.text : p2Color.text} ${fadingIndex === index ? 'opacity-30 animate-pulse scale-90' : ''} ${isWinningCell ? 'scale-110' : ''}`}>
-                          {cellPlayerId ? players[cellPlayerId].symbol : ''}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            <div className="shrink-0 mt-2 flex flex-col gap-2">
-              <div className="flex gap-2">
-                <button onClick={() => setAppState('history')} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${activeTheme.btn}`}><History size={18} className="mx-auto" /></button>
-                <button onClick={() => { setAppState('setup'); resetGame(); }} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${activeTheme.btn}`}><Users size={18} className="mx-auto" /></button>
-                {(winnerData || isDraw || isReplaying) && movesLog.length > 0 && (
-                  <button onClick={isReplaying ? toggleReplaySpeed : startReplay} className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all ${isReplaying && replaySpeed === 150 ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/40' : 'bg-amber-500/20 text-amber-500'} border border-amber-500/50`}><FastForward size={18} className="mx-auto"/></button>
-                )}
-                <button onClick={resetGame} className={`flex-[2] flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-sm transition-all touch-manipulation ${activeTheme.activeBtn}`}><RotateCcw size={18} /> Play Again</button>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 2px solid #4b5563;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col items-center">
+        <h1 class="text-4xl mb-4">Tic Tac Toe</h1>
+        <div class="board" id="board"></div>
+        <button id="restart" class="mt-4 p-2 bg-blue-500 text-white rounded">Restart</button>
     </div>
-  );
-}
-                            
+    <script>
+        const board = document.getElementById('board');
+        const restartButton = document.getElementById('restart');
+        let cells = [];
+        let currentPlayer = 'X';
+        let gameActive = true;
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        function createBoard() {
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-index', i);
+                cell.addEventListener('click', handleCellClick);
+                board.appendChild(cell);
+                cells.push(cell);
+            }
+        }
+
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+            const index = clickedCell.getAttribute('data-index');
+            if (cells[index].textContent === '' && gameActive) {
+                clickedCell.textContent = currentPlayer;
+                checkWin();
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            }
+        }
+
+        function checkWin() {
+            let roundWon = false;
+            for (let i = 0; i < winningConditions.length; i++) {
+                const condition = winningConditions[i];
+                const a = cells[condition[0]].textContent;
+                const b = cells[condition[1]].textContent;
+                const c = cells[condition[2]].textContent;
+                if (a === '' || b === '' || c === '') {
+                    continue;
+                }
+                if (a === b && b === c) {
+                    roundWon = true;
+                    break;
+                }
+            }
+            roundWon ? handleWin() : handleDraw();
+        }
+
+        function handleWin() {
+            gameActive = false;
+            alert(`Player ${currentPlayer} wins!`);
+        }
+
+        function handleDraw() {
+            const draw = cells.every(cell => cell.textContent !== '');
+            if (draw) {
+                alert('Game ended in a draw!');
+                gameActive = false;
+            }
+        }
+
+        restartButton.addEventListener('click', () => {
+            gameActive = true;
+            currentPlayer = 'X';
+            cells.forEach(cell => cell.textContent = '');
+        });
+
+        createBoard();
+    </script>
+</body>
+</html>
