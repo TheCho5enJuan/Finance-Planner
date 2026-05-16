@@ -7,106 +7,347 @@
 <link rel="icon" href="data:,">
 <style>
 :root{
-  --bg:#0f172a; --panel:#111827; --muted:#9ca3af; --text:#e5e7eb; --accent:#22c55e; --accent-2:#3b82f6; --danger:#ef4444; --warn:#f59e0b;
-  --card:#0b1220; --border:#1f2937;
-  --header-gradient-start: rgba(0,0,0,.7);
-  --header-gradient-end: rgba(0,0,0,.2);
+  --bg:#070b16;
+  --bg-alt:#0d1426;
+  --panel:#101a31;
+  --card:#131f3c;
+  --card-soft:#1a2950;
+  --text:#edf4ff;
+  --muted:#9bb0ce;
+  --border:#2a3d64;
+  --accent:#22c55e;
+  --accent-2:#4f8dff;
+  --danger:#ef5b74;
+  --warn:#f6c453;
+  --ring:rgba(79,141,255,.45);
+  --header-gradient-start:rgba(9,14,28,.95);
+  --header-gradient-end:rgba(9,14,28,.72);
+  --shadow-sm:0 10px 24px rgba(5,10,25,.28);
+  --shadow-md:0 20px 44px rgba(4,8,20,.42);
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); color:var(--text)}
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+  line-height:1.45;
+  color:var(--text);
+  background:
+    radial-gradient(1000px 420px at 90% -5%, rgba(79,141,255,.17) 0%, transparent 62%),
+    radial-gradient(800px 460px at 10% -10%, rgba(34,197,94,.14) 0%, transparent 68%),
+    linear-gradient(180deg, var(--bg-alt), var(--bg));
+}
 a{color:var(--accent-2); text-decoration:none}
-header{position:sticky; top:0; z-index:5; background:linear-gradient(180deg, var(--header-gradient-start), var(--header-gradient-end)); backdrop-filter: blur(6px);}  
-.container{width:100%; max-width:none; margin:0 auto; padding:16px}
-.row{display:flex; gap:12px; flex-wrap:wrap}
-.card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px}
-.btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--border); background:var(--card); color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer}
+a:hover{text-decoration:underline}
+h1{font-size:26px; margin:0 0 10px; letter-spacing:.2px}
+h2{font-size:20px; margin:0; letter-spacing:.2px}
+h3{font-size:17px; margin:0 0 12px; letter-spacing:.2px}
+small,.muted{color:var(--muted)}
+
+header{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:linear-gradient(180deg, var(--header-gradient-start), var(--header-gradient-end));
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+}
+.container{width:100%; max-width:1480px; margin:0 auto; padding:12px 16px}
+.row{display:flex; gap:10px; flex-wrap:wrap}
+.row > *{min-width:0}
+.header-bar{justify-content:space-between; align-items:center; gap:18px}
+.brand{display:flex; align-items:center; gap:10px}
+.brand strong{font-size:18px; font-weight:700}
+
+.card{
+  background:linear-gradient(175deg, rgba(255,255,255,.035), rgba(255,255,255,.01)), linear-gradient(180deg,var(--card),var(--panel));
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px;
+  box-shadow:var(--shadow-sm);
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.03);
+  color:var(--text);
+  padding:8px 12px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+}
+.btn:hover{transform:translateY(-1px); border-color:#3a5689; box-shadow:var(--shadow-sm)}
+.btn:focus-visible,.input:focus-visible,select:focus-visible,.tab:focus-visible,.chip:focus-visible{
+  outline:none;
+  box-shadow:0 0 0 3px var(--ring);
+  border-color:var(--accent-2);
+}
 .btn[disabled]{opacity:.5; cursor:not-allowed}
-.btn.primary{background:var(--accent-2); border-color:transparent}
-.btn.success{background:var(--accent); border-color:transparent}
-.btn.danger{background:var(--danger); border-color:transparent}
-.btn.warn{background:var(--warn); border-color:transparent;color:#111}
-.input, select{width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text)}
-.label{font-size:12px; color:var(--muted); margin-bottom:6px}
-h1{font-size:22px; margin:8px 0}
-h2{font-size:18px; margin:8px 0}
-h3{font-size:16px; margin:8px 0}
-small, .muted{color:var(--muted)}
-nav .tab{padding:10px 12px; border-radius:10px; cursor:pointer}
-nav .tab.active{background:var(--border)}
-.grid{display:grid; gap:12px}
-.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media (max-width:820px){ .grid.cols-3{grid-template-columns:1fr} .grid.cols-2{grid-template-columns:1fr} }
-table{width:100%; border-collapse:collapse}
-th,td{padding:8px 6px; border-bottom:1px dashed var(--border);}
-th{color:var(--muted); font-weight:600; text-align:left}
-tbody tr:hover{background:#0f1629}
-.badge{display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid var(--border); color:var(--muted); font-size:12px}
-.kpi{display:flex; gap:8px; align-items:baseline}
-.kpi b{font-size:22px}
-footer{padding:24px 16px; text-align:center; color:var(--muted)}
-hr{border:0;border-top:1px solid var(--border); margin:12px 0}
-.toast{position:fixed; right:16px; bottom:16px; background:#101828; border:1px solid var(--border); padding:12px 14px; border-radius:10px; display:none}
-.dialog{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.5); z-index:10;}
-.dialog .modal{width:min(560px,90vw); background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px}
-.icon{width:18px; height:18px; display:inline-block; vertical-align:-3px}
+.btn.primary{background:linear-gradient(180deg,#4f8dff,#3574e9); border-color:transparent; color:#fff}
+.btn.success{background:linear-gradient(180deg,#2fd375,#20b860); border-color:transparent; color:#fff}
+.btn.danger{background:linear-gradient(180deg,#f26a84,#e54f70); border-color:transparent; color:#fff}
+.btn.warn{background:var(--warn); border-color:transparent; color:#111}
+
+.input,select{
+  width:100%;
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:rgba(9,16,31,.72);
+  color:var(--text);
+  transition:border-color .16s ease, box-shadow .16s ease;
+}
+.label{font-size:12px; color:var(--muted); margin-bottom:7px; letter-spacing:.2px; text-transform:uppercase}
+
+nav#navTabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  padding:4px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.02);
+  border-radius:14px;
+}
+nav .tab{
+  padding:8px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  border:1px solid transparent;
+  color:var(--muted);
+  font-weight:600;
+  transition:all .16s ease;
+}
+nav .tab.active{background:rgba(79,141,255,.18); border-color:rgba(79,141,255,.45); color:var(--text)}
+
 .section{display:none}
 .section.active{display:block}
-/* chip group */
-.chips{display:flex; gap:6px; flex-wrap:wrap}
-.chip{padding:6px 10px; border:1px solid var(--border); border-radius:999px; cursor:pointer}
-.chip.active{background:var(--border)}
-/* table actions */
+.grid{display:grid; gap:10px}
+.grid > *{min-width:0}
+.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:980px){ .grid.cols-3{grid-template-columns:1fr} .grid.cols-2{grid-template-columns:1fr} }
+
+table{width:100%; border-collapse:separate; border-spacing:0}
+th,td{padding:8px 8px; border-bottom:1px solid rgba(155,176,206,.16)}
+th{color:var(--muted); font-weight:600; text-align:left; background:rgba(255,255,255,.015)}
+tbody tr:hover{background:rgba(79,141,255,.09)}
+
+.badge{display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(155,176,206,.14); color:var(--muted); font-size:12px}
+.kpi{display:flex; gap:8px; align-items:baseline}
+.kpi b{font-size:24px; letter-spacing:.2px}
+.kpi-top{margin-top:8px}
+.chips-top{margin-top:8px}
+
 .actions{display:flex; gap:6px}
+.section-title-row{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+.section-title-row .push-right{margin-left:auto}
+.section-title-no-margin{margin:0}
+.range-search{max-width:280px}
+.section-header{justify-content:space-between; align-items:center; margin-bottom:10px}
 
+.overview-chart-card{grid-column:span 3; min-height:156px}
+.quick-add-card{grid-column:span 2; padding:10px}
+.overview-range-card{margin-top:8px}
+.start-balance-label{margin-top:8px}
+.save-accounts-btn{margin-top:8px}
+.file-input-hidden{display:none}
 
-/* Quick Add: wider, horizontal layout */
-.quick-add-card{ padding:12px }
-.quick-add-grid{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:8px;
-  align-items:end;
+.quick-add-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px; align-items:end}
+.quick-add-grid input,.quick-add-grid select{padding-top:8px; padding-bottom:8px}
+.quick-add-grid .btn{width:100%; height:36px}
+
+hr{border:0; border-top:1px solid var(--border); margin:10px 0}
+footer{padding:26px 16px 28px; text-align:center; color:var(--muted)}
+
+.toast{
+  position:fixed;
+  right:16px;
+  bottom:16px;
+  z-index:30;
+  background:#0f172d;
+  border:1px solid var(--border);
+  padding:12px 14px;
+  border-radius:12px;
+  display:none;
+  box-shadow:var(--shadow-md)
 }
-.quick-add-grid input,
-.quick-add-grid select{ padding-top:8px; padding-bottom:8px }
-.quick-add-grid .btn{ width:100%; height:40px }
 
+.dialog{
+  position:fixed;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(4,8,18,.72);
+  z-index:26;
+}
+.dialog .modal{
+  width:min(560px,92vw);
+  background:linear-gradient(180deg,var(--panel),var(--card));
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:18px;
+  box-shadow:var(--shadow-md)
+}
 
-/* Position the chart dialog so it sits below the header/menu on mobile.  Use a generous
-   top padding to avoid overlapping the navigation bar, and account for safe-area. */
+.icon{width:18px; height:18px; display:inline-block; vertical-align:-3px}
+.chart-modal-header{justify-content:space-between; align-items:center}
+.chart-title{margin:0}
+.chart-modal-controls{margin-top:12px}
+.modal-est-balance{margin-top:4px}
+.chart-range-label{margin-top:10px; text-align:right}
+.dialog-actions{justify-content:flex-end; margin-top:12px}
+
+.chip-group,.chips{display:flex; gap:6px; flex-wrap:wrap}
+.chip{
+  padding:6px 10px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  cursor:pointer;
+  color:var(--muted);
+  background:rgba(255,255,255,.02);
+  transition:all .16s ease;
+}
+.chip:hover{border-color:rgba(79,141,255,.5); color:var(--text)}
+.chip.active{background:rgba(79,141,255,.16); border-color:rgba(79,141,255,.46); color:var(--text)}
+
 #chartDlg{
   align-items:flex-start;
-  padding-top: calc(80px + env(safe-area-inset-top));
+  padding-top:calc(80px + env(safe-area-inset-top));
   padding-left:12px;
   padding-right:12px;
   padding-bottom:12px;
 }
 
-.chart-modal-controls{ margin-top:12px; }
-
 </style>
 <style>
-/* Interactive Chart Modal */
 #chartDlg .modal{ width:min(980px,95vw); max-height:78vh; overflow:auto; }
 .chart-toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px}
 .chart-toolbar .btn.small{padding:6px 10px; font-size:12px}
 .chart-wrap{position:relative}
-#chartInteractive{width:100%; height:360px; display:block; border:1px solid var(--border); border-radius:10px; background:var(--card)}
+#chartInteractive{width:100%; height:320px; display:block; border:1px solid var(--border); border-radius:12px; background:rgba(10,17,34,.88)}
 .chart-tooltip{
   position:absolute; pointer-events:none; padding:6px 8px; font-size:12px;
-  background:rgba(17,24,39,.95); color:var(--text); border:1px solid var(--border);
+  background:rgba(9,14,25,.95); color:var(--text); border:1px solid var(--border);
   border-radius:8px; transform:translate(8px,-100%); display:none; white-space:nowrap
 }
 .chart-legend{font-size:12px; color:var(--muted)}
+#chart{width:100%; height:260px; display:block}
+
+@media (max-width:980px){
+  .overview-chart-card,.quick-add-card{grid-column:auto}
+
+  #overview .grid.cols-3{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  #overview .grid.cols-3 > .card:nth-child(1),
+  #overview .grid.cols-3 > .card:nth-child(2){
+    grid-column:span 1;
+  }
+  #overview .grid.cols-3 > .card:nth-child(3),
+  #overview .grid.cols-3 > .card:nth-child(4){
+    grid-column:span 2;
+  }
+}
+
+@media (min-width:981px){
+  #overview .grid.cols-3{
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    align-items:start;
+  }
+  #overview .grid.cols-3 > .card:nth-child(1){grid-column:span 6}
+  #overview .grid.cols-3 > .card:nth-child(2){grid-column:span 6}
+  #overview .grid.cols-3 > .card:nth-child(3){grid-column:span 12}
+  #overview .grid.cols-3 > .card:nth-child(4){grid-column:span 12}
+}
+
+@media (max-width:760px){
+  h1{font-size:22px}
+  h2{font-size:18px}
+  h3{font-size:16px}
+  .container{padding:12px 10px}
+  .card{padding:11px; border-radius:12px}
+  .btn{min-height:42px; padding:9px 12px}
+  .input,select{min-height:42px; padding:9px 11px}
+
+  .header-bar{align-items:flex-start; gap:10px}
+  .brand{width:100%; justify-content:space-between}
+  .brand strong{font-size:16px}
+  nav#navTabs{
+    width:100%;
+    flex-wrap:nowrap;
+    overflow:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+    padding-bottom:8px;
+  }
+  nav#navTabs .tab{white-space:nowrap; flex:0 0 auto}
+
+  .quick-add-grid{grid-template-columns:1fr}
+  .section-title-row{flex-wrap:wrap; align-items:stretch}
+  .section-title-row .push-right{margin-left:0; width:100%}
+  .range-search{max-width:none}
+
+  .row.section-header{align-items:stretch}
+  .row.section-header h2{flex:1 1 auto}
+  .row.section-header .btn{width:100%}
+
+  #settings .row .btn,
+  #settings .row label.btn{
+    width:100%;
+  }
+
+  .overview-range-card,
+  #expenseGroups .card,
+  #incomeGroups .card{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  th,td{padding:8px 7px; font-size:13px}
+  .actions{gap:4px}
+}
+
+@media (max-width:540px){
+  .container{padding:10px 8px}
+  .kpi b{font-size:24px}
+  .kpi{flex-wrap:wrap; row-gap:4px}
+  .chips{gap:5px}
+  .chip{padding:6px 9px; font-size:12px}
+  #chart{height:220px}
+
+  .section-title-row,
+  .dialog-actions,
+  .row.section-header{
+    width:100%;
+  }
+
+  #chartDlg{
+    padding-top:calc(58px + env(safe-area-inset-top));
+    padding-left:8px;
+    padding-right:8px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom));
+  }
+  #chartDlg .modal{width:100%; max-height:84vh; padding:12px}
+  #chartInteractive{height:300px}
+  .dialog .modal{width:min(560px,96vw); padding:14px}
+  .dialog-actions .btn{flex:1 1 auto}
+
+  #overview .grid.cols-3{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
 </style>
 
 </head>
 <body>
 <header>
-  <div class="container row" style="justify-content:space-between; align-items:center">
-    <div style="display:flex; align-items:center; gap:8px">
+  <div class="container row header-bar">
+    <div class="brand">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 3h18M3 12h18M3 21h18"/></svg>
       <strong>Financial Planner <span class="badge" id="versionBadge"></span></strong>
     </div>
@@ -128,8 +369,8 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
       <div class="card">
         <div class="label">Target Date</div>
         <input id="targetDate" type="date" class="input"/>
-        <div class="kpi" style="margin-top:8px"><span class="muted">Estimated Balance</span> <b id="estBalance">$0</b></div>
-        <div class="chips" style="margin-top:8px">
+        <div class="kpi kpi-top"><span class="muted">Estimated Balance</span> <b id="estBalance">$0</b></div>
+        <div class="chips chips-top">
           <div class="chip" data-range="90">3M</div>
           <div class="chip active" data-range="180">6M</div>
           <div class="chip" data-range="365">12M</div>
@@ -146,10 +387,10 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         </div>
       </div>
       <!-- Move the overview chart here so it appears just above Quick Add in stacked/mobile layouts.  On wider screens this spans all three columns. -->
-      <div class="card" style="grid-column: span 3">
+      <div class="card overview-chart-card">
         <canvas id="chart" height="120"></canvas>
       </div>
-      <div class="card quick-add-card" style="grid-column: span 2">
+      <div class="card quick-add-card">
         <div class="label">Quick Add</div>
         <div class="quick-add-grid">
           <input id="qaDesc" class="input" placeholder="Description">
@@ -167,8 +408,8 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         </div>
       </div>
     </div>
-    <div class="card" style="margin-top:12px">
-      <div style="display:flex; align-items:center; gap:8px"><h2 style="margin:0">Items Within Range</h2><div style="margin-left:auto"><input id="rangeSearch" class="input" placeholder="Search…" style="max-width:220px" /></div></div>
+    <div class="card overview-range-card">
+      <div class="section-title-row"><h2 class="section-title-no-margin">Items Within Range</h2><div class="push-right"><input id="rangeSearch" class="input range-search" placeholder="Search…" /></div></div>
       <table>
         <thead><tr>
           <th>Description</th><th>Amount</th><th>Date</th><th>Frequency</th><th>Balance</th>
@@ -180,7 +421,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
 
   <!-- Expenses -->
   <section id="expenses" class="section">
-    <div class="row" style="justify-content:space-between; align-items:center">
+    <div class="row section-header">
       <h2>Expenses</h2>
       <button class="btn danger" id="btnAddExpense">Add Expense</button>
     </div>
@@ -189,7 +430,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
 
   <!-- Income -->
   <section id="income" class="section">
-    <div class="row" style="justify-content:space-between; align-items:center">
+    <div class="row section-header">
       <h2>Income</h2>
       <button class="btn success" id="btnAddIncome">Add Income</button>
     </div>
@@ -211,9 +452,9 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
             <input id="savingsBalance" type="number" step="0.01" class="input">
           </div>
         </div>
-        <div class="label" style="margin-top:10px">Starting Balance (auto)</div>
+        <div class="label start-balance-label">Starting Balance (auto)</div>
         <input id="startingBalanceRO" type="number" step="0.01" class="input" readonly>
-        <div class="row"><button id="btnSaveAccounts" class="btn primary" style="margin-top:10px">Save Accounts</button></div>
+        <div class="row"><button id="btnSaveAccounts" class="btn primary save-accounts-btn">Save Accounts</button></div>
         <hr>
         <div><span class="muted">Version:</span> <span id="settingsVersion"></span></div>
       </div>
@@ -222,7 +463,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         <h3>Data Management</h3>
         <div class="row">
           <button id="btnExport" class="btn">Export Data</button>
-          <label class="btn"><input id="fileInput" type="file" accept=".json" style="display:none">Choose File</label>
+          <label class="btn"><input id="fileInput" type="file" accept=".json" class="file-input-hidden">Choose File</label>
           <button id="btnImport" class="btn primary" disabled>Import Data</button>
         </div>
         <small class="muted">Export creates a JSON backup. Import restores saved records. Back-compatible with v1 JSON.</small>
@@ -247,12 +488,12 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
 <!-- Interactive Chart Dialog -->
 <div id="chartDlg" class="dialog">
   <div class="modal">
-    <div class="row" style="justify-content:space-between; align-items:center">
-      <h3 style="margin:0">Interactive Balance Chart</h3>
+    <div class="row chart-modal-header">
+      <h3 class="chart-title">Interactive Balance Chart</h3>
       <div class="chart-legend">Hover to inspect values.</div>
     </div>
     <!-- Modal controls: replicate target date, range selections and estimated balance -->
-    <div class="chart-modal-controls" style="margin-top:12px">
+    <div class="chart-modal-controls">
       <div class="grid cols-3">
         <div>
           <div class="label">Target Date</div>
@@ -270,17 +511,17 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         <div>
           <!-- Show the estimated balance inline without duplicating the word "Balance" -->
           <div class="label">Estimated Balance</div>
-          <div class="kpi" style="margin-top:4px"><b id="modalEstBalance">$0</b></div>
+          <div class="kpi modal-est-balance"><b id="modalEstBalance">$0</b></div>
         </div>
       </div>
     </div>
     <!-- Chart range label sits above the chart; removed zoom/pan/reset controls -->
-    <div class="muted" id="chRangeLabel" style="margin-top:10px; text-align:right;"></div>
+    <div class="muted chart-range-label" id="chRangeLabel"></div>
     <div class="chart-wrap">
       <canvas id="chartInteractive" height="480"></canvas>
       <div class="chart-tooltip" id="chartTip"></div>
     </div>
-    <div class="row" style="justify-content:flex-end; margin-top:12px">
+    <div class="row dialog-actions">
       <!-- Export button moved down next to the close button -->
       <button class="btn" id="chExport">Export PNG</button>
       <button class="btn" id="chartDlgClose">Close</button>
@@ -324,7 +565,7 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
         </select>
       </div>
     </div>
-    <div class="row" style="justify-content:flex-end; margin-top:12px">
+    <div class="row dialog-actions">
       <button id="btnCancel" class="btn">Cancel</button>
       <button id="btnSave" class="btn primary">Save</button>
     </div>
@@ -345,10 +586,124 @@ hr{border:0;border-top:1px solid var(--border); margin:12px 0}
 const $ = sel => document.querySelector(sel);
 const $$ = sel => Array.from(document.querySelectorAll(sel));
 const fmt = n => (n<0?'-':'') + '$' + Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:2});
-const todayStr = ()=> new Date().toISOString().slice(0,10);
 const addDays = (d,n)=>{const x=new Date(d); x.setDate(x.getDate()+n); return x};
 const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
-const uuid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+const uuid = ()=> (globalThis.crypto?.randomUUID?.() || (Math.random().toString(36).slice(2)+Date.now().toString(36)));
+const DAY_MS = 86400000;
+const NEVER_DATE = new Date(8640000000000000);
+const MAX_OCCURRENCES = 20000;
+const ALLOWED_FREQUENCIES = new Set(['once','weekly','biweekly','monthly','yearly']);
+
+function toISODateLocal(value){
+  const d = value instanceof Date ? value : new Date(value);
+  if(Number.isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function parseISODate(value){
+  if(!value) return null;
+  const [yy, mm, dd] = String(value).split('-').map(Number);
+  if(!yy || !mm || !dd) return null;
+  return new Date(yy, mm - 1, dd);
+}
+
+const todayStr = ()=> toISODateLocal(new Date());
+
+function debounce(fn, delay=120){
+  let t = null;
+  return (...args)=>{
+    clearTimeout(t);
+    t = setTimeout(()=>fn(...args), delay);
+  };
+}
+
+function getCombinedBalance(data){
+  return Number(Number(data?.balances?.checking)||0) + Number(Number(data?.balances?.savings)||0);
+}
+
+function appendCell(row, value){
+  const td = document.createElement('td');
+  td.textContent = String(value ?? '');
+  row.appendChild(td);
+  return td;
+}
+
+function appendHeaderCell(row, value){
+  const th = document.createElement('th');
+  th.textContent = String(value ?? '');
+  row.appendChild(th);
+  return th;
+}
+
+function formatISODate(value){
+  return toISODateLocal(value);
+}
+
+function sanitizeFrequency(value){
+  const f = String(value || 'once').toLowerCase();
+  return ALLOWED_FREQUENCIES.has(f) ? f : 'once';
+}
+
+function sanitizeAmount(value){
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function sanitizeDateInput(value, fallback=todayStr()){
+  const iso = toISODateLocal(value);
+  return iso || fallback;
+}
+
+function sanitizeDescription(value){
+  const s = String(value || '').trim();
+  return s || 'Untitled';
+}
+
+function normalizeItem(item){
+  return {
+    id: String(item?.id || uuid()),
+    description: sanitizeDescription(item?.description),
+    amount: sanitizeAmount(item?.amount),
+    date: sanitizeDateInput(item?.date),
+    endDate: item?.endDate ? sanitizeDateInput(item.endDate, '') : '',
+    frequency: sanitizeFrequency(item?.frequency),
+    category: typeof item?.category === 'string' ? item.category : ''
+  };
+}
+
+function normalizeItemList(list){
+  return Array.isArray(list) ? list.map(normalizeItem) : [];
+}
+
+function parseImportedData(json){
+  const diagnostics = [];
+  const push = msg => diagnostics.push(msg);
+  if(!json || typeof json !== 'object'){
+    push('Import payload is not an object.');
+    return { data: defaults(), diagnostics };
+  }
+  const migrated = migrate(json);
+  const checkList = (arr, label)=>{
+    const valid = [];
+    arr.forEach((raw, idx)=>{
+      const n = normalizeItem(raw);
+      const hasDate = !!toISODateLocal(n.date);
+      const hasAmount = Number.isFinite(Number(raw?.amount));
+      if(!hasDate || !hasAmount){
+        push(`${label}[${idx}] skipped (invalid date or amount).`);
+        return;
+      }
+      valid.push(n);
+    });
+    return valid;
+  };
+  migrated.expenses = checkList(migrated.expenses || [], 'expenses');
+  migrated.incomes = checkList(migrated.incomes || [], 'incomes');
+  return { data: migrated, diagnostics };
+}
 
 // ---------- Store & Schema ----------
 const schemaVersion = '2.0.33';
@@ -368,8 +723,8 @@ function migrate(data){
     // v1 -> v2 migration
     const d = defaults();
     d.startingBalance = data.startingBalance||0;
-    d.expenses = (data.expenses||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||'', category: x.category || ''}));
-    d.incomes = (data.incomes||[]).map(x=>({...x, id: x.id||uuid(), endDate: x.endDate||'', category: x.category || ''}));
+    d.expenses = normalizeItemList(data.expenses || []);
+    d.incomes = normalizeItemList(data.incomes || []);
     return d;
   }
   // ensure new settings fields
@@ -377,31 +732,60 @@ function migrate(data){
   if(typeof data.settings.targetDate === 'undefined') data.settings.targetDate = '';
   // future migrations here
   // v2.0.33: ensure category field exists on all items
-  if(Array.isArray(data.expenses)){ data.expenses = data.expenses.map(x=>({...x, category: (typeof x.category==='string'? x.category : '')})); }
-  if(Array.isArray(data.incomes)){  data.incomes  = data.incomes.map(x=>({...x, category: (typeof x.category==='string'? x.category : '')})); }
-  // v2.0.32: one-time, idempotent balances migration guarded by flag
-  const already = localStorage.getItem(MIG_FLAG)==='1';
-  if(!already){
-    if(!data.balances){
-      data.balances = { checking: Number(data.startingBalance || 0), savings: 0 };
-    }else{
-      if(typeof data.balances.checking === 'undefined') data.balances.checking = 0;
-      if(typeof data.balances.savings  === 'undefined') data.balances.savings  = 0;
-    }
-    localStorage.setItem(MIG_FLAG,'1');
+  data.expenses = normalizeItemList(data.expenses);
+  data.incomes = normalizeItemList(data.incomes);
+  // v2.0.32: ensure balances shape exists
+  if(!data.balances){
+    data.balances = { checking: Number(data.startingBalance || 0), savings: 0 };
+  }else{
+    if(typeof data.balances.checking === 'undefined') data.balances.checking = 0;
+    if(typeof data.balances.savings  === 'undefined') data.balances.savings  = 0;
   }
   // Keep legacy field equal to the sum (no additive adjustments)
-  data.startingBalance = Number((Number(data.balances?.checking)||0) + (Number(data.balances?.savings)||0));
-  data.startingBalance = Number((Number(data.balances.checking)||0) + (Number(data.balances.savings)||0));
+  data.startingBalance = getCombinedBalance(data);
   data.version = schemaVersion;
   return data;
 }
-const MIG_FLAG='planner_v2_balances_migrated';
 const store = {
   key:'planner_v2',
   data: migrate(JSON.parse(localStorage.getItem('planner_v2')||'null')),
-  save(){ localStorage.setItem(this.key, JSON.stringify(this.data)); publish(); },
-  load(json){ this.data = migrate(json); this.save(); },
+  revision: 0,
+  save(){ this.revision += 1; localStorage.setItem(this.key, JSON.stringify(this.data)); publish(); },
+  load(json){
+    const parsed = parseImportedData(json);
+    this.data = parsed.data;
+    this.save();
+    return parsed.diagnostics;
+  },
+};
+
+const mutations = {
+  add(type, item){
+    const key = type === 'incomes' ? 'incomes' : 'expenses';
+    const normalized = normalizeItem(item);
+    store.data[key].push(normalized);
+    store.save();
+    return normalized;
+  },
+  update(type, id, item){
+    const key = type === 'incomes' ? 'incomes' : 'expenses';
+    const arr = store.data[key];
+    const ix = arr.findIndex(x=>x.id===id);
+    if(ix < 0) return false;
+    arr[ix] = normalizeItem({ ...item, id });
+    store.save();
+    return true;
+  },
+  remove(type, id){
+    const key = type === 'incomes' ? 'incomes' : 'expenses';
+    const before = store.data[key].length;
+    store.data[key] = store.data[key].filter(x=>x.id!==id);
+    if(store.data[key].length !== before){
+      store.save();
+      return true;
+    }
+    return false;
+  }
 };
 
 // ---------- Pub/Sub ----------
@@ -411,12 +795,16 @@ function publish(){ listeners.forEach(fn=>fn(store.data)); }
 
 // ---------- Recurrence engine ----------
 function* occurrences(item, fromDate, toDate){
-  const start = new Date(item.date);
-  const end   = item.endDate ? new Date(item.endDate) : null;
+  const start = parseISODate(item.date) || new Date(item.date);
+  if(Number.isNaN(start.getTime())) return;
+  const end   = item.endDate ? (parseISODate(item.endDate) || new Date(item.endDate)) : null;
+  if(end && Number.isNaN(end.getTime())) return;
   let cur = new Date(start);
-  const to = new Date(toDate);
+  const to = toDate instanceof Date ? new Date(toDate) : (parseISODate(toDate) || new Date(toDate));
+  const from = fromDate instanceof Date ? new Date(fromDate) : (parseISODate(fromDate) || new Date(fromDate));
+  if(Number.isNaN(to.getTime()) || Number.isNaN(from.getTime())) return;
   const step = (d)=>{
-    switch(item.frequency){
+    switch(sanitizeFrequency(item.frequency)){
       case 'weekly': d.setDate(d.getDate()+7); break;
       case 'biweekly': d.setDate(d.getDate()+14); break;
       case 'monthly': d.setMonth(d.getMonth()+1); break;
@@ -425,11 +813,13 @@ function* occurrences(item, fromDate, toDate){
     }
   };
   // move to first on/after fromDate
-  while(cur < new Date(fromDate)) step(cur);
-  while(cur <= to && (!end || cur <= end)){
+  let guard = 0;
+  while(cur < from && guard < MAX_OCCURRENCES){ step(cur); guard += 1; }
+  while(cur <= to && (!end || cur <= end) && guard < MAX_OCCURRENCES){
     yield new Date(cur);
     if(item.frequency==='once') break;
     step(cur);
+    guard += 1;
   }
 }
 
@@ -450,9 +840,9 @@ function itemsInRange(from, to){
   all.sort((a,b)=>a.date-b.date);
   return all;
 }
-function simulateBalance(toDate){
-  const startBal = Number(((Number(store.data.balances?.checking)||0) + (Number(store.data.balances?.savings)||0)) || store.data.startingBalance || 0);
-  const from = new Date();
+function simulateBalance(toDate, fromDate){
+  const startBal = Number(getCombinedBalance(store.data) || store.data.startingBalance || 0);
+  const from = fromDate ? new Date(fromDate) : new Date();
   const items = itemsInRange(from, toDate);
   let bal = startBal, daysToNeg = null;
   const series = [];
@@ -462,15 +852,13 @@ function simulateBalance(toDate){
     bal += ev.amount;
     series.push({x: new Date(ev.date), y: bal});
     if(bal<0 && daysToNeg===null){
-      daysToNeg = Math.ceil((ev.date - from)/86400000);
+      daysToNeg = Math.ceil((ev.date - from)/DAY_MS);
     }
   }
   if(series.length===1){ series.push({x: toDate, y: bal}); }
   return {series, endBalance: bal, daysToNeg, items};
 }
-function totalNext12m(){
-  const from = new Date();
-  const to = addDays(from, 365);
+function totalInRange(from, to){
   let inc=0, exp=0;
   const add = (v,f)=>{
     for(const d of occurrences(v, from, to)){
@@ -481,6 +869,80 @@ function totalNext12m(){
   store.data.incomes.forEach(v=>add(v,'inc'));
   store.data.expenses.forEach(v=>add(v,'exp'));
   return {inc, exp, net: inc-exp};
+}
+function totalNext12m(from){
+  const start = from || new Date();
+  const to = addDays(start, 365);
+  return totalInRange(start, to);
+}
+function buildForecastSummary(from, to){
+  const fromKey = toISODateLocal(from);
+  const toKey = toISODateLocal(to);
+  const cacheKey = `${store.revision}|${fromKey}|${toKey}`;
+  if(buildForecastSummary._cache?.key === cacheKey){
+    return buildForecastSummary._cache.value;
+  }
+  const { series, endBalance, daysToNeg, items } = simulateBalance(to, from);
+  const t12 = totalNext12m(from);
+  const value = { series, endBalance, daysToNeg, items, t12 };
+  buildForecastSummary._cache = { key: cacheKey, value };
+  return value;
+}
+function renderGroupHeader(wrapper, nameText, total){
+  const header = document.createElement('h3');
+  header.style.display = 'flex';
+  header.style.justifyContent = 'space-between';
+  header.style.alignItems = 'center';
+  header.appendChild(document.createTextNode(nameText));
+  const annual = document.createElement('span');
+  annual.className = 'muted';
+  annual.textContent = `Annual: ${fmt(total)}`;
+  header.appendChild(annual);
+  wrapper.appendChild(header);
+}
+function buildGroupTable(type, groupItems){
+  const table = document.createElement('table');
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  ['Description','Amount','Start','End',''].forEach(label=>appendHeaderCell(headRow, label));
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  const fragment = document.createDocumentFragment();
+  for(const it of groupItems){
+    const tr = document.createElement('tr');
+    appendCell(tr, it.description);
+    appendCell(tr, fmt(it.amount));
+    appendCell(tr, it.date);
+    appendCell(tr, it.endDate || '-');
+    const actionTd = document.createElement('td');
+    actionTd.className = 'actions';
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn';
+    editBtn.type = 'button';
+    editBtn.dataset.act = 'edit';
+    editBtn.dataset.id = it.id;
+    editBtn.setAttribute('aria-label', `Edit ${it.description || 'item'}`);
+    editBtn.title = 'Edit item';
+    editBtn.textContent = '✏️';
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn';
+    delBtn.type = 'button';
+    delBtn.dataset.act = 'del';
+    delBtn.dataset.id = it.id;
+    delBtn.setAttribute('aria-label', `Delete ${it.description || 'item'}`);
+    delBtn.title = 'Delete item';
+    delBtn.textContent = '🗑️';
+    actionTd.appendChild(editBtn);
+    actionTd.appendChild(delBtn);
+    tr.appendChild(actionTd);
+    fragment.appendChild(tr);
+  }
+  tbody.appendChild(fragment);
+  table.appendChild(tbody);
+  addSortHandlers(table, type);
+  return table;
 }
 
 // ---------- Rendering ----------
@@ -567,16 +1029,15 @@ function renderOverview(){
     const rangeDays = Number(activeChip.getAttribute('data-range') || 180);
     to = addDays(from, rangeDays);
     // sync the target date input with the chip selection
-    $('#targetDate').value = to.toISOString().slice(0, 10);
+    $('#targetDate').value = toISODateLocal(to);
   } else {
     const val = $('#targetDate').value;
-    to = val ? new Date(val) : addDays(from, 180);
+    to = val ? (parseISODate(val) || new Date(val)) : addDays(from, 180);
   }
 
-  const { series, endBalance, daysToNeg, items } = simulateBalance(to);
+  const { series, endBalance, daysToNeg, items, t12 } = buildForecastSummary(from, to);
   $('#estBalance').textContent = fmt(endBalance);
 
-  const t12 = totalNext12m();
   $('#kpiIncome').textContent = fmt(t12.inc);
   $('#kpiExpense').textContent = fmt(t12.exp);
   $('#kpiNet').textContent = fmt(t12.net);
@@ -592,16 +1053,16 @@ function renderOverview(){
   // Build rows with cumulative balance
   const tbody = $('#rangeTable');
   tbody.innerHTML='';
+  const fragment = document.createDocumentFragment();
   const rows = [];
   const searchTerm = (document.getElementById('rangeSearch')?.value || '').trim().toLowerCase();
-  let bal = Number(((Number(store.data.balances?.checking)||0) + (Number(store.data.balances?.savings)||0)) || store.data.startingBalance || 0);
-  const fmtDate = d=>new Date(d).toISOString().slice(0,10);
+  let bal = Number(getCombinedBalance(store.data) || store.data.startingBalance || 0);
   for(const ev of items){
     bal += ev.amount;
     rows.push({
       description: ev.description,
       amount: ev.amount,
-      date: fmtDate(ev.date),
+      date: formatISODate(ev.date),
       frequency: ev.frequency,
       balance: bal
     });
@@ -609,21 +1070,7 @@ function renderOverview(){
   // Apply sorting if a key is selected
   const st = sortState.overview;
   if(st.key){
-    rows.sort((a,b)=>{
-      let v1 = a[st.key];
-      let v2 = b[st.key];
-      // convert types for proper comparison
-      if(st.key==='amount' || st.key==='balance'){
-        v1 = Number(v1); v2 = Number(v2);
-      }
-      if(st.key==='date'){
-        v1 = new Date(v1); v2 = new Date(v2);
-      }
-      // description and frequency stay as strings
-      if(v1 < v2) return st.asc ? -1 : 1;
-      if(v1 > v2) return st.asc ? 1 : -1;
-      return 0;
-    });
+    rows.sort((a,b)=>compareByKey(a,b,st.key,st.asc,'overview'));
   }
   // Render sorted rows
   const _rows = searchTerm ? rows.filter(r => (
@@ -631,9 +1078,14 @@ function renderOverview(){
   )) : rows;
   for(const row of _rows){
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${row.description}</td><td>${fmt(row.amount)}</td><td>${row.date}</td><td>${row.frequency}</td><td>${fmt(row.balance)}</td>`;
-    tbody.appendChild(tr);
+    appendCell(tr, row.description);
+    appendCell(tr, fmt(row.amount));
+    appendCell(tr, row.date);
+    appendCell(tr, row.frequency);
+    appendCell(tr, fmt(row.balance));
+    fragment.appendChild(tr);
   }
+  tbody.appendChild(fragment);
   // Attach sorting handlers to header after rendering
   attachOverviewSortHandlers();
 }
@@ -655,41 +1107,23 @@ function annualize(item){
 function renderGroups(el, items, type){
   el.innerHTML='';
   const groups = groupByFreq(items);
+  const fragment = document.createDocumentFragment();
   for(const group of groups){
     // Sort items within each frequency group using the current sort state (if any)
     const st = sortState[type];
     if(st && st.key){
-      group.items.sort((a,b)=>compareExpense(a,b,st.key,st.asc));
+      group.items.sort((a,b)=>compareByKey(a,b,st.key,st.asc,type));
     }
     const wrapper = document.createElement('div');
     const total = group.items.reduce((s,x)=>s+annualize(x),0);
     wrapper.className='card';
     const nameText = (group.key==='biweekly' ? 'Bi-weekly' : (group.key[0].toUpperCase()+group.key.slice(1)));
-    wrapper.innerHTML = `<h3 style="display:flex;justify-content:space-between;align-items:center">${nameText} <span class="muted">Annual: ${fmt(total)}</span></h3>`;
-    const table = document.createElement('table');
-    // Remove the Frequency column header; frequency is implied by the group label
-    table.innerHTML = `<thead><tr><th>Description</th><th>Amount</th><th>Start</th><th>End</th><th></th></tr></thead>`;
-    const tbody = document.createElement('tbody');
-    for(const it of group.items){
-      const tr = document.createElement('tr');
-      // Omit the frequency cell; the group indicates the frequency already
-      tr.innerHTML = `
-        <td>${it.description}</td>
-        <td>${fmt(it.amount)}</td>
-        <td>${it.date}</td>
-        <td>${it.endDate||'-'}</td>
-        <td class="actions">
-          <button class="btn" data-act="edit" data-id="${it.id}">✏️</button>
-          <button class="btn" data-act="del" data-id="${it.id}">🗑️</button>
-        </td>`;
-      tbody.appendChild(tr);
-    }
-    table.appendChild(tbody);
-    // Attach sorting behavior to the header cells of this table
-    addSortHandlers(table, type);
+    renderGroupHeader(wrapper, nameText, total);
+    const table = buildGroupTable(type, group.items);
     wrapper.appendChild(table);
-    el.appendChild(wrapper);
+    fragment.appendChild(wrapper);
   }
+  el.appendChild(fragment);
   // wiring for edit/delete
   el.querySelectorAll('button[data-act]').forEach(btn=>{
     const id = btn.dataset.id;
@@ -698,8 +1132,7 @@ function renderGroups(el, items, type){
       if(act==='edit') openDialog(type, store.data[type].find(x=>x.id===id));
       if(act==='del'){
         if(confirm('Delete this item?')){
-          store.data[type]=store.data[type].filter(x=>x.id!==id);
-          store.save();
+          mutations.remove(type, id);
         }
       }
     };
@@ -728,22 +1161,20 @@ const sortState = {
   incomes: { key: null, asc: true }
 };
 
-// Comparator function for expense/income items. Handles numbers, strings and dates.
-function compareExpense(a, b, key, asc){
-  let v1, v2;
-  if(key === 'amount'){
-    v1 = a.amount; v2 = b.amount;
-  } else if(key === 'description'){
-    v1 = (a.description || '').toLowerCase();
-    v2 = (b.description || '').toLowerCase();
-  } else if(key === 'date'){
-    v1 = new Date(a.date || ''); v2 = new Date(b.date || '');
-  } else if(key === 'end'){
-    v1 = a.endDate ? new Date(a.endDate) : new Date(8640000000000000);
-    v2 = b.endDate ? new Date(b.endDate) : new Date(8640000000000000);
-  } else {
-    v1 = a[key]; v2 = b[key];
+function sortValue(row, key, tableType){
+  if((tableType === 'expenses' || tableType === 'incomes') && key === 'end'){
+    return row.endDate ? (parseISODate(row.endDate) || new Date(row.endDate)) : NEVER_DATE;
   }
+  if(key === 'amount' || key === 'balance') return Number(row[key] || 0);
+  if(key === 'date') return parseISODate(row.date) || new Date(row.date || '');
+  if(key === 'description' || key === 'frequency') return String(row[key] || '').toLowerCase();
+  return row[key];
+}
+
+// Shared comparator for overview/expenses/incomes sorting.
+function compareByKey(a, b, key, asc, tableType){
+  const v1 = sortValue(a, key, tableType);
+  const v2 = sortValue(b, key, tableType);
   if(v1 < v2) return asc ? -1 : 1;
   if(v1 > v2) return asc ? 1 : -1;
   return 0;
@@ -760,7 +1191,7 @@ function addSortHandlers(table, type){
     th.onclick = ()=>{
       const st = sortState[type];
       if(st.key === key){ st.asc = !st.asc; } else { st.key = key; st.asc = true; }
-      store.data[type].sort((a,b)=>compareExpense(a,b,st.key,st.asc));
+      store.data[type].sort((a,b)=>compareByKey(a,b,st.key,st.asc,type));
       store.save();
       if(type === 'expenses') renderExpenses(); else renderIncome();
     };
@@ -806,29 +1237,27 @@ function closeDialog(){ $('#dlg').style.display='none'; }
 $('#btnCancel').onclick = closeDialog;
 $('#btnSave').onclick = ()=>{
   const type = $('#fType').value==='expense'?'expenses':'incomes';
-  const obj = {
+  const obj = normalizeItem({
     id: editingId || uuid(),
-    description: $('#fDesc').value.trim()||'Untitled',
-    amount: Number($('#fAmount').value||0),
-    date: $('#fDate').value||todayStr(),
+    description: $('#fDesc').value,
+    amount: $('#fAmount').value,
+    date: $('#fDate').value,
     endDate: $('#fEnd').value||'',
     frequency: $('#fFreq').value
-  };
+  });
   if(editingId){
-    const arr = store.data[type];
-    const ix = arr.findIndex(x=>x.id===editingId);
-    arr[ix]=obj;
+    mutations.update(type, editingId, obj);
   } else {
-    store.data[type].push(obj);
+    mutations.add(type, obj);
   }
-  store.save();
   closeDialog();
 };
 
 
 // Search filter for Items Within Range
 const _rs = document.getElementById('rangeSearch');
-if(_rs){ _rs.oninput = ()=>{ try{ renderOverview(); }catch(e){} }; }
+const renderOverviewDebounced = debounce(()=>{ try{ renderOverview(); }catch(e){} }, 120);
+if(_rs){ _rs.oninput = renderOverviewDebounced; }
 // ---------- Events ----------
 $('#navTabs').onclick = e=>{
   const t = e.target.closest('.tab'); if(!t) return;
@@ -844,14 +1273,14 @@ $('#btnAddIncome').onclick = ()=>openDialog('incomes');
 $('#qaAddExpense').onclick = ()=>{
   const d=$('#qaDesc').value, a=Number($('#qaAmt').value||0), f=$('#qaFreq').value, dt=$('#qaDate').value||todayStr();
   if(!d||!a) return toast('Please enter description and amount');
-  store.data.expenses.push({id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f, category: ($('#qaCat')?.value||'')});
-  store.save(); $('#qaDesc').value=''; $('#qaAmt').value='';
+  mutations.add('expenses', {id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f, category: ($('#qaCat')?.value||'')});
+  $('#qaDesc').value=''; $('#qaAmt').value='';
 };
 $('#qaAddIncome').onclick = ()=>{
   const d=$('#qaDesc').value, a=Number($('#qaAmt').value||0), f=$('#qaFreq').value, dt=$('#qaDate').value||todayStr();
   if(!d||!a) return toast('Please enter description and amount');
-  store.data.incomes.push({id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f, category: ($('#qaCat')?.value||'')});
-  store.save(); $('#qaDesc').value=''; $('#qaAmt').value='';
+  mutations.add('incomes', {id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f, category: ($('#qaCat')?.value||'')});
+  $('#qaDesc').value=''; $('#qaAmt').value='';
 };
 
 // Chips (overview) - clicking a range chip will activate it and redraw.  Only
@@ -862,12 +1291,11 @@ document.querySelectorAll('#overview .chip').forEach(ch => {
     ch.classList.add('active');
     const rangeDays = Number(ch.getAttribute('data-range') || 180);
     const to = addDays(new Date(), rangeDays);
-    const iso = to.toISOString().slice(0,10);
+    const iso = toISODateLocal(to);
     $('#targetDate').value = iso;
     store.data.settings = store.data.settings || { theme:'dark' };
     store.data.settings.targetDate = iso;
     store.save();
-    publish();
   };
 });
 
@@ -910,8 +1338,19 @@ $('#fileInput').onchange = ()=> $('#btnImport').disabled = !$('#fileInput').file
 $('#btnImport').onclick = async ()=>{
   const file = $('#fileInput').files[0]; if(!file) return;
   const text = await file.text();
-  try{ const json = JSON.parse(text); store.load(json); toast('Import successful'); }
-  catch{ toast('Invalid JSON'); }
+  try{
+    const json = JSON.parse(text);
+    const diagnostics = store.load(json);
+    if(diagnostics.length){
+      toast(`Import complete with warnings (${diagnostics.length})`);
+      console.warn('Import diagnostics:', diagnostics);
+    }else{
+      toast('Import successful');
+    }
+  }
+  catch{
+    toast('Invalid JSON');
+  }
 };
 $('#btnExport').onclick = ()=>{
   const blob = new Blob([JSON.stringify(store.data,null,2)], {type:'application/json'});
@@ -976,6 +1415,59 @@ subscribe((state)=>{
   // select default chip 6M
   publish();
 })();
+
+function setupAccessibility(){
+  const nav = $('#navTabs');
+  if(nav){
+    nav.setAttribute('role','tablist');
+    nav.querySelectorAll('.tab').forEach(tab=>{
+      tab.setAttribute('role','tab');
+      tab.tabIndex = tab.classList.contains('active') ? 0 : -1;
+      tab.setAttribute('aria-selected', tab.classList.contains('active') ? 'true' : 'false');
+      tab.addEventListener('keydown', e=>{
+        if(e.key === 'Enter' || e.key === ' '){
+          e.preventDefault();
+          tab.click();
+        }
+      });
+    });
+  }
+  document.querySelectorAll('.chip').forEach(ch=>{
+    ch.setAttribute('role','button');
+    ch.tabIndex = 0;
+    ch.addEventListener('keydown', e=>{
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        ch.click();
+      }
+    });
+  });
+  ['#dlg','#chartDlg'].forEach(sel=>{
+    const dlg = document.querySelector(sel);
+    if(!dlg) return;
+    dlg.setAttribute('role','dialog');
+    dlg.setAttribute('aria-modal','true');
+    dlg.addEventListener('keydown', e=>{
+      if(e.key === 'Escape'){
+        if(sel === '#dlg') closeDialog();
+        if(sel === '#chartDlg') closeChartModal();
+      }
+      if(e.key !== 'Tab') return;
+      const focusables = Array.from(dlg.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled && el.offsetParent !== null);
+      if(!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if(e.shiftKey && document.activeElement === first){
+        e.preventDefault();
+        last.focus();
+      } else if(!e.shiftKey && document.activeElement === last){
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  });
+}
+setupAccessibility();
 // ---------- Interactive Chart Modal ----------
 let chartSeriesFull = [];
 let viewStartIdx = 0;
@@ -1002,8 +1494,7 @@ function updateRangeLabel(){
   const s = chartSeriesFull[viewStartIdx];
   const e = chartSeriesFull[viewEndIdx];
   if(!s || !e) return;
-  const fmtD = (d)=> d.toISOString().slice(0,10);
-  $('#chRangeLabel').textContent = fmtD(s.x) + ' → ' + fmtD(e.x);
+  $('#chRangeLabel').textContent = toISODateLocal(s.x) + ' → ' + toISODateLocal(e.x);
 }
 
 // Initialize the modal controls based on the current overview state.  This
@@ -1032,7 +1523,7 @@ function initModalControls() {
 // also updates the estimated balance display and range label.
 function updateModalChart() {
   const dateStr = $('#modalTargetDate').value || todayStr();
-  const to = new Date(dateStr);
+  const to = parseISODate(dateStr) || new Date(dateStr);
   const {series, endBalance} = simulateBalance(to);
   chartSeriesFull = series;
   if(chartSeriesFull.length < 2) {
@@ -1063,7 +1554,7 @@ function updateModalChart() {
         ch.classList.add('active');
         const range = Number(ch.getAttribute('data-range') || 180);
         const to = addDays(new Date(), range);
-        document.getElementById('modalTargetDate').value = to.toISOString().slice(0,10);
+        document.getElementById('modalTargetDate').value = toISODateLocal(to);
         updateModalChart();
       });
     });
@@ -1323,7 +1814,7 @@ function onChartHover(evt){
   // tooltip
   //
   tip.style.display='block';
-  tip.textContent = pt.x.toISOString().slice(0,10) + ' • ' + fmt(pt.y);
+  tip.textContent = toISODateLocal(pt.x) + ' • ' + fmt(pt.y);
   let left = px + 10;
   let top = py - 10;
   // keep inside
