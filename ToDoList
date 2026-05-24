@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home To-Do & Budget Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            },
+            slate: {
+              950: '#070a13',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar for sleek dashboard look */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-brand-500 selection:text-white antialiased pb-12">
+
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full"></div>
+
+  <div id="confirmModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="confirmBox">
+      <div class="flex items-start gap-4">
+        <div class="p-3 rounded-full bg-amber-500/10 text-amber-500 shrink-0" id="confirmIcon">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white" id="confirmTitle">Confirm Action</h3>
+          <p class="text-slate-400 text-sm mt-1" id="confirmMessage">Are you sure you want to perform this action?</p>
+        </div>
+      </div>
+      <div class="flex gap-3 justify-end mt-6">
+        <button id="confirmCancelBtn" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm rounded-xl transition duration-150">Cancel</button>
+        <button id="confirmActionBtn" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-medium text-sm rounded-xl transition duration-150">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="categoryModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white">Manage Categories</h3>
+        <button onclick="toggleCategoryModal(false)" class="text-slate-400 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <form id="newCategoryForm" class="flex gap-2">
+          <input id="newCatInput" required placeholder="New category name..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-brand-500" />
+          <button type="submit" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition">Add</button>
+        </form>
+        <div class="max-h-60 overflow-y-auto border border-slate-800 rounded-xl p-2 bg-slate-950 space-y-1" id="categoriesList">
+          </div>
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button onclick="toggleCategoryModal(false)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-sm rounded-xl transition">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+    
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-brand-500/10 text-brand-500 rounded-xl">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>
+          </div>
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+              Home To-Do & Budget <span class="text-brand-500 font-light">Tracker</span>
+            </h1>
+            <p class="text-slate-400 text-xs sm:text-sm mt-0.5 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Auto-saved to LocalBrowser Storage &middot; Production Ready
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="toggleCategoryModal(true)" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-200 text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+          <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          Categories
+        </button>
+        <button id="demoBtn" onclick="loadDemoDataset()" class="bg-indigo-900/40 hover:bg-indigo-900/60 border border-indigo-500/30 text-indigo-200 text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Load Demo
+        </button>
+      </div>
+    </header>
+
+    <section class="grid grid-cols-2 lg:grid-cols-5 gap-4 mt-8">
+      
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden group">
+        <div class="absolute -right-3 -top-3 w-12 h-12 bg-indigo-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-300"></div>
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Projected Estimate</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1 select-all" id="totalEstimate">$0</h2>
+        </div>
+        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Total value of all plans
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden group">
+        <div class="absolute -right-3 -top-3 w-12 h-12 bg-brand-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-300"></div>
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Actual Spent</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1 select-all" id="totalActual">$0</h2>
+        </div>
+        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+          Real expenditures
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden group">
+        <div class="absolute -right-3 -top-3 w-12 h-12 bg-emerald-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-300"></div>
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500 font-medium">Realized Savings</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1 select-all" id="totalSavings">$0</h2>
+        </div>
+        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Sum of under-budget costs
+        </p>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden group">
+        <div class="absolute -right-3 -top-3 w-12 h-12 bg-amber-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-300"></div>
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Uncompleted Need</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-amber-500 mt-1 select-all" id="remainingCost">$0</h2>
+        </div>
+        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
+          <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Future estimated spending
+        </p>
+      </div>
+
+      <div class="col-span-2 lg:col-span-1 bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl flex items-center justify-between shadow-lg relative overflow-hidden group">
+        <div class="absolute -right-3 -top-3 w-12 h-12 bg-purple-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-300"></div>
+        <div class="flex-1">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Tasks Completed</span>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1" id="completedCount">0 / 0</h2>
+          
+          <div class="w-full bg-slate-800 rounded-full h-1.5 mt-3 overflow-hidden">
+            <div id="progressBar" class="bg-gradient-to-r from-brand-500 to-purple-500 h-1.5 rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="ml-4 flex items-center justify-center shrink-0">
+          <div class="relative w-14 h-14 flex items-center justify-center bg-slate-950 rounded-full border border-slate-800">
+            <span class="text-xs font-extrabold text-purple-400" id="progressPercentage">0%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-8">
+      
+      <div class="lg:col-span-8 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="p-1.5 bg-brand-500/10 text-brand-500 rounded-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          </div>
+          <h3 class="text-lg font-bold text-white">Add New Item</h3>
+        </div>
+        
+        <form id="addForm" class="grid grid-cols-1 md:grid-cols-12 gap-4">
+          
+          <div class="md:col-span-4">
+            <label for="task" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Task Name / Description</label>
+            <input id="task" required placeholder="e.g., Replace kitchen faucet" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition duration-150" />
+          </div>
+
+          <div class="md:col-span-3">
+            <div class="flex justify-between items-center mb-2">
+              <label for="category" class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Category</label>
+            </div>
+            <select id="category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition duration-150">
+              </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="estimate" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Estimate ($)</label>
+            <input id="estimate" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition duration-150" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="actual" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Actual Spent ($)</label>
+            <input id="actual" type="number" min="0" step="0.01" placeholder="0.00" inputmode="decimal" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition duration-150" />
+          </div>
+
+          <div class="md:col-span-3">
+            <label for="status" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Initial Status</label>
+            <select id="status" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition duration-150">
+              <option value="Pending">🕒 Pending</option>
+              <option value="Need to buy">🛍️ Need to buy</option>
+              <option value="Owned / Ready">🛠️ Owned / Ready</option>
+              <option value="Done">✅ Done</option>
+            </select>
+          </div>
+
+          <div class="md:col-span-9 flex items-end justify-end">
+            <button type="submit" class="w-full md:w-auto bg-brand-600 hover:bg-brand-500 hover:scale-[1.02] active:scale-[0.98] text-white font-extrabold text-sm px-8 py-3 rounded-xl shadow-lg shadow-brand-600/10 transition duration-150 flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+              Add Item
+            </button>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="lg:col-span-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <div class="p-1.5 bg-purple-500/10 text-purple-500 rounded-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+            </div>
+            <h3 class="text-lg font-bold text-white">Estimated Allocation</h3>
+          </div>
+          
+          <div id="chartContainer" class="space-y-3.5 my-3">
+            </div>
+        </div>
+        
+        <div class="pt-4 border-t border-slate-800/60 mt-4 flex items-center justify-between text-xs text-slate-500">
+          <span>Categories with estimations</span>
+          <span id="activeCatsCount">0 Active</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-8 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+      
+      <div class="p-4 sm:p-5 bg-slate-900/60 border-b border-slate-800/80 flex flex-col lg:flex-row gap-4 items-center justify-between">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto flex-1">
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </span>
+            <input id="searchBox" placeholder="Search tasks..." class="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-brand-500 text-sm text-slate-100 rounded-xl pl-9 pr-4 py-2.5 focus:outline-none transition" />
+          </div>
+
+          <div>
+            <select id="categoryFilter" class="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-brand-500 text-sm text-slate-100 rounded-xl px-3 py-2.5 focus:outline-none transition">
+              <option value="All">All Categories</option>
+            </select>
+          </div>
+
+          <div>
+            <select id="statusFilter" class="w-full bg-slate-950 border border-slate-800 hover:border-slate-700 focus:border-brand-500 text-sm text-slate-100 rounded-xl px-3 py-2.5 focus:outline-none transition">
+              <option value="All">All Statuses</option>
+              <option value="Pending">🕒 Pending</option>
+              <option value="Need to buy">🛍️ Need to buy</option>
+              <option value="Owned / Ready">🛠️ Owned / Ready</option>
+              <option value="Done">✅ Done</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full lg:w-auto shrink-0 justify-end border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-800">
+          <button onclick="confirmClearCompleted()" class="w-full sm:w-auto text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 font-extrabold px-4 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Clear Completed Tasks
+          </button>
+        </div>
+      </div>
+
+      <div id="contentSection" class="relative">
+        
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full border-collapse text-left text-sm">
+            <thead>
+              <tr class="bg-slate-950/40 text-slate-400 font-extrabold text-[11px] uppercase tracking-wider border-b border-slate-800/80">
+                <th class="py-4 pl-6 pr-2 w-14">Done</th>
+                <th class="py-4 px-3 min-w-[200px]">Task Description</th>
+                <th class="py-4 px-3 w-48">Category</th>
+                <th class="py-4 px-3 w-32 text-right">Estimate ($)</th>
+                <th class="py-4 px-3 w-32 text-right">Actual ($)</th>
+                <th class="py-4 px-3 w-32 text-right">Savings ($)</th>
+                <th class="py-4 px-3 w-44">Status</th>
+                <th class="py-4 pl-3 pr-6 w-20"></th>
+              </tr>
+            </thead>
+            <tbody id="todoBody" class="divide-y divide-slate-800/60 bg-slate-900/10">
+              </tbody>
+          </table>
+        </div>
+
+        <div class="md:hidden p-4 space-y-4 bg-slate-900/10" id="todoCards">
+          </div>
+
+        <div id="emptyState" class="hidden p-12 text-center flex flex-col items-center justify-center max-w-md mx-auto">
+          <div class="p-4 bg-slate-950 text-slate-600 rounded-full border border-slate-800 mb-4 animate-bounce">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+          </div>
+          <h4 class="text-white text-lg font-bold">No items found</h4>
+          <p class="text-slate-400 text-sm mt-1">Your planner is currently clean of active tasks. Create a fresh checklist or click below to populate mock data.</p>
+          <div class="flex flex-col sm:flex-row gap-2 mt-6 w-full">
+            <button onclick="loadDemoDataset()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm px-5 py-3 rounded-xl transition duration-150">
+              ⚡ Load Demo Checklist
+            </button>
+            <button onclick="focusTaskInput()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm px-5 py-3 rounded-xl transition duration-150">
+              Create New Task
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <footer class="p-4 sm:p-5 bg-slate-950/60 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <p class="text-xs text-slate-500 text-center sm:text-left">
+          Use backup configuration buttons to transfer checklists between devices.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-2 w-full sm:w-auto">
+          <button id="exportData" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Export Backup
+          </button>
+          <button id="importData" class="bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            Import Backup
+          </button>
+          <button onclick="confirmResetAll()" class="bg-rose-950/20 hover:bg-rose-950/40 border border-rose-900/30 text-rose-300 text-xs font-bold px-4 py-2.5 rounded-xl transition flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            Reset App State
+          </button>
+          <input id="importFile" type="file" accept="application/json" class="hidden" />
+        </div>
+      </footer>
+
+    </section>
+
+  </main>
+
+  <script>
+    const STORAGE_KEY = "homeTodoBudgetTracker.v2_main";
+    const CAT_STORAGE_KEY = "homeTodoBudgetTracker.v2_categories";
+
+    const defaultCategories = [
+      "Repairs / Install",
+      "Yard / Outdoor",
+      "Garage / House",
+      "Personal",
+      "Other"
+    ];
+
+    // Starts truly clean as requested, but loads with a toggleable demo dataset
+    let items = loadItems();
+    let categories = loadCategories();
+
+    // DOM Elements Cached
+    const todoBody = document.getElementById("todoBody");
+    const todoCards = document.getElementById("todoCards");
+    const addForm = document.getElementById("addForm");
+    const searchBox = document.getElementById("searchBox");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const statusFilter = document.getElementById("statusFilter");
+    const confirmModal = document.getElementById("confirmModal");
+    const confirmBox = document.getElementById("confirmBox");
+
+    // Modal state controllers
+    let activeConfirmAction = null;
+
+    // Toast Alert notification system
+    function showToast(message, type = "success") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = `flex items-center gap-3 p-4 rounded-xl shadow-xl border text-sm transition-all duration-300 transform translate-y-5 opacity-0 ${
+        type === "success" 
+          ? "bg-slate-900 border-emerald-500/30 text-emerald-400" 
+          : type === "danger" 
+          ? "bg-slate-900 border-rose-500/30 text-rose-400" 
+          : "bg-slate-900 border-indigo-500/30 text-indigo-400"
+      }`;
+
+      // Icon Selector
+      let icon = `<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      if (type === "danger") {
+        icon = `<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+      } else if (type === "info") {
+        icon = `<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      }
+
+      toast.innerHTML = `${icon}<span>${message}</span>`;
+      container.appendChild(toast);
+
+      // Animation in
+      setTimeout(() => {
+        toast.classList.remove("translate-y-5", "opacity-0");
+      }, 50);
+
+      // Animation out and remove
+      setTimeout(() => {
+        toast.classList.add("translate-y-2", "opacity-0");
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // Modern Confirm Dialog Modal replaces native confirm()
+    function requestConfirmation(title, message, onConfirm, isDanger = true) {
+      document.getElementById("confirmTitle").textContent = title;
+      document.getElementById("confirmMessage").textContent = message;
+      
+      const confirmBtn = document.getElementById("confirmActionBtn");
+      confirmBtn.className = `px-4 py-2 text-white font-medium text-sm rounded-xl transition duration-150 ${
+        isDanger ? "bg-rose-600 hover:bg-rose-500" : "bg-indigo-600 hover:bg-indigo-500"
+      }`;
+
+      const iconDiv = document.getElementById("confirmIcon");
+      if (isDanger) {
+        iconDiv.className = "p-3 rounded-full bg-rose-500/10 text-rose-500 shrink-0";
+      } else {
+        iconDiv.className = "p-3 rounded-full bg-indigo-500/10 text-indigo-500 shrink-0";
+      }
+
+      confirmModal.classList.remove("hidden");
+      setTimeout(() => {
+        confirmBox.classList.remove("scale-95", "opacity-0");
+      }, 10);
+
+      activeConfirmAction = () => {
+        closeConfirmModal();
+        onConfirm();
+      };
+    }
+
+    function closeConfirmModal() {
+      confirmBox.classList.add("scale-95", "opacity-0");
+      setTimeout(() => {
+        confirmModal.classList.add("hidden");
+        activeConfirmAction = null;
+      }, 150);
+    }
+
+    document.getElementById("confirmCancelBtn").addEventListener("click", closeConfirmModal);
+    document.getElementById("confirmActionBtn").addEventListener("click", () => {
+      if (activeConfirmAction) activeConfirmAction();
+    });
+
+    // Load lists from Storage
+    function loadItems() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return []; // Starts completely empty as requested
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+
+    function loadCategories() {
+      const saved = localStorage.getItem(CAT_STORAGE_KEY);
+      if (!saved) return [...defaultCategories];
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [...defaultCategories];
+      }
+    }
+
+    function saveItems() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function saveCategories() {
+      localStorage.setItem(CAT_STORAGE_KEY, JSON.stringify(categories));
+    }
+
+    // Number conversions
+    function formatMoney(value) {
+      const number = Number(value || 0);
+      return number.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+    }
+
+    function numberOrBlank(value) {
+      if (value === "" || value === null || value === undefined) return "";
+      const number = Number(value);
+      return Number.isFinite(number) ? number : "";
+    }
+
+    // Financial calculations: Savings = Estimate - Actual
+    function getItemSavings(item) {
+      const estimate = Number(item.estimate || 0);
+      const actual = Number(item.actual || 0);
+      
+      // If done and actual is blank, assume actual spent was 0, meaning full savings
+      if (item.completed && item.actual === "") {
+        return estimate;
+      }
+
+      if (!estimate && !actual) return "";
+      if (estimate > 0 && actual === "") return ""; // still planning, no finalized transaction
+      return estimate - actual;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // Load Default Categories Dropdowns
+    function populateCategories() {
+      const activeFilter = categoryFilter.value || "All";
+      
+      // Top Add Form selector
+      const formSelect = document.getElementById("category");
+      formSelect.innerHTML = categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("");
+
+      // Filter Selector
+      categoryFilter.innerHTML = `<option value="All">All Categories</option>` + 
+        categories.map(cat => `<option value="${escapeHtml(cat)}">${escapeHtml(cat)}</option>`).join("");
+      
+      categoryFilter.value = activeFilter;
+    }
+
+    // Status Styling Class Utilities
+    function getStatusBadgeStyle(status) {
+      switch(status) {
+        case "Done":
+          return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+        case "Need to buy":
+          return "bg-purple-500/10 text-purple-400 border border-purple-500/20";
+        case "Owned / Ready":
+          return "bg-brand-500/10 text-brand-400 border border-brand-500/20";
+        default:
+          return "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+      }
+    }
+
+    // Render Filter Actions
+    function getFilteredItems() {
+      const search = searchBox.value.toLowerCase().trim();
+      const selectedCategory = categoryFilter.value;
+      const selectedStatus = statusFilter.value;
+
+      return items.filter(item => {
+        const matchesSearch = item.task.toLowerCase().includes(search);
+        const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
+        const matchesStatus = selectedStatus === "All" || item.status === selectedStatus;
+        return matchesSearch && matchesCategory && matchesStatus;
+      });
+    }
+
+    // Primary State Rendering Core Engine
+    function render() {
+      saveItems();
+      populateCategories();
+
+      const filtered = getFilteredItems();
+      const emptyStateEl = document.getElementById("emptyState");
+
+      if (items.length === 0) {
+        // Show initial setup clean empty state dashboard info
+        emptyStateEl.classList.remove("hidden");
+        todoBody.innerHTML = "";
+        todoCards.innerHTML = "";
+      } else if (filtered.length === 0) {
+        // Search filter matching failure empty state
+        emptyStateEl.classList.remove("hidden");
+        todoBody.innerHTML = "";
+        todoCards.innerHTML = "";
+      } else {
+        emptyStateEl.classList.add("hidden");
+
+        // --- Render Desktop Matrix Table Rows ---
+        todoBody.innerHTML = filtered.map(item => {
+          const savings = getItemSavings(item);
+          let savingsDisplay = "-";
+          let savingsStyle = "text-slate-400";
+          
+          if (savings !== "") {
+            savingsDisplay = formatMoney(savings);
+            savingsStyle = savings >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";
+          }
+
+          return `
+            <tr class="hover:bg-slate-900/40 transition duration-150 ${item.completed ? "opacity-60 bg-slate-950/20" : ""}">
+              <td class="py-3 pl-6 pr-2">
+                <input type="checkbox" ${item.completed ? "checked" : ""} 
+                  onchange="updateItem('${item.id}', 'completed', this.checked)" 
+                  class="w-5 h-5 rounded border-slate-700 bg-slate-950 text-brand-500 focus:ring-brand-500 transition cursor-pointer" />
+              </td>
+              
+              <td class="py-3 px-3">
+                <input class="w-full bg-transparent border border-transparent hover:border-slate-800 focus:border-brand-500 focus:bg-slate-950 px-2 py-1.5 rounded-lg text-slate-100 text-sm focus:outline-none transition ${item.completed ? "line-through text-slate-500" : ""}" 
+                  value="${escapeHtml(item.task)}" 
+                  onchange="updateItem('${item.id}', 'task', this.value)" />
+              </td>
+
+              <td class="py-3 px-3">
+                <select onchange="updateItem('${item.id}', 'category', this.value)" 
+                  class="w-full bg-transparent border border-transparent hover:border-slate-800 focus:border-brand-500 focus:bg-slate-950 px-2 py-1.5 rounded-lg text-slate-100 text-sm focus:outline-none transition">
+                  ${categories.map(cat => `<option value="${escapeHtml(cat)}" ${item.category === cat ? "selected" : ""}>${escapeHtml(cat)}</option>`).join("")}
+                </select>
+              </td>
+
+              <td class="py-3 px-3 text-right">
+                <div class="flex items-center justify-end">
+                  <span class="text-slate-600 text-xs mr-1">$</span>
+                  <input type="number" min="0" step="0.01" value="${numberOrBlank(item.estimate)}" 
+                    onchange="updateItem('${item.id}', 'estimate', this.value)" 
+                    placeholder="0.00" inputmode="decimal" 
+                    class="w-20 text-right bg-transparent border border-transparent hover:border-slate-800 focus:border-brand-500 focus:bg-slate-950 p-1.5 rounded-lg text-sm focus:outline-none transition text-indigo-300" />
+                </div>
+              </td>
+
+              <td class="py-3 px-3 text-right">
+                <div class="flex items-center justify-end">
+                  <span class="text-slate-600 text-xs mr-1">$</span>
+                  <input type="number" min="0" step="0.01" value="${numberOrBlank(item.actual)}" 
+                    onchange="updateItem('${item.id}', 'actual', this.value)" 
+                    placeholder="0.00" inputmode="decimal" 
+                    class="w-20 text-right bg-transparent border border-transparent hover:border-slate-800 focus:border-brand-500 focus:bg-slate-950 p-1.5 rounded-lg text-sm focus:outline-none transition text-brand-300" />
+                </div>
+              </td>
+
+              <td class="py-3 px-3 text-right ${savingsStyle}">
+                ${savingsDisplay}
+              </td>
+
+              <td class="py-3 px-3">
+                <select onchange="updateItem('${item.id}', 'status', this.value)" 
+                  class="bg-transparent border border-transparent hover:border-slate-800 focus:border-brand-500 focus:bg-slate-950 py-1 px-2 rounded-lg text-xs font-semibold focus:outline-none transition uppercase tracking-wider ${getStatusBadgeStyle(item.status)}">
+                  <option value="Pending" ${item.status === "Pending" ? "selected" : ""}>🕒 Pending</option>
+                  <option value="Need to buy" ${item.status === "Need to buy" ? "selected" : ""}>🛍️ Need to buy</option>
+                  <option value="Owned / Ready" ${item.status === "Owned / Ready" ? "selected" : ""}>🛠️ Owned / Ready</option>
+                  <option value="Done" ${item.status === "Done" ? "selected" : ""}>✅ Done</option>
+                </select>
+              </td>
+
+              <td class="py-3 pl-3 pr-6 text-right">
+                <button onclick="requestConfirmation('Delete Item', 'Are you sure you want to permanently remove this checklist item?', () => deleteItem('${item.id}'), true)" 
+                  class="p-2 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition" title="Delete Task">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+        // --- Render Responsive Touch Cards (Mobile Devices) ---
+        todoCards.innerHTML = filtered.map(item => {
+          const savings = getItemSavings(item);
+          let savingsDisplay = "-";
+          let savingsStyle = "text-slate-400";
+          
+          if (savings !== "") {
+            savingsDisplay = formatMoney(savings);
+            savingsStyle = savings >= 0 ? "text-emerald-400 font-bold" : "text-rose-400 font-bold";
+          }
+
+          return `
+            <article class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow space-y-3 ${item.completed ? "opacity-60 bg-slate-950/20" : ""}">
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-start gap-2.5">
+                  <input type="checkbox" ${item.completed ? "checked" : ""} 
+                    onchange="updateItem('${item.id}', 'completed', this.checked)" 
+                    class="w-5 h-5 rounded border-slate-700 bg-slate-950 text-brand-500 focus:ring-brand-500 transition mt-1" />
+                  <div>
+                    <input class="bg-transparent border border-transparent hover:border-slate-800 focus:border-brand-500 focus:bg-slate-950 px-2 py-1 rounded-lg text-slate-100 font-bold text-sm focus:outline-none transition ${item.completed ? "line-through text-slate-500" : ""}" 
+                      value="${escapeHtml(item.task)}" 
+                      onchange="updateItem('${item.id}', 'task', this.value)" />
+                  </div>
+                </div>
+                <button onclick="requestConfirmation('Delete Item', 'Are you sure you want to permanently remove this checklist item?', () => deleteItem('${item.id}'), true)" 
+                  class="p-2 text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition shrink-0">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-800/60">
+                <div>
+                  <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Category</label>
+                  <select onchange="updateItem('${item.id}', 'category', this.value)" 
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-100 focus:outline-none">
+                    ${categories.map(cat => `<option value="${escapeHtml(cat)}" ${item.category === cat ? "selected" : ""}>${escapeHtml(cat)}</option>`).join("")}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Status</label>
+                  <select onchange="updateItem('${item.id}', 'status', this.value)" 
+                    class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-100 focus:outline-none">
+                    <option value="Pending" ${item.status === "Pending" ? "selected" : ""}>🕒 Pending</option>
+                    <option value="Need to buy" ${item.status === "Need to buy" ? "selected" : ""}>🛍️ Need to buy</option>
+                    <option value="Owned / Ready" ${item.status === "Owned / Ready" ? "selected" : ""}>🛠️ Owned / Ready</option>
+                    <option value="Done" ${item.status === "Done" ? "selected" : ""}>✅ Done</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Estimate</label>
+                  <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2 py-1">
+                    <span class="text-slate-600 mr-1">$</span>
+                    <input type="number" min="0" step="0.01" value="${numberOrBlank(item.estimate)}" 
+                      onchange="updateItem('${item.id}', 'estimate', this.value)" 
+                      placeholder="0.00" class="w-full bg-transparent text-slate-100 focus:outline-none" />
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-1">Actual Spent</label>
+                  <div class="flex items-center bg-slate-950 border border-slate-800 rounded-lg px-2 py-1">
+                    <span class="text-slate-600 mr-1">$</span>
+                    <input type="number" min="0" step="0.01" value="${numberOrBlank(item.actual)}" 
+                      onchange="updateItem('${item.id}', 'actual', this.value)" 
+                      placeholder="0.00" class="w-full bg-transparent text-slate-100 focus:outline-none" />
+                  </div>
+                </div>
+                <div class="col-span-2 flex items-center justify-between bg-slate-950 border border-slate-800 rounded-xl p-2.5 mt-1">
+                  <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Realized Savings</span>
+                  <span class="${savingsStyle}">${savingsDisplay}</span>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join("");
+      }
+
+      updateSummary();
+    }
+
+    // Comprehensive calculations for statistical totals + allocation charts
+    function updateSummary() {
+      const totalEstimate = items.reduce((sum, item) => sum + Number(item.estimate || 0), 0);
+      
+      // Calculate actual spent
+      const totalActual = items.reduce((sum, item) => sum + Number(item.actual || 0), 0);
+      
+      // Calculate cumulative savings
+      const totalSavings = items.reduce((sum, item) => {
+        const savings = getItemSavings(item);
+        return sum + (savings === "" ? 0 : savings);
+      }, 0);
+
+      // Remaining estimate needed (uncompleted tasks)
+      const remainingCost = items
+        .filter(item => !item.completed)
+        .reduce((sum, item) => sum + Number(item.estimate || 0), 0);
+
+      // Task Completion values
+      const totalCount = items.length;
+      const completedCount = items.filter(item => item.completed).length;
+      const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+      // Inject values to Dashboard Cards
+      document.getElementById("totalEstimate").textContent = formatMoney(totalEstimate);
+      document.getElementById("totalActual").textContent = formatMoney(totalActual);
+      
+      const savingsEl = document.getElementById("totalSavings");
+      savingsEl.textContent = formatMoney(totalSavings);
+      if (totalSavings >= 0) {
+        savingsEl.className = "text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1 select-all";
+      } else {
+        savingsEl.className = "text-2xl sm:text-3xl font-extrabold text-rose-400 mt-1 select-all";
+      }
+
+      document.getElementById("remainingCost").textContent = formatMoney(remainingCost);
+      document.getElementById("completedCount").textContent = `${completedCount} / ${totalCount}`;
+      document.getElementById("progressBar").style.width = `${percentage}%`;
+      document.getElementById("progressPercentage").textContent = `${percentage}%`;
+
+      // Update Live Interactive Insights Bar-Chart allocations
+      updateVisualAllocationChart(totalEstimate);
+    }
+
+    // Dynamic pure CSS/SVG visual chart builder based on category percentages
+    function updateVisualAllocationChart(totalEstimateVal) {
+      const chartContainer = document.getElementById("chartContainer");
+      
+      // Group Estimates by category
+      const allocationMap = {};
+      categories.forEach(cat => {
+        allocationMap[cat] = 0;
+      });
+
+      items.forEach(item => {
+        const categoryVal = item.category || "Other";
+        const estimateVal = Number(item.estimate || 0);
+        if (allocationMap[categoryVal] !== undefined) {
+          allocationMap[categoryVal] += estimateVal;
+        } else {
+          allocationMap[categoryVal] = estimateVal;
+        }
+      });
+
+      // Find active categories count with estimations > 0
+      const activeCats = Object.keys(allocationMap).filter(cat => allocationMap[cat] > 0);
+      document.getElementById("activeCatsCount").textContent = `${activeCats.length} Active`;
+
+      if (totalEstimateVal === 0) {
+        chartContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center p-6 bg-slate-950 rounded-xl border border-dashed border-slate-800 text-center">
+            <span class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-1">No Estimate Data</span>
+            <p class="text-xs text-slate-600">Assign estimates to tasks to visualize budget category allocations.</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Generate HTML list bars
+      let chartHtml = "";
+      const colors = ["bg-brand-500", "bg-purple-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500", "bg-indigo-500"];
+      
+      let index = 0;
+      for (const [category, val] of Object.entries(allocationMap)) {
+        if (val === 0) continue;
+        const pct = Math.round((val / totalEstimateVal) * 100);
+        const colorClass = colors[index % colors.length];
+        
+        chartHtml += `
+          <div>
+            <div class="flex justify-between text-xs text-slate-400 mb-1">
+              <span class="font-medium truncate pr-2">${escapeHtml(category)}</span>
+              <span class="font-extrabold shrink-0 text-slate-200">${formatMoney(val)} <span class="text-[10px] text-slate-500">(${pct}%)</span></span>
+            </div>
+            <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-900">
+              <div class="h-2 rounded-full ${colorClass}" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+        index++;
+      }
+      
+      chartContainer.innerHTML = chartHtml;
+    }
+
+    // Single central method for inline data updates
+    function updateItem(id, field, value) {
+      const item = items.find(item => item.id === id);
+      if (!item) return;
+
+      if (field === "estimate" || field === "actual") {
+        item[field] = value === "" ? "" : Number(value);
+      } else {
+        item[field] = value;
+      }
+
+      // Sync checkboxes vs Done states dynamically
+      if (field === "completed") {
+        if (value === true) {
+          item.status = "Done";
+        } else if (item.status === "Done") {
+          item.status = "Pending";
+        }
+      }
+      if (field === "status") {
+        if (value === "Done") {
+          item.completed = true;
+        } else {
+          item.completed = false;
+        }
+      }
+
+      render();
+    }
+
+    // Delete single checklist action
+    function deleteItem(id) {
+      items = items.filter(item => item.id !== id);
+      render();
+      showToast("Item deleted successfully", "danger");
+    }
+
+    // Core form handler: create new element
+    addForm.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const taskName = document.getElementById("task").value.trim();
+      const catSelected = document.getElementById("category").value;
+      const estimateVal = document.getElementById("estimate").value;
+      const actualVal = document.getElementById("actual").value;
+      const initialStatus = document.getElementById("status").value;
+
+      items.push({
+        id: crypto.randomUUID(),
+        task: taskName,
+        category: catSelected,
+        estimate: estimateVal === "" ? "" : Number(estimateVal),
+        actual: actualVal === "" ? "" : Number(actualVal),
+        status: initialStatus,
+        completed: initialStatus === "Done"
+      });
+
+      addForm.reset();
+      
+      // Keep selected category to facilitate sequential adding
+      document.getElementById("category").value = catSelected;
+      document.getElementById("status").value = "Pending";
+      
+      render();
+      showToast("Task item created successfully", "success");
+    });
+
+    // Filtering inputs setup
+    searchBox.addEventListener("input", render);
+    categoryFilter.addEventListener("change", render);
+    statusFilter.addEventListener("change", render);
+
+    // Filter clear action
+    function confirmClearCompleted() {
+      const completedLength = items.filter(item => item.completed).length;
+      if (completedLength === 0) {
+        showToast("No completed tasks found to clear", "info");
+        return;
+      }
+      requestConfirmation(
+        "Clear Completed Tasks", 
+        `Are you sure you want to remove all ${completedLength} completed task items from your current schedule?`, 
+        () => {
+          items = items.filter(item => !item.completed);
+          render();
+          showToast("Cleared all completed tasks", "danger");
+        }, 
+        true
+      );
+    }
+
+    // Dynamic category modal toggles
+    function toggleCategoryModal(show) {
+      const modal = document.getElementById("categoryModal");
+      if (show) {
+        modal.classList.remove("hidden");
+        renderCategoryList();
+      } else {
+        modal.classList.add("hidden");
+      }
+    }
+
+    // Render categories list inside Custom Modal Editor
+    function renderCategoryList() {
+      const list = document.getElementById("categoriesList");
+      list.innerHTML = categories.map(cat => {
+        return `
+          <div class="flex items-center justify-between bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl text-xs text-slate-200">
+            <span>${escapeHtml(cat)}</span>
+            <button onclick="deleteCategory('${escapeHtml(cat)}')" class="text-slate-500 hover:text-rose-500 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Custom Category creations
+    document.getElementById("newCategoryForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const input = document.getElementById("newCatInput");
+      const name = input.value.trim();
+      
+      if (!name) return;
+      if (categories.includes(name)) {
+        showToast("Category already exists", "info");
+        return;
+      }
+
+      categories.push(name);
+      saveCategories();
+      input.value = "";
+      renderCategoryList();
+      populateCategories();
+      render();
+      showToast("Custom category added", "success");
+    });
+
+    function deleteCategory(catName) {
+      // Don't leave empty
+      if (categories.length <= 1) {
+        showToast("You must maintain at least one category", "info");
+        return;
+      }
+
+      requestConfirmation(
+        "Delete Category",
+        `Are you sure you want to delete "${catName}"? Existing items under this category will maintain their settings, but the category option will be removed.`,
+        () => {
+          categories = categories.filter(c => c !== catName);
+          saveCategories();
+          renderCategoryList();
+          populateCategories();
+          render();
+          showToast(`Deleted category ${catName}`, "danger");
+        },
+        true
+      );
+    }
+
+    // Demo Database populations
+    function loadDemoDataset() {
+      // Beautiful mock schema representing standard home improvement budget scenarios
+      const demoItems = [
+        { id: crypto.randomUUID(), task: "Fix master shower valve leakage", category: "Repairs / Install", estimate: 300, actual: 34, status: "Done", completed: true },
+        { id: crypto.randomUUID(), task: "Install secondary basement utility light", category: "Repairs / Install", estimate: 250, actual: "", status: "Pending", completed: false },
+        { id: crypto.randomUUID(), task: "Deploy wireless mesh network router", category: "Repairs / Install", estimate: 180, actual: 165, status: "Done", completed: true },
+        { id: crypto.randomUUID(), task: "Purchase yard garden soil bags & bulbs", category: "Yard / Outdoor", estimate: 70, actual: "", status: "Need to buy", completed: false },
+        { id: crypto.randomUUID(), task: "Mount backyard security flood light", category: "Yard / Outdoor", estimate: 120, actual: "", status: "Owned / Ready", completed: false },
+        { id: crypto.randomUUID(), task: "Restore and stain window wooden shutters", category: "Yard / Outdoor", estimate: 240, actual: 210, status: "Done", completed: true },
+        { id: crypto.randomUUID(), task: "Prune privacy hedges & trees", category: "Yard / Outdoor", estimate: 100, actual: "", status: "Pending", completed: false },
+        { id: crypto.randomUUID(), task: "Build heavy-duty garage storage shelves", category: "Garage / House", estimate: 280, actual: 310, status: "Done", completed: true },
+        { id: crypto.randomUUID(), task: "De-clutter and clean out workbench", category: "Garage / House", estimate: 0, actual: "", status: "Pending", completed: false },
+        { id: crypto.randomUUID(), task: "Clean and condition living room couches", category: "Garage / House", estimate: 40, actual: "", status: "Need to buy", completed: false }
+      ];
+
+      items = demoItems;
+      render();
+      showToast("Demo dashboard loaded successfully", "info");
+    }
+
+    // Completely reset back to blank list state
+    function confirmResetAll() {
+      requestConfirmation(
+        "Reset All Checklist Data", 
+        "Are you sure you want to wipe all plans, calculations, and custom categories from this browser's database?", 
+        () => {
+          localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem(CAT_STORAGE_KEY);
+          items = [];
+          categories = [...defaultCategories];
+          populateCategories();
+          render();
+          showToast("Checklist database fully reset", "danger");
+        }, 
+        true
+      );
+    }
+
+    // Backup Engine Exporter
+    document.getElementById("exportData").addEventListener("click", () => {
+      if (items.length === 0) {
+        showToast("Nothing to export yet!", "info");
+        return;
+      }
+      const backupData = {
+        items: items,
+        categories: categories
+      };
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "home-todo-budget-backup.json";
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast("Backup configuration file downloaded", "success");
+    });
+
+    // Backup Engine Importer
+    document.getElementById("importData").addEventListener("click", () => {
+      document.getElementById("importFile").click();
+    });
+
+    document.getElementById("importFile").addEventListener("change", event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const imported = JSON.parse(reader.result);
+          
+          let parsedItems = [];
+          let parsedCategories = [...defaultCategories];
+
+          // Support both legacy arrays or modernized nested backups with custom categories
+          if (Array.isArray(imported)) {
+            parsedItems = imported;
+          } else if (imported && Array.isArray(imported.items)) {
+            parsedItems = imported.items;
+            if (Array.isArray(imported.categories)) {
+              parsedCategories = imported.categories;
+            }
+          } else {
+            throw new Error("Invalid format");
+          }
+
+          items = parsedItems.map(item => ({
+            ...item,
+            id: item.id || crypto.randomUUID(),
+            completed: !!item.completed
+          }));
+
+          categories = parsedCategories;
+          saveCategories();
+          populateCategories();
+          render();
+          showToast("Backup configuration imported successfully", "success");
+        } catch (e) {
+          showToast("Failed to parse file. Ensure it is a valid backup JSON.", "danger");
+        }
+      };
+      reader.readAsText(file);
+      // reset file input value
+      event.target.value = "";
+    });
+
+    function focusTaskInput() {
+      document.getElementById("task").focus();
+    }
+
+    // Initialize application execution loop
+    window.onload = function() {
+      populateCategories();
+      render();
+    };
+
+    // Global handles for triggers
+    window.updateItem = updateItem;
+    window.deleteItem = deleteItem;
+    window.loadDemoDataset = loadDemoDataset;
+    window.confirmClearCompleted = confirmClearCompleted;
+    window.confirmResetAll = confirmResetAll;
+    window.focusTaskInput = focusTaskInput;
+    window.toggleCategoryModal = toggleCategoryModal;
+    window.deleteCategory = deleteCategory;
+  </script>
+</body>
+</html>"""
+
+with open("home_todo_budget_tracker.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+print("File generated successfully.")
