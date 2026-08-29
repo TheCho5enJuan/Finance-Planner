@@ -9,6 +9,15 @@ function el(tag, className = '', text = '') {
   return node;
 }
 
+function ensureStyles() {
+  if ($('#v51InsightsStyles')) return;
+  const link = document.createElement('link');
+  link.id = 'v51InsightsStyles';
+  link.rel = 'stylesheet';
+  link.href = './css/v51-insights.css?v=5.1.0';
+  document.head.append(link);
+}
+
 function setVersionLabels() {
   const brand = $('#brandVersion');
   const app = $('#appVersion');
@@ -50,7 +59,7 @@ function declutterInsights() {
   const optimizer = $('#v5OptimizationSection');
   if (!view || !head || !health || !history) return false;
 
-  // V5's intelligence sections supersede the older generic V4 insight cards.
+  // V5 intelligence supersedes the older generic V4 insight cards.
   $('#insightsGrid')?.classList.add('v51-legacy-insights');
   $('#categoryInsights')?.closest('.dashboard-grid')?.classList.add('v51-legacy-insights');
 
@@ -64,7 +73,7 @@ function declutterInsights() {
     historyCard.querySelector('.card-head')?.after(el('div', 'v51-history-hint', 'Hover or drag across the chart to inspect a balance on any check-in date.'));
   }
 
-  // Keep the main scan path deliberately short: health -> trend -> categories.
+  // Main scan path: health -> actual trend -> category intelligence.
   head.after(health);
   health.after(history);
   if (categories) history.after(categories);
@@ -97,6 +106,7 @@ function declutterInsights() {
 }
 
 function apply() {
+  ensureStyles();
   setVersionLabels();
   declutterInsights();
 }
