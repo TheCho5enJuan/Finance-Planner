@@ -19,7 +19,7 @@ export const DEFAULT_CATEGORIES = [
 
 const RULES = [
   ['education', /\b(tuition|enrollment|providence college|msba|school fee|college|university|mch)\b/i],
-  ['donations', /\b(donation|giving|charity|church)\b/i],
+  ['donations', /\b(donations?|giving|charity|church)\b/i],
   ['insurance', /\b(progressive|insurance|geico|allstate|liberty mutual)\b/i],
   ['subscriptions', /\b(netflix|hulu|disney\+?|youtube( tv)?|spotify|apple music|prime video|max|paramount)\b/i],
   ['utilities', /\b(utility|sewer|water|electric|gas bill|verizon|t-mobile|internet|cox|xfinity)\b/i],
@@ -34,34 +34,22 @@ const RULES = [
   ['healthcare', /\b(doctor|medical|dental|vision|pharmacy|hospital|health)\b/i]
 ];
 
-export function categoryIdSet(categories = []) {
-  return new Set(categories.map(category => category.id));
-}
-
+export function categoryIdSet(categories = []) { return new Set(categories.map(category => category.id)); }
 export function suggestCategory(description, type = 'expense') {
   if (type === 'income' || type === 'incomes') return 'income';
   const text = String(description || '');
   for (const [id, pattern] of RULES) if (pattern.test(text)) return id;
   return 'other';
 }
-
-export function categoryName(data, id) {
-  return data?.categories?.find(category => category.id === id)?.name || DEFAULT_CATEGORIES.find(category => category.id === id)?.name || 'Other';
-}
-
+export function categoryName(data, id) { return data?.categories?.find(category => category.id === id)?.name || DEFAULT_CATEGORIES.find(category => category.id === id)?.name || 'Other'; }
 export function ensureCategories(existing = []) {
   const byId = new Map(DEFAULT_CATEGORIES.map(category => [category.id, { ...category }]));
   for (const category of existing) {
     if (!category?.id) continue;
-    byId.set(String(category.id), {
-      id: String(category.id),
-      name: String(category.name || category.id),
-      kind: ['expense', 'income', 'both'].includes(category.kind) ? category.kind : 'both'
-    });
+    byId.set(String(category.id), { id: String(category.id), name: String(category.name || category.id), kind: ['expense', 'income', 'both'].includes(category.kind) ? category.kind : 'both' });
   }
   return [...byId.values()];
 }
-
 export function categoryTotals(events = []) {
   const totals = new Map();
   for (const event of events) {
@@ -69,7 +57,5 @@ export function categoryTotals(events = []) {
     const id = event.category || 'other';
     totals.set(id, (totals.get(id) || 0) + Math.abs(Number(event.amount || 0)));
   }
-  return [...totals.entries()]
-    .map(([id, amount]) => ({ id, amount }))
-    .sort((a, b) => b.amount - a.amount);
+  return [...totals.entries()].map(([id, amount]) => ({ id, amount })).sort((a, b) => b.amount - a.amount);
 }
