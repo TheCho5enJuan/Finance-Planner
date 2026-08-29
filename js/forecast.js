@@ -25,16 +25,7 @@ function applyOverride(data, event) {
     : Math.abs(Number(override.actualAmount || 0));
   const amount = event.type === 'expense' ? -magnitude : magnitude;
   const actualDate = override.actualDate ? parseISODate(override.actualDate) : null;
-  return {
-    ...event,
-    key,
-    plannedAmount,
-    amount,
-    date: actualDate || event.date,
-    status: 'completed',
-    accountId: override.accountId || event.accountId || '',
-    override
-  };
+  return { ...event, key, plannedAmount, amount, date: actualDate || event.date, status: 'completed', accountId: override.accountId || event.accountId || '', override };
 }
 
 function scenarioEvents(data, from, to) {
@@ -54,18 +45,7 @@ function scenarioEvents(data, from, to) {
   if (scenario.oneTimeDelta && scenario.oneTimeDate) {
     const date = parseISODate(scenario.oneTimeDate);
     if (date && date >= from && date <= to) {
-      out.push({
-        id: 'scenario-one-time',
-        description: scenario.name || 'Scenario adjustment',
-        amount: Number(scenario.oneTimeDelta || 0),
-        plannedAmount: Number(scenario.oneTimeDelta || 0),
-        date,
-        frequency: 'once',
-        category: Number(scenario.oneTimeDelta) >= 0 ? 'income' : 'other',
-        type: Number(scenario.oneTimeDelta) >= 0 ? 'income' : 'expense',
-        scenario: true,
-        status: 'scenario'
-      });
+      out.push({ id: 'scenario-one-time', description: scenario.name || 'Scenario adjustment', amount: Number(scenario.oneTimeDelta || 0), plannedAmount: Number(scenario.oneTimeDelta || 0), date, frequency: 'once', category: Number(scenario.oneTimeDelta) >= 0 ? 'income' : 'other', type: Number(scenario.oneTimeDelta) >= 0 ? 'income' : 'expense', scenario: true, status: 'scenario' });
     }
   }
   return out;
@@ -74,21 +54,14 @@ function scenarioEvents(data, from, to) {
 export function itemsInRange(data, fromValue, toValue, options = {}) {
   const from = startOfDay(fromValue);
   const to = startOfDay(toValue);
-  const includeOverrides = options.includeOverrides !== false;
+  // v4.1 is intentionally plan-first. Historical occurrence overrides remain
+  // import-compatible, but they only affect calculations when explicitly asked for.
+  const includeOverrides = options.includeOverrides === true;
   const events = [];
   const collect = (item, sign, type) => {
     if (item.active === false) return;
     for (const date of occurrences(item, from, to)) {
-      const base = {
-        id: item.id,
-        description: item.description,
-        amount: Number(item.amount || 0) * sign,
-        date,
-        frequency: item.frequency,
-        category: item.category || (type === 'income' ? 'income' : 'other'),
-        accountId: item.accountId || '',
-        type
-      };
+      const base = { id: item.id, description: item.description, amount: Number(item.amount || 0) * sign, date, frequency: item.frequency, category: item.category || (type === 'income' ? 'income' : 'other'), accountId: item.accountId || '', type };
       events.push(includeOverrides ? applyOverride(data, base) : { ...base, key: occurrenceKey(item.id, date), plannedAmount: base.amount, status: 'planned' });
     }
   };
@@ -106,7 +79,6 @@ export function simulateBalance(data, toValue, fromValue = new Date(), options =
   let balance = combinedBalance(data);
   let daysToNegative = null;
   const series = [{ x: new Date(from), y: balance }];
-
   for (const event of events) {
     balance += event.amount;
     series.push({ x: new Date(event.date), y: balance });
