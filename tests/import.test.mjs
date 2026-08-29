@@ -32,6 +32,7 @@ test('mixed v2 backups prefer unified items over stale legacy arrays', () => {
   assert.equal(data.expenses.find(item => item.id === 'expense-2').category, 'groceries');
   assert.equal(data.incomes[0].category, 'income');
   assert.equal(data.startingBalance, 24000);
+  assert.equal(data.settings.trackingStartBalance, 24000);
   assert.equal('items' in data, false);
   assert.ok(diagnostics.some(message => message.includes('unified v2 transaction data')));
 });
@@ -56,7 +57,7 @@ test('legacy-only backups remain supported', () => {
   assert.equal(data.accounts.length, 2);
 });
 
-test('v3 summary balances replace stale legacy account snapshots during v4 migration', () => {
+test('v3 summary balances replace stale account snapshots and seed tracking baseline during v4 migration', () => {
   const data = migrate({
     version: '3.0.0',
     balances: { checking: 10361, savings: 23745 },
@@ -66,6 +67,7 @@ test('v3 summary balances replace stale legacy account snapshots during v4 migra
     ]
   });
   assert.equal(data.startingBalance, 34106);
+  assert.equal(data.settings.trackingStartBalance, 34106);
   assert.equal(data.accounts.length, 2);
   assert.deepEqual(data.accounts.map(account => account.balance), [10361, 23745]);
   assert.equal(data.accounts.some(account => account.id === 'stale-a'), false);
