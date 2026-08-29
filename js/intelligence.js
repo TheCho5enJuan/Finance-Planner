@@ -126,10 +126,14 @@ function historyIntervals(data) {
     const days = Math.max(1, Math.round((currentDate - previousDate) / DAY_MS));
     const from = addDays(previousDate, 1);
     const expectedNet = from <= currentDate ? plannedNetBetween(data, from, currentDate) : 0;
-    const expectedTotal = previous.total + expectedNet;
-    const error = current.total - expectedTotal;
+    // Snapshot-time values are authoritative. This prevents later edits to the
+    // plan from rewriting what Finance Planner learned from a past check-in.
+    const expectedTotal = current.expectedTotal == null ? previous.total + expectedNet : current.expectedTotal;
+    const error = current.variance == null ? current.total - expectedTotal : current.variance;
     const monthlyError = error * AVG_MONTH_DAYS / days;
-    const accuracy = 1 - Math.min(1, Math.abs(error) / Math.max(Math.abs(expectedTotal), 1));
+    const accuracy = current.accuracy == null
+      ? 1 - Math.min(1, Math.abs(error) / Math.max(Math.abs(expectedTotal), 1))
+      : current.accuracy;
     intervals.push({ previous, current, days, expectedNet, expectedTotal, error, monthlyError, accuracy });
   }
   return intervals;
@@ -267,14 +271,27 @@ export function safeToSpend(data, horizonDays = 365) {
 
 export function purchaseImpact(data, amountValue, dateValue = new Date()) {
   const amount = Math.max(0, finite(amountValue));
-  const purchaseDate = parseISODate(dateValue) || startOfDay(dateValue) || startOfDay(new Date());
+  const requestedDate = parseISODate(dateValue) || startOfDay(dateValue) || startOfDay(new Date());
   const from = startOfDay(new Date());
   const horizon = addDays(from, 365);
+  const purchaseDate = requestedDate < from ? from : requestedDate;
   const forecast = adaptiveForecast(data, horizon, from);
   const adjusted = forecast.series.map(point => ({
     x: new Date(point.x),
     y: point.x >= purchaseDate ? point.y - amount : point.y
   }));
+
+  // Add an exact purchase-date point so the reported minimum cannot miss a
+  // temporary cash dip between scheduled cash-flow events.
+  if (purchaseDate <= horizon) {
+    const atPurchase = adaptiveForecast(data, purchaseDate, from);
+    const exactPoint = { x: new Date(purchaseDate), y: atPurchase.endBalance - amount };
+    const sameTimestamp = adjusted.findIndex(point => point.x.getTime() === purchaseDate.getTime());
+    if (sameTimestamp >= 0) adjusted[sameTimestamp] = exactPoint;
+    else adjusted.push(exactPoint);
+    adjusted.sort((a, b) => a.x - b.x);
+  }
+
   const endBalance = adjusted.at(-1)?.y ?? combinedBalance(data) - amount;
   const minBalance = adjusted.reduce((minimum, point) => Math.min(minimum, point.y), Number.POSITIVE_INFINITY);
   const safe = safeToSpend(data);
