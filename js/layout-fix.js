@@ -1,3 +1,5 @@
+import './v51-ui.js';
+
 // Canvas charts use their rendered CSS size to build a high-DPI backing bitmap.
 // On a cold load Chrome can execute the chart modules before the final grid width
 // has settled, leaving the first bitmap scaled and blurry until a real resize.
