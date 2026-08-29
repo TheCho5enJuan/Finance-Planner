@@ -1,7 +1,8 @@
-import './v51-ui.js?v=5.1.0';
-import './v51-insights.js?v=5.1.0';
+import './v51-ui.js?v=5.1.1';
+import './v51-insights.js?v=5.1.1';
+import './v52-clarity.js?v=5.2.0';
 
-const DISPLAY_VERSION = '5.1.0';
+const DISPLAY_VERSION = '5.2.0';
 
 function syncDisplayedVersion() {
   const brand = document.getElementById('brandVersion');
@@ -11,8 +12,8 @@ function syncDisplayedVersion() {
 }
 
 // V5 still contains the original 5.0.0 injection fallback. Keep the displayed
-// release metadata aligned with the V5.1 UI layer until that legacy injector is
-// removed in the next architecture cleanup.
+// release metadata aligned with the current UI layer until that legacy injector
+// is removed in the next architecture cleanup.
 syncDisplayedVersion();
 const versionObserver = new MutationObserver(syncDisplayedVersion);
 ['brandVersion', 'appVersion'].forEach(id => {
@@ -42,8 +43,6 @@ function scheduleChartRedraw() {
     refreshFrame = window.requestAnimationFrame(redrawCharts);
   });
 
-  // The dashboard view has a short entrance animation. This second pass ensures
-  // the canvas is measured again after that animation and font layout complete.
   refreshTimer = window.setTimeout(redrawCharts, 320);
 }
 
