@@ -1,9 +1,9 @@
 {
   "name": "finance-planner",
   "private": true,
-  "version": "5.1.0",
+  "version": "5.2.0",
   "type": "module",
   "scripts": {
-    "test": "node --check js/app.js && node --check js/v5.js && node --check js/v51-ui.js && node --check js/v51-insights.js && node --check js/layout-fix.js && node --check js/intelligence.js && node --check js/charts.js && node --check js/store.js && node --check js/forecast.js && node --check js/planning.js && node --check js/insights.js && node --test tests/*.test.mjs"
+    "test": "node --check js/app.js && node --check js/v5.js && node --check js/v51-ui.js && node --check js/v51-insights.js && node --check js/v52-clarity.js && node --check js/v52-health-copy.js && node --check js/layout-fix.js && node --check js/intelligence.js && node --check js/charts.js && node --check js/store.js && node --check js/forecast.js && node --check js/planning.js && node --check js/insights.js && node --test tests/*.test.mjs"
   }
 }

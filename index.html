@@ -4,18 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0d10">
-  <meta name="description" content="A private, local-first personal finance intelligence center for cash-flow forecasting and planning.">
+  <meta name="description" content="A private, local-first planner for balances, bills, income, goals, and future cash flow.">
   <title>Dashboard · Finance Planner</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./css/app.css?v=5.0.0">
-  <link rel="stylesheet" href="./css/v5.css?v=5.0.0">
+  <link rel="stylesheet" href="./css/app.css?v=5.2.0">
+  <link rel="stylesheet" href="./css/v5.css?v=5.2.0">
+  <link rel="stylesheet" id="v52ClarityStyles" href="./css/v52-clarity.css?v=5.2.0">
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" aria-label="Primary navigation">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">F</div>
-        <div class="brand-copy"><div class="brand-name">Finance Planner</div><div class="brand-version" id="brandVersion">v5.0.0</div></div>
+        <div class="brand-copy"><div class="brand-name">Finance Planner</div><div class="brand-version" id="brandVersion">v5.2.0</div></div>
       </div>
       <nav class="nav">
         <button class="nav-item active" type="button" data-view="overview"><span class="nav-icon">◫</span>Dashboard</button>
@@ -27,12 +28,12 @@
         <button class="nav-item" type="button" data-view="incomes"><span class="nav-icon">↑</span>Income</button>
         <button class="nav-item" type="button" data-view="settings"><span class="nav-icon">⚙</span>Settings</button>
       </nav>
-      <div class="sidebar-foot">Local-first by design.<br>Your finance data stays in this browser unless you export it.</div>
+      <div class="sidebar-foot">Stored in this browser.<br>Export a backup to keep a copy.</div>
     </aside>
 
     <main class="main">
       <header class="topbar">
-        <div><div class="topbar-title">Financial Intelligence Center</div><div class="topbar-note" id="topbarStatus">Update account balances whenever you check in</div></div>
+        <div><div class="topbar-title">Finance Planner</div><div class="topbar-note" id="topbarStatus">Your latest balances are the starting point for every forecast.</div></div>
         <div class="topbar-actions">
           <button class="button small primary" id="topBalance" type="button">Update balances</button>
           <button class="button small" id="topBackup" type="button">Backup & settings</button>
@@ -41,44 +42,44 @@
 
       <div class="content">
         <section class="view active" id="view-overview">
-          <div class="page-head"><div><div class="eyebrow">Dashboard</div><h1>Your money, forward.</h1><p class="subtle">Update your account totals when you check in. V5 learns from those snapshots and improves the forecast without asking you to maintain transaction actuals.</p></div></div>
+          <div class="page-head"><div><div class="eyebrow">Dashboard</div><h1>Your financial picture</h1><p class="subtle">Update balances when they change. The planner combines those balances with your planned income and spending to show what may happen next.</p></div></div>
 
           <div class="hero-grid">
             <section class="balance-hero">
-              <div class="hero-label">Current cash position</div><div class="hero-value" id="heroBalance">$0.00</div>
-              <p class="hero-caption">Your latest account balances are the truth. Every forecast starts from this number today.</p>
+              <div class="hero-label">Current net balance</div><div class="hero-value" id="heroBalance">$0.00</div>
+              <p class="hero-caption">The total of the account balances you entered, including negative balances such as credit cards. Every forecast starts here.</p>
               <div class="account-mini" id="accountSummary"></div>
             </section>
             <section class="surface-card forecast-card">
-              <div class="card-kicker">Plan forecast balance</div><div class="forecast-value" id="forecastBalance">$0.00</div><div class="forecast-date" id="forecastDateLabel">Projected</div>
-              <div class="scenario-badge hidden" id="scenarioBadge">Scenario comparison active</div>
+              <div class="card-kicker">Planned ending balance</div><div class="forecast-value" id="forecastBalance">$0.00</div><div class="forecast-date" id="forecastDateLabel">Projected</div>
+              <div class="scenario-badge hidden" id="scenarioBadge">What-if scenario is on</div>
               <div class="forecast-controls">
                 <div class="range-row" aria-label="Forecast range">
                   <button class="range-pill" type="button" data-days="90">3M</button><button class="range-pill" type="button" data-days="180">6M</button><button class="range-pill active" type="button" data-days="365">12M</button><button class="range-pill" type="button" data-days="730">24M</button><button class="range-pill" type="button" data-days="1826">5Y</button>
                 </div>
-                <div class="field"><label for="targetDate">Or choose a specific date</label><input class="input" id="targetDate" type="date"></div>
+                <div class="field"><label for="targetDate">Choose a specific end date</label><input class="input" id="targetDate" type="date"></div>
               </div>
             </section>
           </div>
 
           <div class="kpi-grid">
-            <section class="surface-card kpi-card"><div class="kpi-label">Income · next 12 months</div><div class="kpi-value positive" id="income12">$0.00</div></section>
-            <section class="surface-card kpi-card"><div class="kpi-label">Expenses · next 12 months</div><div class="kpi-value negative" id="expense12">$0.00</div></section>
-            <section class="surface-card kpi-card"><div class="kpi-label">Net cash flow · 12 months</div><div class="kpi-value" id="net12">$0.00</div></section>
-            <section class="surface-card kpi-card"><div class="kpi-label">Net cash flow · next 30 days</div><div class="kpi-value" id="cash30">$0.00</div><div class="kpi-note" id="cash30Note"></div></section>
+            <section class="surface-card kpi-card"><div class="kpi-label">Expected income · 12 months</div><div class="kpi-value positive" id="income12">$0.00</div></section>
+            <section class="surface-card kpi-card"><div class="kpi-label">Expected spending · 12 months</div><div class="kpi-value negative" id="expense12">$0.00</div></section>
+            <section class="surface-card kpi-card"><div class="kpi-label">Planned balance change · 12 months</div><div class="kpi-value" id="net12">$0.00</div></section>
+            <section class="surface-card kpi-card"><div class="kpi-label">Planned balance change · 30 days</div><div class="kpi-value" id="cash30">$0.00</div><div class="kpi-note" id="cash30Note"></div></section>
           </div>
 
           <div class="dashboard-grid">
             <section class="surface-card chart-card">
-              <div class="card-head"><div><h2>Balance trajectory</h2><p>Scheduled cash flow applied to the account balances you last entered.</p></div><div class="legend-inline"><span class="legend baseline">Plan</span><span class="legend scenario hidden" id="scenarioLegend">Scenario</span></div></div>
+              <div class="card-head"><div><h2>Planned balance over time</h2><p>Your scheduled income and spending applied to the balances you last entered.</p></div><div class="legend-inline"><span class="legend baseline">Plan</span><span class="legend scenario hidden" id="scenarioLegend">Scenario</span></div></div>
               <div class="chart-wrap"><canvas id="balanceChart" aria-label="Projected balance chart"></canvas></div>
             </section>
-            <section class="surface-card radar-card"><div class="card-head"><div><h2>Financial radar</h2><p>Highest-priority signals right now.</p></div><button class="text-button" type="button" data-view-jump="insights">View all</button></div><div id="radarMini" class="radar-list"></div></section>
+            <section class="surface-card radar-card"><div class="card-head"><div><h2>Things to watch</h2><p>Items that may need your attention based on the current plan.</p></div><button class="text-button" type="button" data-view-jump="insights">View all</button></div><div id="radarMini" class="radar-list"></div></section>
           </div>
 
           <div class="dashboard-grid equal">
-            <section class="surface-card category-card"><div class="card-head"><div><h2>12-month spending mix</h2><p>Projected expenses by category.</p></div></div><div id="categoryOverview" class="bar-list"></div></section>
-            <section class="surface-card quick-card"><div class="card-head"><div><h2>Quick add</h2><p>Add a new planned item only when your plan actually changes.</p></div></div>
+            <section class="surface-card category-card"><div class="card-head"><div><h2>Where your money goes</h2><p>Planned spending by category for the next 12 months.</p></div></div><div id="categoryOverview" class="bar-list"></div></section>
+            <section class="surface-card quick-card"><div class="card-head"><div><h2>Quick add</h2><p>Add income or spending only when your plan changes.</p></div></div>
               <div class="quick-form">
                 <div class="field"><label for="quickDescription">Description</label><input class="input" id="quickDescription" placeholder="Mortgage, paycheck…" autocomplete="off"></div>
                 <div class="form-grid"><div class="field"><label for="quickAmount">Amount</label><input class="input" id="quickAmount" type="number" min="0" step="0.01" inputmode="decimal"></div><div class="field"><label for="quickFrequency">Frequency</label><select class="input" id="quickFrequency"><option value="once">Once</option><option value="weekly">Weekly</option><option value="biweekly">Bi-weekly</option><option value="monthly" selected>Monthly</option><option value="yearly">Yearly</option></select></div></div>
@@ -89,60 +90,60 @@
           </div>
 
           <section class="surface-card table-card">
-            <div class="table-toolbar"><div><h2>Upcoming cash flow</h2><div class="subtle" id="upcomingCount">0 occurrences</div></div><input class="input search" id="rangeSearch" type="search" placeholder="Search description…"></div>
+            <div class="table-toolbar"><div><h2>Upcoming planned activity</h2><div class="subtle" id="upcomingCount">0 items</div></div><input class="input search" id="rangeSearch" type="search" placeholder="Search description…"></div>
             <div class="table-wrap"><table><thead><tr><th>Description</th><th>Date</th><th>Category</th><th>Amount</th><th>Projected balance</th></tr></thead><tbody id="upcomingBody"></tbody></table></div>
           </section>
         </section>
 
         <section class="view" id="view-calendar">
-          <div class="page-head"><div><div class="eyebrow">Calendar</div><h1>Financial calendar</h1><p class="subtle">See when planned income and expenses concentrate throughout the month.</p></div><div class="head-actions"><button class="button" id="calendarToday" type="button">Today</button></div></div>
+          <div class="page-head"><div><div class="eyebrow">Calendar</div><h1>Calendar</h1><p class="subtle">See which days money is expected to come in or go out. Select a day to see the items behind it.</p></div><div class="head-actions"><button class="button" id="calendarToday" type="button">Today</button></div></div>
           <section class="surface-card calendar-card">
             <div class="calendar-toolbar"><button class="icon-button calendar-nav" id="calendarPrev" type="button">←</button><h2 id="calendarTitle">Month</h2><button class="icon-button calendar-nav" id="calendarNext" type="button">→</button></div>
             <div class="weekday-row"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
             <div class="calendar-grid" id="calendarGrid"></div>
           </section>
-          <section class="surface-card day-detail"><div class="card-head"><div><h2 id="calendarDayTitle">Selected day</h2><p id="calendarDaySummary">No activity</p></div></div><div id="calendarDayEvents" class="day-events"></div></section>
+          <section class="surface-card day-detail"><div class="card-head"><div><h2 id="calendarDayTitle">Day details</h2><p id="calendarDaySummary">No planned activity</p></div></div><div id="calendarDayEvents" class="day-events"></div></section>
         </section>
 
         <section class="view" id="view-plan">
-          <div class="page-head"><div><div class="eyebrow">Plan</div><h1>Turn future bills into a plan.</h1><p class="subtle">Track goals, reserve for large obligations, and test what-if changes without touching your real plan.</p></div></div>
-          <div class="section-head"><div><h2>Goals</h2><p>Cash, account-linked, or manually tracked targets.</p></div><button class="button primary" id="addGoal" type="button">Add goal</button></div><div class="plan-grid" id="goalsGrid"></div>
-          <div class="section-head spaced"><div><h2>Sinking funds</h2><p>Optional planning for known large expenses.</p></div><button class="button primary" id="addFund" type="button">Add fund</button></div><div class="plan-grid" id="fundsGrid"></div>
-          <section class="surface-card suggestions-card"><div class="card-head"><div><h2>Suggested funds</h2><p>Large one-time or annual expenses detected in your schedule.</p></div></div><div id="fundSuggestions" class="suggestion-list"></div></section>
+          <div class="page-head"><div><div class="eyebrow">Plan</div><h1>Plan ahead</h1><p class="subtle">Set goals, prepare for large future costs, and test changes before adding them to your real plan.</p></div></div>
+          <div class="section-head"><div><h2>Goals</h2><p>Track a savings or balance target.</p></div><button class="button primary" id="addGoal" type="button">Add goal</button></div><div class="plan-grid" id="goalsGrid"></div>
+          <div class="section-head spaced"><div><h2>Sinking funds</h2><p>Set aside money for a known future bill or purchase.</p></div><button class="button primary" id="addFund" type="button">Add fund</button></div><div class="plan-grid" id="fundsGrid"></div>
+          <section class="surface-card suggestions-card"><div class="card-head"><div><h2>Suggested funds</h2><p>Large scheduled costs that may be easier to save for over time.</p></div></div><div id="fundSuggestions" class="suggestion-list"></div></section>
           <section class="surface-card scenario-card">
-            <div class="card-head"><div><h2>What-if scenario</h2><p>Compare an alternate future without changing your actual plan.</p></div><label class="switch-row"><input id="scenarioEnabled" type="checkbox"> Enabled</label></div>
+            <div class="card-head"><div><h2>What-if scenario</h2><p>Test a temporary change without changing your saved income or expenses.</p></div><label class="switch-row"><input id="scenarioEnabled" type="checkbox"> Enabled</label></div>
             <div class="scenario-grid">
               <div class="field"><label for="scenarioName">Scenario name</label><input class="input" id="scenarioName"></div>
-              <div class="field"><label for="scenarioIncome">Extra monthly income</label><input class="input" id="scenarioIncome" type="number" min="0" step="0.01"></div>
-              <div class="field"><label for="scenarioExpense">Extra monthly expense</label><input class="input" id="scenarioExpense" type="number" min="0" step="0.01"></div>
-              <div class="field"><label for="scenarioOneTime">One-time cash change (+/-)</label><input class="input" id="scenarioOneTime" type="number" step="0.01"></div>
-              <div class="field"><label for="scenarioOneTimeDate">One-time date</label><input class="input" id="scenarioOneTimeDate" type="date"></div>
+              <div class="field"><label for="scenarioIncome">Monthly income change</label><input class="input" id="scenarioIncome" type="number" min="0" step="0.01"></div>
+              <div class="field"><label for="scenarioExpense">Monthly spending change</label><input class="input" id="scenarioExpense" type="number" min="0" step="0.01"></div>
+              <div class="field"><label for="scenarioOneTime">One-time balance change (+/-)</label><input class="input" id="scenarioOneTime" type="number" step="0.01"></div>
+              <div class="field"><label for="scenarioOneTimeDate">Date of one-time change</label><input class="input" id="scenarioOneTimeDate" type="date"></div>
             </div>
-            <div class="scenario-footer"><div id="scenarioSummary" class="scenario-summary"></div><button class="button primary" id="saveScenario" type="button">Save scenario</button></div>
+            <div class="scenario-footer"><div id="scenarioSummary" class="scenario-summary"></div><button class="button primary" id="saveScenario" type="button">Apply scenario</button></div>
           </section>
         </section>
 
         <section class="view" id="view-insights">
-          <div class="page-head"><div><div class="eyebrow">Insights</div><h1>Financial intelligence</h1><p class="subtle">Balance-history learning, forecast confidence, financial health, obligations, goals, and recurring-cost decisions.</p></div></div>
+          <div class="page-head"><div><div class="eyebrow">Insights</div><h1>Insights</h1><p class="subtle">See what your balance history and planned cash flow are telling you. Start with the summary, then open details when you need them.</p></div></div>
           <div class="insight-grid" id="insightsGrid"></div>
-          <div class="dashboard-grid equal spaced"><section class="surface-card category-card"><div class="card-head"><div><h2>Spending by category</h2><p>Next 12 months.</p></div></div><div id="categoryInsights" class="bar-list"></div></section><section class="surface-card commitment-card"><div class="card-head"><div><h2>Recurring commitments</h2><p>Annualized recurring obligations.</p></div></div><div id="commitmentSummary"></div></section></div>
+          <div class="dashboard-grid equal spaced"><section class="surface-card category-card"><div class="card-head"><div><h2>Spending by category</h2><p>Next 12 months.</p></div></div><div id="categoryInsights" class="bar-list"></div></section><section class="surface-card commitment-card"><div class="card-head"><div><h2>Recurring commitments</h2><p>Repeating expenses shown as a yearly total.</p></div></div><div id="commitmentSummary"></div></section></div>
         </section>
 
         <section class="view" id="view-expenses">
-          <div class="page-head"><div><div class="eyebrow">Cash out</div><h1>Expenses</h1><p class="subtle">Your planned one-time and recurring obligations. Update these only when the plan changes.</p></div><button class="button primary" id="addExpense" type="button">Add expense</button></div><div class="transaction-stack" id="expensesList"></div>
+          <div class="page-head"><div><div class="eyebrow">Spending plan</div><h1>Expenses</h1><p class="subtle">Bills and spending you expect. Change an item when its amount, date, or schedule changes.</p></div><button class="button primary" id="addExpense" type="button">Add expense</button></div><div class="transaction-stack" id="expensesList"></div>
         </section>
         <section class="view" id="view-incomes">
-          <div class="page-head"><div><div class="eyebrow">Cash in</div><h1>Income</h1><p class="subtle">Your planned recurring and one-time inflows.</p></div><button class="button primary" id="addIncome" type="button">Add income</button></div><div class="transaction-stack" id="incomesList"></div>
+          <div class="page-head"><div><div class="eyebrow">Income plan</div><h1>Income</h1><p class="subtle">Money you expect to receive. Change an item when its amount, date, or schedule changes.</p></div><button class="button primary" id="addIncome" type="button">Add income</button></div><div class="transaction-stack" id="incomesList"></div>
         </section>
 
         <section class="view" id="view-settings">
-          <div class="page-head"><div><div class="eyebrow">Settings</div><h1>Data & preferences</h1><p class="subtle">Update balances, manage the structure of your plan, tune financial intelligence, and keep backups.</p></div></div>
+          <div class="page-head"><div><div class="eyebrow">Settings</div><h1>Settings</h1><p class="subtle">Manage accounts, categories, forecast assumptions, backups, and display preferences.</p></div></div>
           <div class="settings-grid">
-            <section class="surface-card settings-card wide-card"><div class="settings-title"><div><h2>Accounts</h2><p>These balances are your source of truth. Use Update balances for routine check-ins; use Edit only to rename or restructure accounts.</p></div><div class="head-actions"><button class="button" type="button" onclick="document.getElementById('topBalance')?.click()">Update balances</button><button class="button primary" id="addAccount" type="button">Add account</button></div></div><div id="accountsList" class="settings-list"></div><div class="metric-pair"><span>Last balance update</span><strong id="lastBalanceUpdate">Not recorded yet</strong></div></section>
-            <section class="surface-card settings-card wide-card"><div class="settings-title"><div><h2>Categories</h2><p>Transactions are auto-categorized and can be overridden when needed.</p></div><button class="button" id="addCategory" type="button">Add category</button></div><div id="categoriesList" class="category-chip-list"></div></section>
-            <section class="surface-card settings-card"><h2>Appearance</h2><p>Choose the visual mode for this browser.</p><div class="field"><label for="themeSelect">Theme</label><select class="input" id="themeSelect"><option value="dark">Dark</option><option value="light">Light</option></select></div><div class="version-row">Finance Planner <strong id="appVersion">5.0.0</strong></div></section>
-            <section class="surface-card settings-card"><h2>Backup & restore</h2><p>Export a portable JSON backup. Imports remain compatible with prior v2/v3/v4 data.</p><div class="settings-actions"><button class="button" id="exportData" type="button">Export backup</button><label class="button file-button">Import backup<input id="importFile" type="file" accept="application/json,.json"></label></div></section>
-            <section class="surface-card settings-card"><h2>Local data</h2><p>Finance Planner does not send financial data to a server.</p><div class="settings-actions"><button class="button danger" id="resetData" type="button">Reset local data</button></div></section>
+            <section class="surface-card settings-card wide-card"><div class="settings-title"><div><h2>Accounts</h2><p>Account balances are the source of truth. Use Update balances for normal check-ins; use Edit to rename or restructure an account.</p></div><div class="head-actions"><button class="button" type="button" onclick="document.getElementById('topBalance')?.click()">Update balances</button><button class="button primary" id="addAccount" type="button">Add account</button></div></div><div id="accountsList" class="settings-list"></div><div class="metric-pair"><span>Last balance update</span><strong id="lastBalanceUpdate">Not recorded yet</strong></div></section>
+            <section class="surface-card settings-card wide-card"><div class="settings-title"><div><h2>Categories</h2><p>Categories group planned spending so you can see where your money is going.</p></div><button class="button" id="addCategory" type="button">Add category</button></div><div id="categoriesList" class="category-chip-list"></div></section>
+            <section class="surface-card settings-card"><h2>Appearance</h2><p>Choose light or dark mode for this browser.</p><div class="field"><label for="themeSelect">Theme</label><select class="input" id="themeSelect"><option value="dark">Dark</option><option value="light">Light</option></select></div><div class="version-row">Finance Planner <strong id="appVersion">5.2.0</strong></div></section>
+            <section class="surface-card settings-card"><h2>Backup & restore</h2><p>Export a backup so you can restore your plan later or move it to another browser.</p><div class="settings-actions"><button class="button" id="exportData" type="button">Export backup</button><label class="button file-button">Import backup<input id="importFile" type="file" accept="application/json,.json"></label></div></section>
+            <section class="surface-card settings-card"><h2>Local data</h2><p>Your financial data stays in this browser unless you export a backup.</p><div class="settings-actions"><button class="button danger" id="resetData" type="button">Reset local data</button></div></section>
           </div>
         </section>
       </div>
@@ -153,24 +154,24 @@
     <button class="nav-item active" type="button" data-view="overview">Dashboard</button><button class="nav-item" type="button" data-view="calendar">Calendar</button><button class="nav-item" type="button" data-view="plan">Plan</button><button class="nav-item" type="button" data-view="insights">Insights</button><button class="nav-item" type="button" data-view="settings">Settings</button>
   </nav>
 
-  <dialog class="dialog small-dialog" id="balanceDialog"><form id="balanceForm"><div class="dialog-head"><h2>Update account balances</h2></div><div class="dialog-body"><p class="subtle">Enter the balances you see today. V5 saves this check-in to balance history and immediately rebases every forecast from these totals.</p><div class="dialog-grid" id="balanceFields"></div><div class="balance-inline"><span>Current combined cash</span><strong id="balanceDialogTotal">$0.00</strong></div></div><div class="dialog-actions"><button class="button" id="balanceCancel" type="button">Cancel</button><button class="button primary" type="submit">Update balances</button></div></form></dialog>
+  <dialog class="dialog small-dialog" id="balanceDialog"><form id="balanceForm"><div class="dialog-head"><h2>Update account balances</h2></div><div class="dialog-body"><p class="subtle">Enter the balances you see today. This saves a balance check-in and starts every forecast from the updated total.</p><div class="dialog-grid" id="balanceFields"></div><div class="balance-inline"><span>New total balance</span><strong id="balanceDialogTotal">$0.00</strong></div></div><div class="dialog-actions"><button class="button" id="balanceCancel" type="button">Cancel</button><button class="button primary" type="submit">Update balances</button></div></form></dialog>
 
   <dialog class="dialog" id="transactionDialog"><form id="transactionForm"><div class="dialog-head"><h2 id="dialogTitle">Add transaction</h2></div><div class="dialog-body"><div class="dialog-grid">
     <div class="field"><label for="fieldType">Type</label><select class="input" id="fieldType"><option value="expenses">Expense</option><option value="incomes">Income</option></select></div><div class="field"><label for="fieldFrequency">Frequency</label><select class="input" id="fieldFrequency"><option value="once">Once</option><option value="weekly">Weekly</option><option value="biweekly">Bi-weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select></div>
     <div class="field wide"><label for="fieldDescription">Description</label><input class="input" id="fieldDescription" required autocomplete="off"></div><div class="field"><label for="fieldAmount">Amount</label><input class="input" id="fieldAmount" type="number" min="0" step="0.01" required></div><div class="field"><label for="fieldDate">Start date</label><input class="input" id="fieldDate" type="date" required></div><div class="field"><label for="fieldEndDate">End date</label><input class="input" id="fieldEndDate" type="date"></div><div class="field wide"><label for="fieldCategory">Category</label><select class="input" id="fieldCategory"></select></div>
   </div></div><div class="dialog-actions"><button class="button" id="dialogCancel" type="button">Cancel</button><button class="button primary" type="submit">Save transaction</button></div></form></dialog>
 
-  <dialog class="dialog" id="goalDialog"><form id="goalForm"><div class="dialog-head"><h2 id="goalDialogTitle">Add goal</h2></div><div class="dialog-body"><div class="dialog-grid"><div class="field wide"><label for="goalName">Name</label><input class="input" id="goalName" required></div><div class="field"><label for="goalTarget">Target amount</label><input class="input" id="goalTarget" type="number" min="0" step="0.01" required></div><div class="field"><label for="goalSource">Progress source</label><select class="input" id="goalSource"><option value="cash">Total cash</option><option value="account">Specific account</option><option value="manual">Manual</option></select></div><div class="field"><label for="goalCurrent">Manual current amount</label><input class="input" id="goalCurrent" type="number" min="0" step="0.01"></div><div class="field"><label for="goalAccount">Account</label><select class="input" id="goalAccount"></select></div><div class="field wide"><label for="goalDate">Target date</label><input class="input" id="goalDate" type="date"></div></div></div><div class="dialog-actions"><button class="button" id="goalCancel" type="button">Cancel</button><button class="button primary" type="submit">Save goal</button></div></form></dialog>
+  <dialog class="dialog" id="goalDialog"><form id="goalForm"><div class="dialog-head"><h2 id="goalDialogTitle">Add goal</h2></div><div class="dialog-body"><div class="dialog-grid"><div class="field wide"><label for="goalName">Name</label><input class="input" id="goalName" required></div><div class="field"><label for="goalTarget">Target amount</label><input class="input" id="goalTarget" type="number" min="0" step="0.01" required></div><div class="field"><label for="goalSource">How progress is measured</label><select class="input" id="goalSource"><option value="cash">Total cash</option><option value="account">Specific account</option><option value="manual">Enter manually</option></select></div><div class="field"><label for="goalCurrent">Current amount (manual)</label><input class="input" id="goalCurrent" type="number" min="0" step="0.01"></div><div class="field"><label for="goalAccount">Account</label><select class="input" id="goalAccount"></select></div><div class="field wide"><label for="goalDate">Target date</label><input class="input" id="goalDate" type="date"></div></div></div><div class="dialog-actions"><button class="button" id="goalCancel" type="button">Cancel</button><button class="button primary" type="submit">Save goal</button></div></form></dialog>
 
-  <dialog class="dialog" id="fundDialog"><form id="fundForm"><div class="dialog-head"><h2 id="fundDialogTitle">Add sinking fund</h2></div><div class="dialog-body"><div class="dialog-grid"><div class="field wide"><label for="fundName">Name</label><input class="input" id="fundName" required></div><div class="field"><label for="fundTarget">Target amount</label><input class="input" id="fundTarget" type="number" min="0" step="0.01" required></div><div class="field"><label for="fundReserved">Already reserved</label><input class="input" id="fundReserved" type="number" min="0" step="0.01"></div><div class="field"><label for="fundDate">Due date</label><input class="input" id="fundDate" type="date"></div><div class="field"><label for="fundAccount">Held in account</label><select class="input" id="fundAccount"></select></div><input id="fundLinkedExpense" type="hidden"></div></div><div class="dialog-actions"><button class="button" id="fundCancel" type="button">Cancel</button><button class="button primary" type="submit">Save fund</button></div></form></dialog>
+  <dialog class="dialog" id="fundDialog"><form id="fundForm"><div class="dialog-head"><h2 id="fundDialogTitle">Add sinking fund</h2></div><div class="dialog-body"><div class="dialog-grid"><div class="field wide"><label for="fundName">Name</label><input class="input" id="fundName" required></div><div class="field"><label for="fundTarget">Target amount</label><input class="input" id="fundTarget" type="number" min="0" step="0.01" required></div><div class="field"><label for="fundReserved">Amount already saved</label><input class="input" id="fundReserved" type="number" min="0" step="0.01"></div><div class="field"><label for="fundDate">Due date</label><input class="input" id="fundDate" type="date"></div><div class="field"><label for="fundAccount">Saved in account</label><select class="input" id="fundAccount"></select></div><input id="fundLinkedExpense" type="hidden"></div></div><div class="dialog-actions"><button class="button" id="fundCancel" type="button">Cancel</button><button class="button primary" type="submit">Save fund</button></div></form></dialog>
 
   <dialog class="dialog small-dialog" id="accountDialog"><form id="accountForm"><div class="dialog-head"><h2 id="accountDialogTitle">Add account</h2></div><div class="dialog-body"><div class="dialog-grid"><div class="field wide"><label for="accountName">Name</label><input class="input" id="accountName" required></div><div class="field"><label for="accountType">Type</label><select class="input" id="accountType"><option value="checking">Checking</option><option value="savings">Savings</option><option value="cash">Cash</option><option value="investment">Investment</option><option value="other">Other</option></select></div><div class="field"><label for="accountBalance">Balance</label><input class="input" id="accountBalance" type="number" step="0.01" required></div></div></div><div class="dialog-actions"><button class="button" id="accountCancel" type="button">Cancel</button><button class="button primary" type="submit">Save account</button></div></form></dialog>
 
   <dialog class="dialog small-dialog" id="categoryDialog"><form id="categoryForm"><div class="dialog-head"><h2>Add category</h2></div><div class="dialog-body"><div class="dialog-grid"><div class="field wide"><label for="categoryName">Name</label><input class="input" id="categoryName" required></div><div class="field wide"><label for="categoryKind">Used for</label><select class="input" id="categoryKind"><option value="expense">Expenses</option><option value="income">Income</option><option value="both">Both</option></select></div></div></div><div class="dialog-actions"><button class="button" id="categoryCancel" type="button">Cancel</button><button class="button primary" type="submit">Add category</button></div></form></dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="./js/app.js?v=5.0.0"></script>
-  <script type="module" src="./js/v5.js?v=5.0.0"></script>
-  <script type="module" src="./js/layout-fix.js?v=5.0.1"></script>
+  <script type="module" src="./js/app.js?v=5.2.0"></script>
+  <script type="module" src="./js/v5.js?v=5.2.0"></script>
+  <script type="module" src="./js/layout-fix.js?v=5.2.0"></script>
 </body>
 </html>
