@@ -31,6 +31,11 @@ function el(tag, className = '', text = '') {
 function moneySigned(value) { return `${Number(value) >= 0 ? '+' : ''}${money(value)}`; }
 function percent(value) { return `${Math.round(Number(value || 0) * 100)}%`; }
 function setText(selector, value) { const node = $(selector); if (node) node.textContent = value; }
+function textPair(title, subtitle) {
+  const copy = el('div');
+  copy.append(el('strong', '', title), el('span', '', subtitle));
+  return copy;
+}
 
 function intelligenceNeedsSave() {
   const state = ensureIntelligenceState(store.data);
@@ -199,7 +204,12 @@ function renderHealth() {
   root.replaceChildren();
   financialHealth(store.data).forEach(item => {
     const card = el('article', `surface-card v5-health-card status-${item.status}`);
-    card.innerHTML = `<div class="v5-health-label">${item.label}</div><div class="v5-health-value">${healthValue(item)}</div><div class="v5-health-status">${item.status}</div><p>${item.detail}</p>`;
+    card.append(
+      el('div', 'v5-health-label', item.label),
+      el('div', 'v5-health-value', healthValue(item)),
+      el('div', 'v5-health-status', item.status),
+      el('p', '', item.detail)
+    );
     root.append(card);
   });
 }
@@ -215,7 +225,10 @@ function renderObligations() {
   }
   rows.slice(0, 8).forEach(item => {
     const row = el('div', 'v5-list-row');
-    row.innerHTML = `<div><strong>${item.description}</strong><span>${item.date} · ${item.frequency}</span></div><strong>${money(item.amount)}</strong>`;
+    row.append(
+      textPair(item.description, `${item.date} · ${item.frequency}`),
+      el('strong', '', money(item.amount))
+    );
     root.append(row);
   });
 }
@@ -232,8 +245,9 @@ function renderGoalOutlook() {
   goals.forEach(goal => {
     const outlook = goalOutlook(store.data, goal);
     const eta = outlook.remaining === 0 ? 'Reached' : outlook.projectedDate || 'Learning your pace';
+    const subtitle = `${money(outlook.remaining)} remaining · ${outlook.pace > 0 ? `${money(outlook.pace)}/mo pace` : 'needs more balance history'}`;
     const row = el('div', 'v5-list-row');
-    row.innerHTML = `<div><strong>${goal.name}</strong><span>${money(outlook.remaining)} remaining · ${outlook.pace > 0 ? `${money(outlook.pace)}/mo pace` : 'needs more balance history'}</span></div><strong>${eta}</strong>`;
+    row.append(textPair(goal.name, subtitle), el('strong', '', eta));
     root.append(row);
   });
 }
@@ -249,8 +263,7 @@ function renderOptimizations() {
   }
   rows.forEach(item => {
     const row = el('div', 'v5-optimization-row');
-    const copy = el('div');
-    copy.innerHTML = `<strong>${item.description}</strong><span>${money(item.annualCost)}/year · ${money(item.horizonBenefit)} five-year forecast impact</span>`;
+    const copy = textPair(item.description, `${money(item.annualCost)}/year · ${money(item.horizonBenefit)} five-year forecast impact`);
     const button = el('button', 'button small', selectedOptimizationId === item.id ? 'Comparing' : 'Compare');
     button.type = 'button';
     button.onclick = () => { selectedOptimizationId = item.id; renderOptimizations(); renderOptimizationComparison(); };
@@ -376,6 +389,12 @@ function renderAll() {
   renderSettings();
 }
 
+function purchaseMetric(label, value, className = '') {
+  const cell = el('div', className);
+  cell.append(el('span', '', label), el('strong', '', value));
+  return cell;
+}
+
 function renderPurchaseResult(event) {
   event.preventDefault();
   const amount = parseAmount($('#v5PurchaseAmount')?.value);
@@ -386,16 +405,21 @@ function renderPurchaseResult(event) {
   if (!root) return;
   root.classList.remove('hidden');
   root.dataset.risk = result.risk;
-  root.innerHTML = `
-    <div class="v5-risk"><span>Impact</span><strong>${result.risk.toUpperCase()} RISK</strong></div>
-    <div><span>Safe-to-spend after purchase</span><strong>${money(result.safeAfter)}</strong></div>
-    <div><span>12-month ending cash</span><strong>${money(result.endBalance)}</strong></div>
-    <div><span>Lowest projected cash</span><strong>${money(result.minBalance)}</strong></div>`;
+  root.replaceChildren(
+    purchaseMetric('Impact', `${result.risk.toUpperCase()} RISK`, 'v5-risk'),
+    purchaseMetric('Safe-to-spend after purchase', money(result.safeAfter)),
+    purchaseMetric('12-month ending cash', money(result.endBalance)),
+    purchaseMetric('Lowest projected cash', money(result.minBalance))
+  );
 }
 
 function bind() {
   const purchaseForm = $('#v5PurchaseForm'); if (purchaseForm && !purchaseForm.dataset.bound) { purchaseForm.dataset.bound = '1'; purchaseForm.addEventListener('submit', renderPurchaseResult); }
-  const purchaseDate = $('#v5PurchaseDate'); if (purchaseDate && !purchaseDate.value) purchaseDate.value = todayISO();
+  const purchaseDate = $('#v5PurchaseDate');
+  if (purchaseDate) {
+    purchaseDate.min = todayISO();
+    if (!purchaseDate.value) purchaseDate.value = todayISO();
+  }
 
   const adaptive = $('#v5AdaptiveToggle'); if (adaptive && !adaptive.dataset.bound) {
     adaptive.dataset.bound = '1';
