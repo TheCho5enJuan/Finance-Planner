@@ -18,7 +18,14 @@ export function defaults() {
       targetRangeDays: 365,
       targetDate: '',
       trackingStartDate: todayISO(),
-      trackingStartBalance: 0
+      trackingStartBalance: 0,
+      intelligence: {
+        schemaVersion: 1,
+        adaptiveForecast: true,
+        emergencyMonths: 3,
+        majorExpenseThreshold: 1000,
+        history: []
+      }
     },
     startingBalance: 0,
     balances: { checking: 0, savings: 0 },
@@ -77,8 +84,8 @@ function legacyBalances(raw) {
 }
 
 function normalizedAccounts(raw) {
-  const isV4 = String(raw?.version || '').startsWith('4.');
-  if (isV4 && Array.isArray(raw.accounts) && raw.accounts.length) return raw.accounts.map(normalizeAccount);
+  const isModern = /^[45]\./.test(String(raw?.version || ''));
+  if (isModern && Array.isArray(raw.accounts) && raw.accounts.length) return raw.accounts.map(normalizeAccount);
   const balances = legacyBalances(raw);
   return [
     { id: 'acct-checking', name: 'Checking', type: 'checking', balance: balances.checking },
@@ -198,6 +205,7 @@ export function migrate(raw) {
   const accounts = normalizedAccounts(raw);
   const balances = balancesFromAccounts(accounts);
   const settings = { ...base.settings, ...(raw.settings || {}) };
+  settings.intelligence = { ...base.settings.intelligence, ...(raw.settings?.intelligence || {}) };
 
   if (!raw.settings?.targetMode) {
     settings.targetMode = raw.settings?.targetDate ? 'date' : 'range';
