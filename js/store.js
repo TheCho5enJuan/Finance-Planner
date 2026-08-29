@@ -78,9 +78,7 @@ function legacyBalances(raw) {
 
 function normalizedAccounts(raw) {
   const isV4 = String(raw?.version || '').startsWith('4.');
-  if (isV4 && Array.isArray(raw.accounts) && raw.accounts.length) {
-    return raw.accounts.map(normalizeAccount);
-  }
+  if (isV4 && Array.isArray(raw.accounts) && raw.accounts.length) return raw.accounts.map(normalizeAccount);
   const balances = legacyBalances(raw);
   return [
     { id: 'acct-checking', name: 'Checking', type: 'checking', balance: balances.checking },
@@ -205,8 +203,11 @@ export function migrate(raw) {
     settings.targetMode = raw.settings?.targetDate ? 'date' : 'range';
     settings.targetRangeDays = 365;
   }
-  if (!settings.trackingStartDate || !parseISODate(settings.trackingStartDate)) settings.trackingStartDate = todayISO();
-  if (!Number.isFinite(Number(settings.trackingStartBalance))) settings.trackingStartBalance = balances.checking + balances.savings;
+  if (!raw.settings?.trackingStartDate || !parseISODate(raw.settings.trackingStartDate)) settings.trackingStartDate = todayISO();
+  const rawTrackingBalance = raw.settings?.trackingStartBalance;
+  if (rawTrackingBalance === null || typeof rawTrackingBalance === 'undefined' || !Number.isFinite(Number(rawTrackingBalance))) {
+    settings.trackingStartBalance = balances.checking + balances.savings;
+  }
 
   let goals = Array.isArray(raw.goals) ? raw.goals.map(normalizeGoal) : [];
   const legacyGoal = Number(raw.settings?.goalBalance || 0);
@@ -319,9 +320,7 @@ export const store = {
   }
 };
 
-function transactionCategoryIds() {
-  return new Set(store.data.categories.map(category => category.id));
-}
+function transactionCategoryIds() { return new Set(store.data.categories.map(category => category.id)); }
 
 export const mutations = {
   add(type, raw) {
@@ -376,7 +375,8 @@ export const mutations = {
   removeCategory(id) {
     if (['income', 'other'].includes(id)) return false;
     store.data.categories = store.data.categories.filter(category => category.id !== id);
-    [...store.data.expenses, ...store.data.incomes].forEach(item => { if (item.category === id) item.category = item === store.data.incomes.find(x => x.id === item.id) ? 'income' : 'other'; });
+    store.data.expenses.forEach(item => { if (item.category === id) item.category = 'other'; });
+    store.data.incomes.forEach(item => { if (item.category === id) item.category = 'income'; });
     store.save(); return true;
   },
   addGoal(raw) { store.data.goals.push(normalizeGoal(raw)); store.save(); },
