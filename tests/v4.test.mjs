@@ -13,7 +13,7 @@ const { actualVsPlanned, combinedBalance, itemsInRange, simulateBalance } = awai
 const { fundMetrics, goalMetrics, suggestedFunds } = await import('../js/planning.js');
 const { addDays, todayISO } = await import('../js/utils.js');
 
-test('completed and skipped occurrence overrides change the forecast without changing the base transaction', () => {
+test('explicit occurrence overrides can still be applied without changing the base transaction', () => {
   const data = migrate({
     version: '4.0.0',
     accounts: [{ id: 'cash', name: 'Cash', type: 'checking', balance: 1000 }],
@@ -26,7 +26,7 @@ test('completed and skipped occurrence overrides change the forecast without cha
       'skip@2026-09-02': { status: 'skipped' }
     }
   });
-  const result = simulateBalance(data, new Date(2026, 8, 3), new Date(2026, 7, 31));
+  const result = simulateBalance(data, new Date(2026, 8, 3), new Date(2026, 7, 31), { includeOverrides: true });
   assert.equal(result.endBalance, 880);
   assert.equal(data.expenses[0].amount, 100);
   assert.equal(result.events.find(event => event.id === 'bill').status, 'completed');
