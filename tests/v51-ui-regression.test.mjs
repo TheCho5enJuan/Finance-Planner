@@ -93,5 +93,5 @@ test('Insights hierarchy hides superseded legacy panels and preserves drill-down
 
 test('Dashboard category summary links into Insights', () => {
   assert.match(ui, /Explore category details/);
-  assert.match(ui, /\[data-view=\\"insights\\"\]/);
+  assert.match(ui, /document\.querySelector\('\[data-view="insights"\]'\)\?\.click\(\)/);
 });
