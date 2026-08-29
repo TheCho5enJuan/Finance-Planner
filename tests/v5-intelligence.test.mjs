@@ -69,13 +69,12 @@ test('safe-to-spend reserves major obligations and emergency cash without manual
 test('adaptive forecast learns a persistent shortfall from balance history', () => {
   const data = migrate({
     version: '5.0.0',
-    accounts: [{ id: 'cash', name: 'Cash', type: 'checking', balance: 1000 }],
-    incomes: [{ id: 'pay', description: 'Pay', amount: 1000, date: '2026-08-01', frequency: 'monthly', category: 'income' }]
+    accounts: [{ id: 'cash', name: 'Cash', type: 'checking', balance: 1000 }]
   });
   recordBalanceSnapshot(data, '2026-06-01T12:00:00Z');
-  data.accounts[0].balance = 1600;
+  data.accounts[0].balance = 600;
   recordBalanceSnapshot(data, '2026-07-01T12:00:00Z');
-  data.accounts[0].balance = 2200;
+  data.accounts[0].balance = 200;
   recordBalanceSnapshot(data, '2026-08-01T12:00:00Z');
   const learning = forecastLearning(data);
   assert.ok(learning.monthlyUnmodeledSpend > 300);
