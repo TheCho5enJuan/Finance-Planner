@@ -1,1851 +1,324 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Financial Planner v2</title>
-<link rel="icon" href="data:,">
-<style>
-:root{
-  --bg:#070b16;
-  --bg-alt:#0d1426;
-  --panel:#101a31;
-  --card:#131f3c;
-  --card-soft:#1a2950;
-  --text:#edf4ff;
-  --muted:#9bb0ce;
-  --border:#2a3d64;
-  --accent:#22c55e;
-  --accent-2:#4f8dff;
-  --danger:#ef5b74;
-  --warn:#f6c453;
-  --ring:rgba(79,141,255,.45);
-  --header-gradient-start:rgba(9,14,28,.95);
-  --header-gradient-end:rgba(9,14,28,.72);
-  --shadow-sm:0 10px 24px rgba(5,10,25,.28);
-  --shadow-md:0 20px 44px rgba(4,8,20,.42);
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
-  line-height:1.45;
-  color:var(--text);
-  background:
-    radial-gradient(1000px 420px at 90% -5%, rgba(79,141,255,.17) 0%, transparent 62%),
-    radial-gradient(800px 460px at 10% -10%, rgba(34,197,94,.14) 0%, transparent 68%),
-    linear-gradient(180deg, var(--bg-alt), var(--bg));
-}
-a{color:var(--accent-2); text-decoration:none}
-a:hover{text-decoration:underline}
-h1{font-size:26px; margin:0 0 10px; letter-spacing:.2px}
-h2{font-size:20px; margin:0; letter-spacing:.2px}
-h3{font-size:17px; margin:0 0 12px; letter-spacing:.2px}
-small,.muted{color:var(--muted)}
-
-header{
-  position:sticky;
-  top:0;
-  z-index:20;
-  background:linear-gradient(180deg, var(--header-gradient-start), var(--header-gradient-end));
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--border);
-}
-.container{width:100%; max-width:1480px; margin:0 auto; padding:12px 16px}
-.row{display:flex; gap:10px; flex-wrap:wrap}
-.row > *{min-width:0}
-.header-bar{justify-content:space-between; align-items:center; gap:18px}
-.brand{display:flex; align-items:center; gap:10px}
-.brand strong{font-size:18px; font-weight:700}
-
-.card{
-  background:linear-gradient(175deg, rgba(255,255,255,.035), rgba(255,255,255,.01)), linear-gradient(180deg,var(--card),var(--panel));
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:12px;
-  box-shadow:var(--shadow-sm);
-}
-
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.03);
-  color:var(--text);
-  padding:8px 12px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:600;
-  transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
-}
-.btn:hover{transform:translateY(-1px); border-color:#3a5689; box-shadow:var(--shadow-sm)}
-.btn:focus-visible,.input:focus-visible,select:focus-visible,.tab:focus-visible,.chip:focus-visible{
-  outline:none;
-  box-shadow:0 0 0 3px var(--ring);
-  border-color:var(--accent-2);
-}
-.btn[disabled]{opacity:.5; cursor:not-allowed}
-.btn.primary{background:linear-gradient(180deg,#4f8dff,#3574e9); border-color:transparent; color:#fff}
-.btn.success{background:linear-gradient(180deg,#2fd375,#20b860); border-color:transparent; color:#fff}
-.btn.danger{background:linear-gradient(180deg,#f26a84,#e54f70); border-color:transparent; color:#fff}
-.btn.warn{background:var(--warn); border-color:transparent; color:#111}
-
-.input,select{
-  width:100%;
-  padding:8px 10px;
-  border-radius:10px;
-  border:1px solid var(--border);
-  background:rgba(9,16,31,.72);
-  color:var(--text);
-  transition:border-color .16s ease, box-shadow .16s ease;
-}
-.label{font-size:12px; color:var(--muted); margin-bottom:7px; letter-spacing:.2px; text-transform:uppercase}
-
-nav#navTabs{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  padding:4px;
-  border:1px solid var(--border);
-  background:rgba(255,255,255,.02);
-  border-radius:14px;
-}
-nav .tab{
-  padding:8px 10px;
-  border-radius:8px;
-  cursor:pointer;
-  border:1px solid transparent;
-  color:var(--muted);
-  font-weight:600;
-  transition:all .16s ease;
-}
-nav .tab.active{background:rgba(79,141,255,.18); border-color:rgba(79,141,255,.45); color:var(--text)}
-
-.section{display:none}
-.section.active{display:block}
-.grid{display:grid; gap:10px}
-.grid > *{min-width:0}
-.grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
-.grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media (max-width:980px){ .grid.cols-3{grid-template-columns:1fr} .grid.cols-2{grid-template-columns:1fr} }
-
-table{width:100%; border-collapse:separate; border-spacing:0}
-th,td{padding:8px 8px; border-bottom:1px solid rgba(155,176,206,.16)}
-th{color:var(--muted); font-weight:600; text-align:left; background:rgba(255,255,255,.015)}
-tbody tr:hover{background:rgba(79,141,255,.09)}
-
-.badge{display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:rgba(155,176,206,.14); color:var(--muted); font-size:12px}
-.kpi{display:flex; gap:8px; align-items:baseline}
-.kpi b{font-size:24px; letter-spacing:.2px}
-.kpi-top{margin-top:8px}
-.chips-top{margin-top:8px}
-
-.actions{display:flex; gap:6px}
-.section-title-row{display:flex; align-items:center; gap:8px; margin-bottom:8px}
-.section-title-row .push-right{margin-left:auto}
-.section-title-no-margin{margin:0}
-.range-search{max-width:280px}
-.section-header{justify-content:space-between; align-items:center; margin-bottom:10px}
-
-.overview-chart-card{grid-column:span 3; min-height:156px}
-.quick-add-card{grid-column:span 2; padding:10px}
-.overview-range-card{margin-top:8px}
-.start-balance-label{margin-top:8px}
-.save-accounts-btn{margin-top:8px}
-.file-input-hidden{display:none}
-
-.quick-add-grid{display:grid; grid-template-columns:1fr 1fr; gap:6px; align-items:end}
-.quick-add-grid input,.quick-add-grid select{padding-top:8px; padding-bottom:8px}
-.quick-add-grid .btn{width:100%; height:36px}
-
-hr{border:0; border-top:1px solid var(--border); margin:10px 0}
-footer{padding:26px 16px 28px; text-align:center; color:var(--muted)}
-
-.toast{
-  position:fixed;
-  right:16px;
-  bottom:16px;
-  z-index:30;
-  background:#0f172d;
-  border:1px solid var(--border);
-  padding:12px 14px;
-  border-radius:12px;
-  display:none;
-  box-shadow:var(--shadow-md)
-}
-
-.dialog{
-  position:fixed;
-  inset:0;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  background:rgba(4,8,18,.72);
-  z-index:26;
-}
-.dialog .modal{
-  width:min(560px,92vw);
-  background:linear-gradient(180deg,var(--panel),var(--card));
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:18px;
-  box-shadow:var(--shadow-md)
-}
-
-.icon{width:18px; height:18px; display:inline-block; vertical-align:-3px}
-.chart-modal-header{justify-content:space-between; align-items:center}
-.chart-title{margin:0}
-.chart-modal-controls{margin-top:12px}
-.modal-est-balance{margin-top:4px}
-.chart-range-label{margin-top:10px; text-align:right}
-.dialog-actions{justify-content:flex-end; margin-top:12px}
-
-.chip-group,.chips{display:flex; gap:6px; flex-wrap:wrap}
-.chip{
-  padding:6px 10px;
-  border:1px solid var(--border);
-  border-radius:999px;
-  cursor:pointer;
-  color:var(--muted);
-  background:rgba(255,255,255,.02);
-  transition:all .16s ease;
-}
-.chip:hover{border-color:rgba(79,141,255,.5); color:var(--text)}
-.chip.active{background:rgba(79,141,255,.16); border-color:rgba(79,141,255,.46); color:var(--text)}
-
-#chartDlg{
-  align-items:flex-start;
-  padding-top:calc(80px + env(safe-area-inset-top));
-  padding-left:12px;
-  padding-right:12px;
-  padding-bottom:12px;
-}
-
-</style>
-<style>
-#chartDlg .modal{ width:min(980px,95vw); max-height:78vh; overflow:auto; }
-.chart-toolbar{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:8px}
-.chart-toolbar .btn.small{padding:6px 10px; font-size:12px}
-.chart-wrap{position:relative}
-#chartInteractive{width:100%; height:320px; display:block; border:1px solid var(--border); border-radius:12px; background:rgba(10,17,34,.88)}
-.chart-tooltip{
-  position:absolute; pointer-events:none; padding:6px 8px; font-size:12px;
-  background:rgba(9,14,25,.95); color:var(--text); border:1px solid var(--border);
-  border-radius:8px; transform:translate(8px,-100%); display:none; white-space:nowrap
-}
-.chart-legend{font-size:12px; color:var(--muted)}
-#chart{width:100%; height:260px; display:block}
-
-@media (max-width:980px){
-  .overview-chart-card,.quick-add-card{grid-column:auto}
-
-  #overview .grid.cols-3{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-  #overview .grid.cols-3 > .card:nth-child(1),
-  #overview .grid.cols-3 > .card:nth-child(2){
-    grid-column:span 1;
-  }
-  #overview .grid.cols-3 > .card:nth-child(3),
-  #overview .grid.cols-3 > .card:nth-child(4){
-    grid-column:span 2;
-  }
-}
-
-@media (min-width:981px){
-  #overview .grid.cols-3{
-    grid-template-columns:repeat(12,minmax(0,1fr));
-    align-items:start;
-  }
-  #overview .grid.cols-3 > .card:nth-child(1){grid-column:span 6}
-  #overview .grid.cols-3 > .card:nth-child(2){grid-column:span 6}
-  #overview .grid.cols-3 > .card:nth-child(3){grid-column:span 12}
-  #overview .grid.cols-3 > .card:nth-child(4){grid-column:span 12}
-}
-
-@media (max-width:760px){
-  h1{font-size:22px}
-  h2{font-size:18px}
-  h3{font-size:16px}
-  .container{padding:12px 10px}
-  .card{padding:11px; border-radius:12px}
-  .btn{min-height:42px; padding:9px 12px}
-  .input,select{min-height:42px; padding:9px 11px}
-
-  .header-bar{align-items:flex-start; gap:10px}
-  .brand{width:100%; justify-content:space-between}
-  .brand strong{font-size:16px}
-  nav#navTabs{
-    width:100%;
-    flex-wrap:nowrap;
-    overflow:auto;
-    -webkit-overflow-scrolling:touch;
-    scrollbar-width:thin;
-    padding-bottom:8px;
-  }
-  nav#navTabs .tab{white-space:nowrap; flex:0 0 auto}
-
-  .quick-add-grid{grid-template-columns:1fr}
-  .section-title-row{flex-wrap:wrap; align-items:stretch}
-  .section-title-row .push-right{margin-left:0; width:100%}
-  .range-search{max-width:none}
-
-  .row.section-header{align-items:stretch}
-  .row.section-header h2{flex:1 1 auto}
-  .row.section-header .btn{width:100%}
-
-  #settings .row .btn,
-  #settings .row label.btn{
-    width:100%;
-  }
-
-  .overview-range-card,
-  #expenseGroups .card,
-  #incomeGroups .card{
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-  }
-  th,td{padding:8px 7px; font-size:13px}
-  .actions{gap:4px}
-}
-
-@media (max-width:540px){
-  .container{padding:10px 8px}
-  .kpi b{font-size:24px}
-  .kpi{flex-wrap:wrap; row-gap:4px}
-  .chips{gap:5px}
-  .chip{padding:6px 9px; font-size:12px}
-  #chart{height:220px}
-
-  .section-title-row,
-  .dialog-actions,
-  .row.section-header{
-    width:100%;
-  }
-
-  #chartDlg{
-    padding-top:calc(58px + env(safe-area-inset-top));
-    padding-left:8px;
-    padding-right:8px;
-    padding-bottom:calc(8px + env(safe-area-inset-bottom));
-  }
-  #chartDlg .modal{width:100%; max-height:84vh; padding:12px}
-  #chartInteractive{height:300px}
-  .dialog .modal{width:min(560px,96vw); padding:14px}
-  .dialog-actions .btn{flex:1 1 auto}
-
-  #overview .grid.cols-3{
-    grid-template-columns:repeat(2,minmax(0,1fr));
-  }
-}
-</style>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="description" content="A private, local-first personal finance forecasting planner.">
+  <title>Overview · Finance Planner</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./css/app.css">
 </head>
 <body>
-<header>
-  <div class="container row header-bar">
-    <div class="brand">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-width="2" d="M3 3h18M3 12h18M3 21h18"/></svg>
-      <strong>Financial Planner <span class="badge" id="versionBadge"></span></strong>
-    </div>
-    <nav class="row" id="navTabs">
-      <div data-target="overview" class="tab active">Overview</div>
-      <div data-target="expenses" class="tab">Expenses</div>
-      <div data-target="income" class="tab">Income</div>
-      <div data-target="settings" class="tab">Settings</div>
-    </nav>
-  </div>
-</header>
-
-<main class="container">
-  <!-- Overview -->
-  <section id="overview" class="section active">
-    
-
-    <div class="grid cols-3">
-      <div class="card">
-        <div class="label">Target Date</div>
-        <input id="targetDate" type="date" class="input"/>
-        <div class="kpi kpi-top"><span class="muted">Estimated Balance</span> <b id="estBalance">$0</b></div>
-        <div class="chips chips-top">
-          <div class="chip" data-range="90">3M</div>
-          <div class="chip active" data-range="180">6M</div>
-          <div class="chip" data-range="365">12M</div>
-          <div class="chip" data-range="730">24M</div>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary navigation">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">F</div>
+        <div class="brand-copy">
+          <div class="brand-name">Finance Planner</div>
+          <div class="brand-version" id="brandVersion">v3.0.0</div>
         </div>
       </div>
-      <div class="card">
-        <div class="label">Totals (next 12 months)</div>
-        <div class="grid cols-2">
-          <div><div class="muted">Income</div><b id="kpiIncome">$0</b></div>
-          <div><div class="muted">Expenses</div><b id="kpiExpense">$0</b></div>
-          <div><div class="muted">Net</div><b id="kpiNet">$0</b></div>
-          <div><div class="muted">Days to Negative</div><b id="kpiDays">–</b></div>
-        </div>
+
+      <nav class="nav">
+        <button class="nav-item active" type="button" data-view="overview" aria-current="page"><span class="nav-icon">◫</span>Overview</button>
+        <button class="nav-item" type="button" data-view="expenses"><span class="nav-icon">↓</span>Expenses</button>
+        <button class="nav-item" type="button" data-view="incomes"><span class="nav-icon">↑</span>Income</button>
+        <button class="nav-item" type="button" data-view="settings"><span class="nav-icon">⚙</span>Settings</button>
+      </nav>
+
+      <div class="sidebar-foot">
+        Local-first by design.<br>
+        Your finance data stays in this browser unless you export it.
       </div>
-      <!-- Move the overview chart here so it appears just above Quick Add in stacked/mobile layouts.  On wider screens this spans all three columns. -->
-      <div class="card overview-chart-card">
-        <canvas id="chart" height="120"></canvas>
-      </div>
-      <div class="card quick-add-card">
-        <div class="label">Quick Add</div>
-        <div class="quick-add-grid">
-          <input id="qaDesc" class="input" placeholder="Description">
-          <input id="qaAmt" class="input" type="number" step="0.01" placeholder="Amount">
-          <select id="qaFreq" class="input">
-            <option value="once">once</option>
-            <option value="weekly">weekly</option>
-            <option value="biweekly">bi-weekly</option>
-            <option value="monthly" selected>monthly</option>
-            <option value="yearly">yearly</option>
-          </select>
-          <input id="qaDate" type="date" class="input">
-          <button id="qaAddIncome" class="btn success">+ Income</button>
-          <button id="qaAddExpense" class="btn danger">+ Expense</button>
-        </div>
-      </div>
-    </div>
-    <div class="card overview-range-card">
-      <div class="section-title-row"><h2 class="section-title-no-margin">Items Within Range</h2><div class="push-right"><input id="rangeSearch" class="input range-search" placeholder="Search…" /></div></div>
-      <table>
-        <thead><tr>
-          <th>Description</th><th>Amount</th><th>Date</th><th>Frequency</th><th>Balance</th>
-        </tr></thead>
-        <tbody id="rangeTable"></tbody>
-      </table>
-    </div>
-  </section>
+    </aside>
 
-  <!-- Expenses -->
-  <section id="expenses" class="section">
-    <div class="row section-header">
-      <h2>Expenses</h2>
-      <button class="btn danger" id="btnAddExpense">Add Expense</button>
-    </div>
-    <div id="expenseGroups"></div>
-  </section>
-
-  <!-- Income -->
-  <section id="income" class="section">
-    <div class="row section-header">
-      <h2>Income</h2>
-      <button class="btn success" id="btnAddIncome">Add Income</button>
-    </div>
-    <div id="incomeGroups"></div>
-  </section>
-
-  <!-- Settings -->
-  <section id="settings" class="section">
-    <div class="grid cols-2">
-      <div class="card">
-        <h3>Account Settings</h3>
-        <div class="grid cols-2">
-          <div>
-            <div class="label">Checking Balance</div>
-            <input id="checkingBalance" type="number" step="0.01" class="input">
-          </div>
-          <div>
-            <div class="label">Savings Balance</div>
-            <input id="savingsBalance" type="number" step="0.01" class="input">
-          </div>
-        </div>
-        <div class="label start-balance-label">Starting Balance (auto)</div>
-        <input id="startingBalanceRO" type="number" step="0.01" class="input" readonly>
-        <div class="row"><button id="btnSaveAccounts" class="btn primary save-accounts-btn">Save Accounts</button></div>
-        <hr>
-        <div><span class="muted">Version:</span> <span id="settingsVersion"></span></div>
-      </div>
-
-      <div class="card">
-        <h3>Data Management</h3>
-        <div class="row">
-          <button id="btnExport" class="btn">Export Data</button>
-          <label class="btn"><input id="fileInput" type="file" accept=".json" class="file-input-hidden">Choose File</label>
-          <button id="btnImport" class="btn primary" disabled>Import Data</button>
-        </div>
-        <small class="muted">Export creates a JSON backup. Import restores saved records. Back-compatible with v1 JSON.</small>
-        <hr>
-        <h3>Preferences</h3>
-        <div class="label">Dark Mode</div>
-        <select id="prefTheme" class="input">
-          <option value="dark" selected>Dark</option>
-          <option value="light">Light</option>
-        </select>
-      </div>
-    </div>
-  </section>
-</main>
-
-<footer>
-  <div>Made for a single-file workflow. No build tools. Offline-ready.</div>
-</footer>
-
-<!-- Dialog -->
-
-<!-- Interactive Chart Dialog -->
-<div id="chartDlg" class="dialog">
-  <div class="modal">
-    <div class="row chart-modal-header">
-      <h3 class="chart-title">Interactive Balance Chart</h3>
-      <div class="chart-legend">Hover to inspect values.</div>
-    </div>
-    <!-- Modal controls: replicate target date, range selections and estimated balance -->
-    <div class="chart-modal-controls">
-      <div class="grid cols-3">
+    <main class="main">
+      <header class="topbar">
         <div>
-          <div class="label">Target Date</div>
-          <input id="modalTargetDate" type="date" class="input">
+          <div class="topbar-title">Personal financial forecast</div>
+          <div class="topbar-note">Private · browser storage · no account required</div>
         </div>
-        <div>
-          <div class="label">Range</div>
-          <div class="chips" id="modalChips">
-            <div class="chip" data-range="90">3M</div>
-            <div class="chip" data-range="180">6M</div>
-            <div class="chip" data-range="365">12M</div>
-            <div class="chip" data-range="730">24M</div>
+        <div class="topbar-actions">
+          <button class="button small" type="button" onclick="document.querySelector('[data-view=settings]').click()">Backup & settings</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <section class="view active" id="view-overview">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">Dashboard</div>
+              <h1>Your money, forward.</h1>
+              <p class="subtle">See where recurring income and expenses take your cash position before they happen.</p>
+            </div>
+          </div>
+
+          <div class="hero-grid">
+            <section class="balance-hero" aria-label="Current combined balance">
+              <div class="hero-label">Current cash position</div>
+              <div class="hero-value" id="heroBalance">$0.00</div>
+              <p class="hero-caption">Checking + savings. Forecasts begin from this balance and apply scheduled cash flow from today forward.</p>
+              <div class="hero-strip">
+                <span>Checking + Savings</span>
+                <strong>Local data</strong>
+              </div>
+            </section>
+
+            <section class="surface-card forecast-card">
+              <div class="card-kicker">Forecast balance</div>
+              <div class="forecast-value neutral" id="forecastBalance">$0.00</div>
+              <div class="forecast-date" id="forecastDateLabel">Projected</div>
+              <div class="forecast-controls">
+                <div class="range-row" aria-label="Forecast range">
+                  <button class="range-pill" type="button" data-days="90" aria-pressed="false">3M</button>
+                  <button class="range-pill active" type="button" data-days="180" aria-pressed="true">6M</button>
+                  <button class="range-pill" type="button" data-days="365" aria-pressed="false">12M</button>
+                  <button class="range-pill" type="button" data-days="730" aria-pressed="false">24M</button>
+                </div>
+                <div class="field">
+                  <label for="targetDate">Or choose a specific date</label>
+                  <input class="input" id="targetDate" type="date">
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <div class="kpi-grid">
+            <section class="surface-card kpi-card">
+              <div class="kpi-label">Income · next 12 months</div>
+              <div class="kpi-value positive" id="income12">$0.00</div>
+            </section>
+            <section class="surface-card kpi-card">
+              <div class="kpi-label">Expenses · next 12 months</div>
+              <div class="kpi-value negative" id="expense12">$0.00</div>
+            </section>
+            <section class="surface-card kpi-card">
+              <div class="kpi-label">Net cash flow</div>
+              <div class="kpi-value neutral" id="net12">$0.00</div>
+            </section>
+            <section class="surface-card kpi-card">
+              <div class="kpi-label">First negative balance</div>
+              <div class="kpi-value" id="daysNegative">Not projected</div>
+            </section>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="surface-card chart-card">
+              <div class="card-head">
+                <div>
+                  <h2>Balance trajectory</h2>
+                  <p>Projected cash balance across the selected horizon.</p>
+                </div>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="balanceChart" aria-label="Projected balance chart"></canvas>
+              </div>
+            </section>
+
+            <section class="surface-card quick-card">
+              <div class="card-head">
+                <div>
+                  <h2>Quick add</h2>
+                  <p>Capture a transaction without leaving the dashboard.</p>
+                </div>
+              </div>
+              <div class="quick-form">
+                <div class="field">
+                  <label for="quickDescription">Description</label>
+                  <input class="input" id="quickDescription" placeholder="Mortgage, paycheck…" autocomplete="off">
+                </div>
+                <div class="field">
+                  <label for="quickAmount">Amount</label>
+                  <input class="input" id="quickAmount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00">
+                </div>
+                <div class="field">
+                  <label for="quickFrequency">Frequency</label>
+                  <select class="input" id="quickFrequency">
+                    <option value="once">Once</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Bi-weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="quickDate">Start date</label>
+                  <input class="input" id="quickDate" type="date">
+                </div>
+                <div class="quick-actions">
+                  <button class="button" id="quickIncome" type="button">+ Income</button>
+                  <button class="button primary" id="quickExpense" type="button">+ Expense</button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="surface-card table-card">
+            <div class="table-toolbar">
+              <div>
+                <h2>Upcoming cash flow</h2>
+                <div class="subtle" id="upcomingCount">0 occurrences</div>
+              </div>
+              <div class="table-toolbar-meta">
+                <input class="input search" id="rangeSearch" type="search" placeholder="Search description…" aria-label="Search upcoming cash flow">
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Description</th><th>Date</th><th>Frequency</th><th>Amount</th><th>Balance</th></tr>
+                </thead>
+                <tbody id="upcomingBody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" id="view-expenses">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">Cash out</div>
+              <h1>Expenses</h1>
+              <p class="subtle">One-time and recurring obligations used by the forecast engine.</p>
+            </div>
+            <button class="button primary" id="addExpense" type="button">Add expense</button>
+          </div>
+          <div class="transaction-stack" id="expensesList"></div>
+        </section>
+
+        <section class="view" id="view-incomes">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">Cash in</div>
+              <h1>Income</h1>
+              <p class="subtle">Recurring and one-time inflows that fund your projected balance.</p>
+            </div>
+            <button class="button primary" id="addIncome" type="button">Add income</button>
+          </div>
+          <div class="transaction-stack" id="incomesList"></div>
+        </section>
+
+        <section class="view" id="view-settings">
+          <div class="page-head">
+            <div>
+              <div class="eyebrow">Preferences</div>
+              <h1>Settings</h1>
+              <p class="subtle">Manage starting cash, appearance, backups, and local data.</p>
+            </div>
+          </div>
+
+          <div class="settings-grid">
+            <section class="surface-card settings-card">
+              <h2>Account balances</h2>
+              <p>These balances form the starting point for every projection.</p>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="checkingBalance">Checking</label>
+                  <input class="input" id="checkingBalance" type="number" step="0.01" inputmode="decimal">
+                </div>
+                <div class="field">
+                  <label for="savingsBalance">Savings</label>
+                  <input class="input" id="savingsBalance" type="number" step="0.01" inputmode="decimal">
+                </div>
+              </div>
+              <div class="balance-inline"><span>Combined starting balance</span><strong id="combinedBalance">$0.00</strong></div>
+              <div class="settings-actions">
+                <button class="button primary" id="saveBalances" type="button">Save balances</button>
+              </div>
+            </section>
+
+            <section class="surface-card settings-card">
+              <h2>Appearance</h2>
+              <p>Choose the visual mode for this browser.</p>
+              <div class="field">
+                <label for="themeSelect">Theme</label>
+                <select class="input" id="themeSelect">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+              </div>
+              <div class="version-row">Finance Planner <strong id="appVersion">3.0.0</strong></div>
+            </section>
+
+            <section class="surface-card settings-card">
+              <h2>Backup & restore</h2>
+              <p>Export a portable JSON backup before major browser/device changes. Imports remain compatible with prior v2 data.</p>
+              <div class="settings-actions">
+                <button class="button" id="exportData" type="button">Export backup</button>
+                <label class="button file-button">Import backup<input id="importFile" type="file" accept="application/json,.json"></label>
+              </div>
+            </section>
+
+            <section class="surface-card settings-card">
+              <h2>Local data</h2>
+              <p>Finance Planner does not send this financial data to a server. Reset removes the planner data stored by this browser.</p>
+              <div class="settings-actions">
+                <button class="button danger" id="resetData" type="button">Reset local data</button>
+              </div>
+            </section>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Mobile navigation">
+    <button class="nav-item active" type="button" data-view="overview" aria-current="page">Overview</button>
+    <button class="nav-item" type="button" data-view="expenses">Expenses</button>
+    <button class="nav-item" type="button" data-view="incomes">Income</button>
+    <button class="nav-item" type="button" data-view="settings">Settings</button>
+  </nav>
+
+  <dialog class="dialog" id="transactionDialog">
+    <form id="transactionForm" method="dialog">
+      <div class="dialog-head"><h2 id="dialogTitle">Add transaction</h2></div>
+      <div class="dialog-body">
+        <div class="dialog-grid">
+          <div class="field">
+            <label for="fieldType">Type</label>
+            <select class="input" id="fieldType">
+              <option value="expenses">Expense</option>
+              <option value="incomes">Income</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fieldFrequency">Frequency</label>
+            <select class="input" id="fieldFrequency">
+              <option value="once">Once</option>
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Bi-weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+          <div class="field wide">
+            <label for="fieldDescription">Description</label>
+            <input class="input" id="fieldDescription" required autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="fieldAmount">Amount</label>
+            <input class="input" id="fieldAmount" type="number" min="0" step="0.01" required inputmode="decimal">
+          </div>
+          <div class="field">
+            <label for="fieldDate">Start date</label>
+            <input class="input" id="fieldDate" type="date" required>
+          </div>
+          <div class="field wide">
+            <label for="fieldEndDate">End date <span class="subtle">(optional)</span></label>
+            <input class="input" id="fieldEndDate" type="date">
           </div>
         </div>
-        <div>
-          <!-- Show the estimated balance inline without duplicating the word "Balance" -->
-          <div class="label">Estimated Balance</div>
-          <div class="kpi modal-est-balance"><b id="modalEstBalance">$0</b></div>
-        </div>
       </div>
-    </div>
-    <!-- Chart range label sits above the chart; removed zoom/pan/reset controls -->
-    <div class="muted chart-range-label" id="chRangeLabel"></div>
-    <div class="chart-wrap">
-      <canvas id="chartInteractive" height="480"></canvas>
-      <div class="chart-tooltip" id="chartTip"></div>
-    </div>
-    <div class="row dialog-actions">
-      <!-- Export button moved down next to the close button -->
-      <button class="btn" id="chExport">Export PNG</button>
-      <button class="btn" id="chartDlgClose">Close</button>
-    </div>
-  </div>
-</div>
-
-
-<div id="dlg" class="dialog">
-  <div class="modal">
-    <h3 id="dlgTitle">Add Item</h3>
-    <div class="grid cols-2">
-      <div>
-        <div class="label">Type</div>
-        <select id="fType" class="input"><option value="expense">Expense</option><option value="income">Income</option></select>
+      <div class="dialog-actions">
+        <button class="button" id="dialogCancel" type="button">Cancel</button>
+        <button class="button primary" type="submit">Save transaction</button>
       </div>
-      <div>
-        <div class="label">Description</div>
-        <input id="fDesc" class="input" placeholder="Description">
-      </div>
-      <div>
-        <div class="label">Amount</div>
-        <input id="fAmount" class="input" type="number" step="0.01">
-      </div>
-      <div>
-        <div class="label">Start Date</div>
-        <input id="fDate" class="input" type="date">
-      </div>
-      <div>
-        <div class="label">End Date (optional)</div>
-        <input id="fEnd" class="input" type="date">
-      </div>
-      <div>
-        <div class="label">Frequency</div>
-        <select id="fFreq" class="input">
-          <option value="once">once</option>
-          <option value="weekly">weekly</option>
-          <option value="biweekly">bi-weekly</option>
-          <option value="monthly">monthly</option>
-          <option value="yearly">yearly</option>
-        </select>
-      </div>
-    </div>
-    <div class="row dialog-actions">
-      <button id="btnCancel" class="btn">Cancel</button>
-      <button id="btnSave" class="btn primary">Save</button>
-    </div>
-  </div>
-</div>
+    </form>
+  </dialog>
 
-<div id="toast" class="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<!-- Chart.js is normally loaded from a CDN.  In offline environments this
-     will fail, so we fall back to a simple canvas renderer below if the
-     Chart global isn't available. -->
-<!-- We omit the external Chart.js dependency and instead rely on a
-     lightweight custom renderer defined below.  This ensures the
-     application remains fully functional in offline or restricted
-     environments where CDN resources cannot be loaded. -->
-<script>
-// ---------- Utilities ----------
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
-const fmt = n => (n<0?'-':'') + '$' + Math.abs(n).toLocaleString(undefined,{maximumFractionDigits:2});
-const addDays = (d,n)=>{const x=new Date(d); x.setDate(x.getDate()+n); return x};
-const clamp = (a,mi,ma)=>Math.max(mi,Math.min(ma,a));
-const uuid = ()=> (globalThis.crypto?.randomUUID?.() || (Math.random().toString(36).slice(2)+Date.now().toString(36)));
-const DAY_MS = 86400000;
-const NEVER_DATE = new Date(8640000000000000);
-const MAX_OCCURRENCES = 20000;
-const ALLOWED_FREQUENCIES = new Set(['once','weekly','biweekly','monthly','yearly']);
-
-function toISODateLocal(value){
-  const d = value instanceof Date ? value : new Date(value);
-  if(Number.isNaN(d.getTime())) return '';
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function parseISODate(value){
-  if(!value) return null;
-  const [yy, mm, dd] = String(value).split('-').map(Number);
-  if(!yy || !mm || !dd) return null;
-  return new Date(yy, mm - 1, dd);
-}
-
-const todayStr = ()=> toISODateLocal(new Date());
-
-function debounce(fn, delay=120){
-  let t = null;
-  return (...args)=>{
-    clearTimeout(t);
-    t = setTimeout(()=>fn(...args), delay);
-  };
-}
-
-function getCombinedBalance(data){
-  return Number(Number(data?.balances?.checking)||0) + Number(Number(data?.balances?.savings)||0);
-}
-
-function appendCell(row, value){
-  const td = document.createElement('td');
-  td.textContent = String(value ?? '');
-  row.appendChild(td);
-  return td;
-}
-
-function appendHeaderCell(row, value){
-  const th = document.createElement('th');
-  th.textContent = String(value ?? '');
-  row.appendChild(th);
-  return th;
-}
-
-function formatISODate(value){
-  return toISODateLocal(value);
-}
-
-function sanitizeFrequency(value){
-  const f = String(value || 'once').toLowerCase();
-  return ALLOWED_FREQUENCIES.has(f) ? f : 'once';
-}
-
-function sanitizeAmount(value){
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function sanitizeDateInput(value, fallback=todayStr()){
-  const iso = toISODateLocal(value);
-  return iso || fallback;
-}
-
-function sanitizeDescription(value){
-  const s = String(value || '').trim();
-  return s || 'Untitled';
-}
-
-function normalizeItem(item){
-  return {
-    id: String(item?.id || uuid()),
-    description: sanitizeDescription(item?.description),
-    amount: sanitizeAmount(item?.amount),
-    date: sanitizeDateInput(item?.date),
-    endDate: item?.endDate ? sanitizeDateInput(item.endDate, '') : '',
-    frequency: sanitizeFrequency(item?.frequency),
-    category: typeof item?.category === 'string' ? item.category : ''
-  };
-}
-
-function normalizeItemList(list){
-  return Array.isArray(list) ? list.map(normalizeItem) : [];
-}
-
-function parseImportedData(json){
-  const diagnostics = [];
-  const push = msg => diagnostics.push(msg);
-  if(!json || typeof json !== 'object'){
-    push('Import payload is not an object.');
-    return { data: defaults(), diagnostics };
-  }
-  const migrated = migrate(json);
-  const checkList = (arr, label)=>{
-    const valid = [];
-    arr.forEach((raw, idx)=>{
-      const n = normalizeItem(raw);
-      const hasDate = !!toISODateLocal(n.date);
-      const hasAmount = Number.isFinite(Number(raw?.amount));
-      if(!hasDate || !hasAmount){
-        push(`${label}[${idx}] skipped (invalid date or amount).`);
-        return;
-      }
-      valid.push(n);
-    });
-    return valid;
-  };
-  migrated.expenses = checkList(migrated.expenses || [], 'expenses');
-  migrated.incomes = checkList(migrated.incomes || [], 'incomes');
-  return { data: migrated, diagnostics };
-}
-
-// ---------- Store & Schema ----------
-const schemaVersion = '2.0.33';
-const defaults = ()=>({ 
-  version: schemaVersion,
-  settings: { theme:'dark', targetDate:'' },
-  startingBalance: 0,
-  balances: { checking: 0, savings: 0 },
-  accounts: [{id:'acc-default', name:'Checking', type:'cash'}],
-  categories: [],
-  expenses: [], incomes: [],
-  rules: [], goals: [],
-});
-function migrate(data){
-  if(!data || typeof data!=='object') return defaults();
-  if(!data.version){
-    // v1 -> v2 migration
-    const d = defaults();
-    d.startingBalance = data.startingBalance||0;
-    d.expenses = normalizeItemList(data.expenses || []);
-    d.incomes = normalizeItemList(data.incomes || []);
-    return d;
-  }
-  // ensure new settings fields
-  data.settings = data.settings || { theme:'dark' };
-  if(typeof data.settings.targetDate === 'undefined') data.settings.targetDate = '';
-  // future migrations here
-  // v2.0.33: ensure category field exists on all items
-  data.expenses = normalizeItemList(data.expenses);
-  data.incomes = normalizeItemList(data.incomes);
-  // v2.0.32: ensure balances shape exists
-  if(!data.balances){
-    data.balances = { checking: Number(data.startingBalance || 0), savings: 0 };
-  }else{
-    if(typeof data.balances.checking === 'undefined') data.balances.checking = 0;
-    if(typeof data.balances.savings  === 'undefined') data.balances.savings  = 0;
-  }
-  // Keep legacy field equal to the sum (no additive adjustments)
-  data.startingBalance = getCombinedBalance(data);
-  data.version = schemaVersion;
-  return data;
-}
-const store = {
-  key:'planner_v2',
-  data: migrate(JSON.parse(localStorage.getItem('planner_v2')||'null')),
-  revision: 0,
-  save(){ this.revision += 1; localStorage.setItem(this.key, JSON.stringify(this.data)); publish(); },
-  load(json){
-    const parsed = parseImportedData(json);
-    this.data = parsed.data;
-    this.save();
-    return parsed.diagnostics;
-  },
-};
-
-const mutations = {
-  add(type, item){
-    const key = type === 'incomes' ? 'incomes' : 'expenses';
-    const normalized = normalizeItem(item);
-    store.data[key].push(normalized);
-    store.save();
-    return normalized;
-  },
-  update(type, id, item){
-    const key = type === 'incomes' ? 'incomes' : 'expenses';
-    const arr = store.data[key];
-    const ix = arr.findIndex(x=>x.id===id);
-    if(ix < 0) return false;
-    arr[ix] = normalizeItem({ ...item, id });
-    store.save();
-    return true;
-  },
-  remove(type, id){
-    const key = type === 'incomes' ? 'incomes' : 'expenses';
-    const before = store.data[key].length;
-    store.data[key] = store.data[key].filter(x=>x.id!==id);
-    if(store.data[key].length !== before){
-      store.save();
-      return true;
-    }
-    return false;
-  }
-};
-
-// ---------- Pub/Sub ----------
-const listeners = new Set();
-function subscribe(fn){ listeners.add(fn); return ()=>listeners.delete(fn); }
-function publish(){ listeners.forEach(fn=>fn(store.data)); }
-
-// ---------- Recurrence engine ----------
-function* occurrences(item, fromDate, toDate){
-  const start = parseISODate(item.date) || new Date(item.date);
-  if(Number.isNaN(start.getTime())) return;
-  const end   = item.endDate ? (parseISODate(item.endDate) || new Date(item.endDate)) : null;
-  if(end && Number.isNaN(end.getTime())) return;
-  let cur = new Date(start);
-  const to = toDate instanceof Date ? new Date(toDate) : (parseISODate(toDate) || new Date(toDate));
-  const from = fromDate instanceof Date ? new Date(fromDate) : (parseISODate(fromDate) || new Date(fromDate));
-  if(Number.isNaN(to.getTime()) || Number.isNaN(from.getTime())) return;
-  const step = (d)=>{
-    switch(sanitizeFrequency(item.frequency)){
-      case 'weekly': d.setDate(d.getDate()+7); break;
-      case 'biweekly': d.setDate(d.getDate()+14); break;
-      case 'monthly': d.setMonth(d.getMonth()+1); break;
-      case 'yearly': d.setFullYear(d.getFullYear()+1); break;
-      default: d.setDate(d.getDate()+36500); // once
-    }
-  };
-  // move to first on/after fromDate
-  let guard = 0;
-  while(cur < from && guard < MAX_OCCURRENCES){ step(cur); guard += 1; }
-  while(cur <= to && (!end || cur <= end) && guard < MAX_OCCURRENCES){
-    yield new Date(cur);
-    if(item.frequency==='once') break;
-    step(cur);
-    guard += 1;
-  }
-}
-
-// ---------- Selectors & Calculations ----------
-function getHorizon(){
-  const t = $('#targetDate').value || todayStr();
-  return new Date(t);
-}
-function itemsInRange(from, to){
-  const all = [];
-  const push = (it, sign)=>{
-    for(const dt of occurrences(it, from, to)){
-      all.push({description: it.description, amount: it.amount*sign, date: dt, frequency: it.frequency});
-    }
-  };
-  store.data.incomes.forEach(i=>push(i, +1));
-  store.data.expenses.forEach(e=>push(e, -1));
-  all.sort((a,b)=>a.date-b.date);
-  return all;
-}
-function simulateBalance(toDate, fromDate){
-  const startBal = Number(getCombinedBalance(store.data) || store.data.startingBalance || 0);
-  const from = fromDate ? new Date(fromDate) : new Date();
-  const items = itemsInRange(from, toDate);
-  let bal = startBal, daysToNeg = null;
-  const series = [];
-  // seed today
-  series.push({x: new Date(from), y: bal});
-  for(const ev of items){
-    bal += ev.amount;
-    series.push({x: new Date(ev.date), y: bal});
-    if(bal<0 && daysToNeg===null){
-      daysToNeg = Math.ceil((ev.date - from)/DAY_MS);
-    }
-  }
-  if(series.length===1){ series.push({x: toDate, y: bal}); }
-  return {series, endBalance: bal, daysToNeg, items};
-}
-function totalInRange(from, to){
-  let inc=0, exp=0;
-  const add = (v,f)=>{
-    for(const d of occurrences(v, from, to)){
-      if(f==='inc') inc += v.amount;
-      else exp += v.amount;
-    }
-  };
-  store.data.incomes.forEach(v=>add(v,'inc'));
-  store.data.expenses.forEach(v=>add(v,'exp'));
-  return {inc, exp, net: inc-exp};
-}
-function totalNext12m(from){
-  const start = from || new Date();
-  const to = addDays(start, 365);
-  return totalInRange(start, to);
-}
-function buildForecastSummary(from, to){
-  const fromKey = toISODateLocal(from);
-  const toKey = toISODateLocal(to);
-  const cacheKey = `${store.revision}|${fromKey}|${toKey}`;
-  if(buildForecastSummary._cache?.key === cacheKey){
-    return buildForecastSummary._cache.value;
-  }
-  const { series, endBalance, daysToNeg, items } = simulateBalance(to, from);
-  const t12 = totalNext12m(from);
-  const value = { series, endBalance, daysToNeg, items, t12 };
-  buildForecastSummary._cache = { key: cacheKey, value };
-  return value;
-}
-function renderGroupHeader(wrapper, nameText, total){
-  const header = document.createElement('h3');
-  header.style.display = 'flex';
-  header.style.justifyContent = 'space-between';
-  header.style.alignItems = 'center';
-  header.appendChild(document.createTextNode(nameText));
-  const annual = document.createElement('span');
-  annual.className = 'muted';
-  annual.textContent = `Annual: ${fmt(total)}`;
-  header.appendChild(annual);
-  wrapper.appendChild(header);
-}
-function buildGroupTable(type, groupItems){
-  const table = document.createElement('table');
-  const thead = document.createElement('thead');
-  const headRow = document.createElement('tr');
-  ['Description','Amount','Start','End',''].forEach(label=>appendHeaderCell(headRow, label));
-  thead.appendChild(headRow);
-  table.appendChild(thead);
-
-  const tbody = document.createElement('tbody');
-  const fragment = document.createDocumentFragment();
-  for(const it of groupItems){
-    const tr = document.createElement('tr');
-    appendCell(tr, it.description);
-    appendCell(tr, fmt(it.amount));
-    appendCell(tr, it.date);
-    appendCell(tr, it.endDate || '-');
-    const actionTd = document.createElement('td');
-    actionTd.className = 'actions';
-    const editBtn = document.createElement('button');
-    editBtn.className = 'btn';
-    editBtn.type = 'button';
-    editBtn.dataset.act = 'edit';
-    editBtn.dataset.id = it.id;
-    editBtn.setAttribute('aria-label', `Edit ${it.description || 'item'}`);
-    editBtn.title = 'Edit item';
-    editBtn.textContent = '✏️';
-    const delBtn = document.createElement('button');
-    delBtn.className = 'btn';
-    delBtn.type = 'button';
-    delBtn.dataset.act = 'del';
-    delBtn.dataset.id = it.id;
-    delBtn.setAttribute('aria-label', `Delete ${it.description || 'item'}`);
-    delBtn.title = 'Delete item';
-    delBtn.textContent = '🗑️';
-    actionTd.appendChild(editBtn);
-    actionTd.appendChild(delBtn);
-    tr.appendChild(actionTd);
-    fragment.appendChild(tr);
-  }
-  tbody.appendChild(fragment);
-  table.appendChild(tbody);
-  addSortHandlers(table, type);
-  return table;
-}
-
-// ---------- Rendering ----------
-let chart;
-
-/**
- * Draw a simple line chart on the provided canvas.  This is used as a
- * fallback when the Chart.js library cannot be loaded (for example in
- * offline environments).  It expects an array of points with `.x` (Date)
- * and `.y` (number) properties.  The chart is rendered with a blue
- * line and basic axes.  If less than two points are provided the
- * function returns early.
- * @param {HTMLCanvasElement} canvas 
- * @param {Array<{x: Date, y: number}>} series
- */
-function drawLineChart(canvas, series) {
-  const ctx = canvas.getContext('2d');
-  // resize canvas to the current element dimensions
-  const width = canvas.clientWidth;
-  const height = canvas.clientHeight || 120;
-  canvas.width = width;
-  canvas.height = height;
-  ctx.clearRect(0, 0, width, height);
-  if (!series || series.length < 2) return;
-  // compute x and y ranges
-  const xs = series.map(p => p.x.getTime());
-  const ys = series.map(p => p.y);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
-  // ensure non-zero range to avoid division by zero
-  const dx = maxX - minX || 1;
-  const dy = maxY - minY || 1;
-  const padX = 40;
-  const padY = 20;
-  // choose colours based on current theme
-  const computed = getComputedStyle(document.documentElement);
-  const lineColor = computed.getPropertyValue('--accent-2') || '#3b82f6';
-  const axisColor = computed.getPropertyValue('--muted') || '#9ca3af';
-  ctx.strokeStyle = axisColor.trim();
-  ctx.lineWidth = 1;
-  // draw axes (y axis on left, x axis at bottom)
-  ctx.beginPath();
-  ctx.moveTo(padX, padY);
-  ctx.lineTo(padX, height - padY);
-  ctx.lineTo(width - padX, height - padY);
-  ctx.stroke();
-  // draw zero line if within range
-  if (minY < 0 && maxY > 0) {
-    const zeroY = height - padY - ((0 - minY) / dy) * (height - 2 * padY);
-    ctx.beginPath();
-    ctx.moveTo(padX, zeroY);
-    ctx.lineTo(width - padX, zeroY);
-    ctx.strokeStyle = axisColor.trim();
-    ctx.setLineDash([4, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  // draw line
-  ctx.strokeStyle = lineColor.trim();
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  series.forEach((pt, idx) => {
-    const x = padX + ((pt.x.getTime() - minX) / dx) * (width - 2 * padX);
-    const y = height - padY - ((pt.y - minY) / dy) * (height - 2 * padY);
-    if (idx === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-}
-function renderOverview(){
-  const from = new Date();
-  const savedTD = store.data.settings && store.data.settings.targetDate || '';
-  if(savedTD){
-    $('#targetDate').value = savedTD;
-    document.querySelectorAll('#overview .chip.active').forEach(ch=>ch.classList.remove('active'));
-  }
-
-  // Determine the horizon: if a chip is active in the overview, use its range; otherwise use the manually selected target date.
-  let to;
-  const activeChip = document.querySelector('#overview .chip.active');
-  if(activeChip) {
-    const rangeDays = Number(activeChip.getAttribute('data-range') || 180);
-    to = addDays(from, rangeDays);
-    // sync the target date input with the chip selection
-    $('#targetDate').value = toISODateLocal(to);
-  } else {
-    const val = $('#targetDate').value;
-    to = val ? (parseISODate(val) || new Date(val)) : addDays(from, 180);
-  }
-
-  const { series, endBalance, daysToNeg, items, t12 } = buildForecastSummary(from, to);
-  $('#estBalance').textContent = fmt(endBalance);
-
-  $('#kpiIncome').textContent = fmt(t12.inc);
-  $('#kpiExpense').textContent = fmt(t12.exp);
-  $('#kpiNet').textContent = fmt(t12.net);
-  $('#kpiDays').textContent = daysToNeg==null? '–' : daysToNeg + ' days';
-
-  // chart
-  const canvas = $('#chart');
-  // Render the time series on our custom canvas renderer.  We avoid
-  // external dependencies to ensure the chart works in offline
-  // environments.  See drawLineChart() above for implementation details.
-  drawLineChart(canvas, series);
-
-  // Build rows with cumulative balance
-  const tbody = $('#rangeTable');
-  tbody.innerHTML='';
-  const fragment = document.createDocumentFragment();
-  const rows = [];
-  const searchTerm = (document.getElementById('rangeSearch')?.value || '').trim().toLowerCase();
-  let bal = Number(getCombinedBalance(store.data) || store.data.startingBalance || 0);
-  for(const ev of items){
-    bal += ev.amount;
-    rows.push({
-      description: ev.description,
-      amount: ev.amount,
-      date: formatISODate(ev.date),
-      frequency: ev.frequency,
-      balance: bal
-    });
-  }
-  // Apply sorting if a key is selected
-  const st = sortState.overview;
-  if(st.key){
-    rows.sort((a,b)=>compareByKey(a,b,st.key,st.asc,'overview'));
-  }
-  // Render sorted rows
-  const _rows = searchTerm ? rows.filter(r => (
-    String(r.description||'').toLowerCase().includes(searchTerm)
-  )) : rows;
-  for(const row of _rows){
-    const tr = document.createElement('tr');
-    appendCell(tr, row.description);
-    appendCell(tr, fmt(row.amount));
-    appendCell(tr, row.date);
-    appendCell(tr, row.frequency);
-    appendCell(tr, fmt(row.balance));
-    fragment.appendChild(tr);
-  }
-  tbody.appendChild(fragment);
-  // Attach sorting handlers to header after rendering
-  attachOverviewSortHandlers();
-}
-function groupByFreq(list){
-  const g = {once:[], weekly:[], biweekly:[], monthly:[], yearly:[]};
-  list.forEach(x=> (g[x.frequency]||g.once).push(x) );
-  const order = ['once','weekly','biweekly','monthly','yearly'];
-  return order.map(k=>({key:k, items:g[k]}));
-}
-function annualize(item){
-  switch(item.frequency){
-    case 'weekly': return item.amount*52;
-    case 'biweekly': return item.amount*26;
-    case 'monthly': return item.amount*12;
-    case 'yearly': return item.amount;
-    default: return item.amount;
-  }
-}
-function renderGroups(el, items, type){
-  el.innerHTML='';
-  const groups = groupByFreq(items);
-  const fragment = document.createDocumentFragment();
-  for(const group of groups){
-    // Sort items within each frequency group using the current sort state (if any)
-    const st = sortState[type];
-    if(st && st.key){
-      group.items.sort((a,b)=>compareByKey(a,b,st.key,st.asc,type));
-    }
-    const wrapper = document.createElement('div');
-    const total = group.items.reduce((s,x)=>s+annualize(x),0);
-    wrapper.className='card';
-    const nameText = (group.key==='biweekly' ? 'Bi-weekly' : (group.key[0].toUpperCase()+group.key.slice(1)));
-    renderGroupHeader(wrapper, nameText, total);
-    const table = buildGroupTable(type, group.items);
-    wrapper.appendChild(table);
-    fragment.appendChild(wrapper);
-  }
-  el.appendChild(fragment);
-  // wiring for edit/delete
-  el.querySelectorAll('button[data-act]').forEach(btn=>{
-    const id = btn.dataset.id;
-    const act = btn.dataset.act;
-    btn.onclick = ()=>{
-      if(act==='edit') openDialog(type, store.data[type].find(x=>x.id===id));
-      if(act==='del'){
-        if(confirm('Delete this item?')){
-          mutations.remove(type, id);
-        }
-      }
-    };
-  });
-}
-function renderExpenses(){ renderGroups($('#expenseGroups'), store.data.expenses, 'expenses'); }
-function renderIncome(){ renderGroups($('#incomeGroups'), store.data.incomes, 'incomes'); }
-function renderSettings(){
-  const chk = Number(store.data.balances?.checking || 0);
-  const sav = Number(store.data.balances?.savings || 0);
-  const sum = chk + sav;
-  const sb = Number(store.data.startingBalance || 0);
-  const cEl = $('#checkingBalance'); if(cEl) cEl.value = chk;
-  const sEl = $('#savingsBalance');  if(sEl) sEl.value = sav;
-  const ro  = $('#startingBalanceRO'); if(ro) ro.value = sum || sb || 0;
-  $('#prefTheme').value = store.data.settings?.theme || 'dark';
-  $('#settingsVersion').textContent = store.data.version;
-  $('#versionBadge').textContent = store.data.version;
-}
-
-// ---------------- Sorting configuration and helpers ----------------
-// Keep track of sorting state for each table. Each entry stores the current key and direction.
-const sortState = {
-  overview: { key: null, asc: true },
-  expenses: { key: null, asc: true },
-  incomes: { key: null, asc: true }
-};
-
-function sortValue(row, key, tableType){
-  if((tableType === 'expenses' || tableType === 'incomes') && key === 'end'){
-    return row.endDate ? (parseISODate(row.endDate) || new Date(row.endDate)) : NEVER_DATE;
-  }
-  if(key === 'amount' || key === 'balance') return Number(row[key] || 0);
-  if(key === 'date') return parseISODate(row.date) || new Date(row.date || '');
-  if(key === 'description' || key === 'frequency') return String(row[key] || '').toLowerCase();
-  return row[key];
-}
-
-// Shared comparator for overview/expenses/incomes sorting.
-function compareByKey(a, b, key, asc, tableType){
-  const v1 = sortValue(a, key, tableType);
-  const v2 = sortValue(b, key, tableType);
-  if(v1 < v2) return asc ? -1 : 1;
-  if(v1 > v2) return asc ? 1 : -1;
-  return 0;
-}
-
-// Attach click handlers to expenses/incomes table headers for sorting
-function addSortHandlers(table, type){
-  const ths = table.querySelectorAll('thead th');
-  const keyMap = ['description','amount','date','end'];
-  ths.forEach((th, idx)=>{
-    const key = keyMap[idx];
-    if(!key) return;
-    th.style.cursor = 'pointer';
-    th.onclick = ()=>{
-      const st = sortState[type];
-      if(st.key === key){ st.asc = !st.asc; } else { st.key = key; st.asc = true; }
-      store.data[type].sort((a,b)=>compareByKey(a,b,st.key,st.asc,type));
-      store.save();
-      if(type === 'expenses') renderExpenses(); else renderIncome();
-    };
-  });
-}
-
-// Attach click handlers to the items within range table headers for sorting
-function attachOverviewSortHandlers(){
-  const rangeTable = document.querySelector('#rangeTable');
-  if(!rangeTable) return;
-  const table = rangeTable.closest('table');
-  if(!table) return;
-  const ths = table.querySelectorAll('thead th');
-  const keyMap = ['description','amount','date','frequency','balance'];
-  ths.forEach((th, idx)=>{
-    const key = keyMap[idx];
-    if(!key) return;
-    th.style.cursor = 'pointer';
-    th.onclick = ()=>{
-      const st = sortState.overview;
-      if(st.key === key){ st.asc = !st.asc; } else { st.key = key; st.asc = true; }
-      renderOverview();
-    };
-  });
-}
-
-// ---------- Dialogs ----------
-let editingId=null, editingType='expenses';
-function openDialog(type, item){
-  editingType = type;
-  $('#dlgTitle').textContent = (item?'Edit ':'Add ') + (type==='expenses'?'Expense':'Income');
-  $('#fType').value = type==='expenses'?'expense':'income';
-  $('#fDesc').value = item?.description || '';
-  $('#fAmount').value = item?.amount || '';
-  $('#fDate').value = item?.date || todayStr();
-  $('#fEnd').value = item?.endDate || '';
-  $('#fFreq').value = item?.frequency || 'monthly';
-  editingId = item?.id || null;
-  $('#dlg').style.display='flex';
-  $('#fDesc').focus();
-}
-function closeDialog(){ $('#dlg').style.display='none'; }
-$('#btnCancel').onclick = closeDialog;
-$('#btnSave').onclick = ()=>{
-  const type = $('#fType').value==='expense'?'expenses':'incomes';
-  const obj = normalizeItem({
-    id: editingId || uuid(),
-    description: $('#fDesc').value,
-    amount: $('#fAmount').value,
-    date: $('#fDate').value,
-    endDate: $('#fEnd').value||'',
-    frequency: $('#fFreq').value
-  });
-  if(editingId){
-    mutations.update(type, editingId, obj);
-  } else {
-    mutations.add(type, obj);
-  }
-  closeDialog();
-};
-
-
-// Search filter for Items Within Range
-const _rs = document.getElementById('rangeSearch');
-const renderOverviewDebounced = debounce(()=>{ try{ renderOverview(); }catch(e){} }, 120);
-if(_rs){ _rs.oninput = renderOverviewDebounced; }
-// ---------- Events ----------
-$('#navTabs').onclick = e=>{
-  const t = e.target.closest('.tab'); if(!t) return;
-  $$('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
-  $$('.section').forEach(x=>x.classList.remove('active'));
-  $('#'+t.dataset.target).classList.add('active');
-  publish(); // trigger rerender visible section
-};
-$('#btnAddExpense').onclick = ()=>openDialog('expenses');
-$('#btnAddIncome').onclick = ()=>openDialog('incomes');
-
-// Quick add
-$('#qaAddExpense').onclick = ()=>{
-  const d=$('#qaDesc').value, a=Number($('#qaAmt').value||0), f=$('#qaFreq').value, dt=$('#qaDate').value||todayStr();
-  if(!d||!a) return toast('Please enter description and amount');
-  mutations.add('expenses', {id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f, category: ($('#qaCat')?.value||'')});
-  $('#qaDesc').value=''; $('#qaAmt').value='';
-};
-$('#qaAddIncome').onclick = ()=>{
-  const d=$('#qaDesc').value, a=Number($('#qaAmt').value||0), f=$('#qaFreq').value, dt=$('#qaDate').value||todayStr();
-  if(!d||!a) return toast('Please enter description and amount');
-  mutations.add('incomes', {id:uuid(), description:d, amount:a, date:dt, endDate:'', frequency:f, category: ($('#qaCat')?.value||'')});
-  $('#qaDesc').value=''; $('#qaAmt').value='';
-};
-
-// Chips (overview) - clicking a range chip will activate it and redraw.  Only
-// operate on the chips within the overview to avoid interfering with modal chips.
-document.querySelectorAll('#overview .chip').forEach(ch => {
-  ch.onclick = () => {
-    document.querySelectorAll('#overview .chip').forEach(x => x.classList.remove('active'));
-    ch.classList.add('active');
-    const rangeDays = Number(ch.getAttribute('data-range') || 180);
-    const to = addDays(new Date(), rangeDays);
-    const iso = toISODateLocal(to);
-    $('#targetDate').value = iso;
-    store.data.settings = store.data.settings || { theme:'dark' };
-    store.data.settings.targetDate = iso;
-    store.save();
-  };
-});
-
-/// Target date manual change
-$('#targetDate').onchange = ()=>{
-  // align chips to custom (remove active chips only in the overview) and redraw
-  document.querySelectorAll('#overview .chip.active').forEach(ch => ch.classList.remove('active'));
-  // persist
-  store.data.settings = store.data.settings || { theme:'dark' };
-  store.data.settings.targetDate = $('#targetDate').value || '';
-  store.save();
-};
-
-// Settings
-$('#btnSaveAccounts').onclick = ()=>{
-  const chk = Number($('#checkingBalance').value || 0);
-  const sav = Number($('#savingsBalance').value || 0);
-  store.data.balances = { checking: chk, savings: sav };
-  store.data.startingBalance = chk + sav; // maintain compatibility
-  store.save();
-  toast('Accounts saved');
-  renderSettings();
-};
-$('#prefTheme').onchange = ()=>{ store.data.settings.theme = $('#prefTheme').value; store.save(); applyTheme(); };
-
-// live recompute on input
-['checkingBalance','savingsBalance'].forEach(id=>{
-  const el = document.getElementById(id);
-  if(el){
-    el.oninput = ()=>{
-      const chk = Number($('#checkingBalance').value || 0);
-      const sav = Number($('#savingsBalance').value || 0);
-      const ro = $('#startingBalanceRO'); if(ro) ro.value = chk + sav;
-    };
-  }
-});
-
-// Import/Export
-$('#fileInput').onchange = ()=> $('#btnImport').disabled = !$('#fileInput').files?.length;
-$('#btnImport').onclick = async ()=>{
-  const file = $('#fileInput').files[0]; if(!file) return;
-  const text = await file.text();
-  try{
-    const json = JSON.parse(text);
-    const diagnostics = store.load(json);
-    if(diagnostics.length){
-      toast(`Import complete with warnings (${diagnostics.length})`);
-      console.warn('Import diagnostics:', diagnostics);
-    }else{
-      toast('Import successful');
-    }
-  }
-  catch{
-    toast('Invalid JSON');
-  }
-};
-$('#btnExport').onclick = ()=>{
-  const blob = new Blob([JSON.stringify(store.data,null,2)], {type:'application/json'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'financial_data.json';
-  a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-};
-
-// ---------- Toast ----------
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none', 1800); }
-
-// ---------- Theme ----------
-function applyTheme(){
-  const theme = store.data.settings?.theme || 'dark';
-  if(theme==='light'){
-    document.documentElement.style.setProperty('--bg','#f3f4f6');
-    document.documentElement.style.setProperty('--panel','#ffffff');
-    document.documentElement.style.setProperty('--card','#ffffff');
-    document.documentElement.style.setProperty('--text','#111827');
-    document.documentElement.style.setProperty('--muted','#4b5563');
-    document.documentElement.style.setProperty('--border','#e5e7eb');
-    document.documentElement.style.setProperty('--header-gradient-start','rgba(255,255,255,0.7)');
-    document.documentElement.style.setProperty('--header-gradient-end','rgba(255,255,255,0.2)');
-  } else {
-    document.documentElement.style.setProperty('--bg','#0f172a');
-    document.documentElement.style.setProperty('--panel','#111827');
-    document.documentElement.style.setProperty('--card','#0b1220');
-    document.documentElement.style.setProperty('--text','#e5e7eb');
-    document.documentElement.style.setProperty('--muted','#9ca3af');
-    document.documentElement.style.setProperty('--border','#1f2937');
-    document.documentElement.style.setProperty('--header-gradient-start','rgba(0,0,0,0.7)');
-    document.documentElement.style.setProperty('--header-gradient-end','rgba(0,0,0,0.2)');
-  }
-}
-
-// ---------- Subscriptions ----------
-subscribe((state)=>{
-  // only render the active section to keep snappy
-  if($('#overview').classList.contains('active')) renderOverview();
-  if($('#expenses').classList.contains('active')) renderExpenses();
-  if($('#income').classList.contains('active')) renderIncome();
-  if($('#settings').classList.contains('active')) renderSettings();
-});
-
-// ---------- Init ----------
-(function init(){
-  // seed demo if empty (first run)
-  if(!store.data.incomes.length && !store.data.expenses.length){
-    const t=todayStr();
-    store.data.startingBalance=0; store.data.balances = store.data.balances || { checking: 0, savings: 0 };
-    store.data.incomes=[
-    ];
-    store.data.expenses=[
-    ];
-    store.save();
-  } else { publish(); } // trigger first render
-  applyTheme();
-  $('#versionBadge').textContent = store.data.version;
-  renderSettings();
-  // select default chip 6M
-  publish();
-})();
-
-function setupAccessibility(){
-  const nav = $('#navTabs');
-  if(nav){
-    nav.setAttribute('role','tablist');
-    nav.querySelectorAll('.tab').forEach(tab=>{
-      tab.setAttribute('role','tab');
-      tab.tabIndex = tab.classList.contains('active') ? 0 : -1;
-      tab.setAttribute('aria-selected', tab.classList.contains('active') ? 'true' : 'false');
-      tab.addEventListener('keydown', e=>{
-        if(e.key === 'Enter' || e.key === ' '){
-          e.preventDefault();
-          tab.click();
-        }
-      });
-    });
-  }
-  document.querySelectorAll('.chip').forEach(ch=>{
-    ch.setAttribute('role','button');
-    ch.tabIndex = 0;
-    ch.addEventListener('keydown', e=>{
-      if(e.key === 'Enter' || e.key === ' '){
-        e.preventDefault();
-        ch.click();
-      }
-    });
-  });
-  ['#dlg','#chartDlg'].forEach(sel=>{
-    const dlg = document.querySelector(sel);
-    if(!dlg) return;
-    dlg.setAttribute('role','dialog');
-    dlg.setAttribute('aria-modal','true');
-    dlg.addEventListener('keydown', e=>{
-      if(e.key === 'Escape'){
-        if(sel === '#dlg') closeDialog();
-        if(sel === '#chartDlg') closeChartModal();
-      }
-      if(e.key !== 'Tab') return;
-      const focusables = Array.from(dlg.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter(el=>!el.disabled && el.offsetParent !== null);
-      if(!focusables.length) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      if(e.shiftKey && document.activeElement === first){
-        e.preventDefault();
-        last.focus();
-      } else if(!e.shiftKey && document.activeElement === last){
-        e.preventDefault();
-        first.focus();
-      }
-    });
-  });
-}
-setupAccessibility();
-// ---------- Interactive Chart Modal ----------
-let chartSeriesFull = [];
-let viewStartIdx = 0;
-let viewEndIdx = 0;
-
-function openChartModal() {
-  // Initialize modal controls, then show the dialog and render the chart.  Rendering after setting
-  // display ensures the canvas has a width and height.  Without this order, the
-  // chart may appear blank until resized.
-  initModalControls();
-  $('#chartDlg').style.display = 'flex';
-  // Defer rendering slightly to allow layout to update
-  setTimeout(() => {
-    updateModalChart();
-  }, 0);
-}
-
-function closeChartModal() { $('#chartDlg').style.display = 'none'; }
-
-$('#chart').addEventListener('click', openChartModal);
-$('#chartDlgClose').addEventListener('click', closeChartModal);
-
-function updateRangeLabel(){
-  const s = chartSeriesFull[viewStartIdx];
-  const e = chartSeriesFull[viewEndIdx];
-  if(!s || !e) return;
-  $('#chRangeLabel').textContent = toISODateLocal(s.x) + ' → ' + toISODateLocal(e.x);
-}
-
-// Initialize the modal controls based on the current overview state.  This
-// function copies the target date and active range chip from the overview
-// into the modal controls so that the chart reflects the same horizon.  If
-// no chip is active in the main overview, the modal chips will be cleared
-// and the date field used as is.
-function initModalControls() {
-  // copy date from main target date or default to today
-  const mainDate = $('#targetDate').value || todayStr();
-  $('#modalTargetDate').value = mainDate;
-  // replicate active chip state
-  const mainActive = document.querySelector('#overview .chip.active');
-  // reset modal chips
-  document.querySelectorAll('#modalChips .chip').forEach(ch => ch.classList.remove('active'));
-  if(mainActive) {
-    const range = mainActive.getAttribute('data-range');
-    document.querySelectorAll('#modalChips .chip').forEach(ch => {
-      if(ch.getAttribute('data-range') === range) ch.classList.add('active');
-    });
-  }
-}
-
-// Compute series and balance for the modal based on the selected target date.  This
-// function updates the global chartSeriesFull and resets the view window.  It
-// also updates the estimated balance display and range label.
-function updateModalChart() {
-  const dateStr = $('#modalTargetDate').value || todayStr();
-  const to = parseISODate(dateStr) || new Date(dateStr);
-  const {series, endBalance} = simulateBalance(to);
-  chartSeriesFull = series;
-  if(chartSeriesFull.length < 2) {
-    toast('Not enough data to display');
-    return;
-  }
-  viewStartIdx = 0;
-  viewEndIdx = chartSeriesFull.length - 1;
-  $('#modalEstBalance').textContent = fmt(endBalance);
-  drawInteractive();
-  updateRangeLabel();
-}
-
-// Attach event handlers for the modal controls.  Runs once on script load.
-(function attachModalHandlers(){
-  document.addEventListener('DOMContentLoaded', () => {
-    const modalDate = document.getElementById('modalTargetDate');
-    if(modalDate) {
-      modalDate.addEventListener('change', () => {
-        document.querySelectorAll('#modalChips .chip').forEach(ch => ch.classList.remove('active'));
-        updateModalChart();
-      });
-    }
-    // Chip click
-    document.querySelectorAll('#modalChips .chip').forEach(ch => {
-      ch.addEventListener('click', () => {
-        document.querySelectorAll('#modalChips .chip').forEach(c => c.classList.remove('active'));
-        ch.classList.add('active');
-        const range = Number(ch.getAttribute('data-range') || 180);
-        const to = addDays(new Date(), range);
-        document.getElementById('modalTargetDate').value = toISODateLocal(to);
-        updateModalChart();
-      });
-    });
-  });
-})();
-
-function clampIdx(i){ return Math.max(0, Math.min(i, chartSeriesFull.length-1)); }
-
-function currentWindow(){
-  return chartSeriesFull.slice(viewStartIdx, viewEndIdx+1);
-}
-
-function zoom(factor){
-  // factor >1 zooms in (narrower window), <1 zooms out (wider window)
-  const len = viewEndIdx - viewStartIdx + 1;
-  // avoid zooming in too far (keep at least 5 points visible)
-  if(len <= 5 && factor > 1) return;
-  const center = Math.floor((viewStartIdx + viewEndIdx) / 2);
-  let newHalf = Math.max(3, Math.floor(len / (2 * factor)));
-  viewStartIdx = clampIdx(center - newHalf);
-  viewEndIdx   = clampIdx(center + newHalf);
-  drawInteractive();
-  updateRangeLabel();
-}
-
-function pan(steps){
-  // steps positive to pan right, negative to pan left.  Pan by a fraction of
-  // the current window size for smoother navigation.
-  const windowSize = viewEndIdx - viewStartIdx + 1;
-  const shift = steps * Math.max(1, Math.floor(windowSize * 0.25));
-  let newStart = viewStartIdx + shift;
-  let newEnd   = viewEndIdx + shift;
-  // clamp to boundaries and maintain window size
-  if(newStart < 0) {
-    newStart = 0;
-    newEnd = newStart + windowSize - 1;
-  }
-  if(newEnd > chartSeriesFull.length - 1) {
-    newEnd = chartSeriesFull.length - 1;
-    newStart = newEnd - (windowSize - 1);
-    if(newStart < 0) newStart = 0;
-  }
-  viewStartIdx = newStart;
-  viewEndIdx   = newEnd;
-  drawInteractive();
-  updateRangeLabel();
-}
-
-// Attach chart control handlers only if the respective elements exist
-const zoomInBtn = $('#chZoomIn');
-if (zoomInBtn) zoomInBtn.addEventListener('click', ()=>zoom(1.5));
-const zoomOutBtn = $('#chZoomOut');
-if (zoomOutBtn) zoomOutBtn.addEventListener('click', ()=>zoom(1/1.5));
-const panLeftBtn = $('#chPanLeft');
-if (panLeftBtn) panLeftBtn.addEventListener('click', ()=>pan(-1));
-const panRightBtn = $('#chPanRight');
-if (panRightBtn) panRightBtn.addEventListener('click', ()=>pan(1));
-const resetBtn = $('#chReset');
-if (resetBtn) resetBtn.addEventListener('click', ()=>{
-  viewStartIdx = 0;
-  viewEndIdx   = chartSeriesFull.length - 1;
-  drawInteractive();
-  updateRangeLabel();
-});
-const exportBtn = $('#chExport');
-if (exportBtn) exportBtn.addEventListener('click', ()=>{
-  // export a clean version of the current chart with a light background and date range
-  const winSeries = currentWindow();
-  const rangeTitle = document.getElementById('chRangeLabel').textContent || '';
-  const canvasWidth = document.getElementById('chartInteractive').clientWidth;
-  const canvasHeight = document.getElementById('chartInteractive').clientHeight + 40;
-  const exportCanvas = document.createElement('canvas');
-  exportCanvas.width = canvasWidth;
-  exportCanvas.height = canvasHeight;
-  drawChartOn(exportCanvas, winSeries, { title: rangeTitle });
-  const url = exportCanvas.toDataURL('image/png');
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'balance_chart.png';
-  a.click();
-});
-
-function drawInteractive(){
-  const canvas = $('#chartInteractive');
-  const ctx = canvas.getContext('2d');
-  const series = currentWindow();
-  const dpr = window.devicePixelRatio || 1;
-  const width = canvas.clientWidth;
-  const height = canvas.clientHeight || 480;
-  canvas.width = Math.floor(width * dpr);
-  canvas.height = Math.floor(height * dpr);
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0,0,width,height);
-  if(series.length<2) return;
-  const xs = series.map(p=>p.x.getTime());
-  const ys = series.map(p=>p.y);
-  const minX = Math.min(...xs), maxX = Math.max(...xs);
-  const minY = Math.min(...ys), maxY = Math.max(...ys);
-  const dx = (maxX-minX)||1, dy=(maxY-minY)||1;
-  const padX=48, padY=28;
-  const computed = getComputedStyle(document.documentElement);
-  const lineColor = (computed.getPropertyValue('--accent-2')||'#3b82f6').trim();
-  const axisColor = (computed.getPropertyValue('--muted')||'#9ca3af').trim();
-  const textColor = (computed.getPropertyValue('--text')||'#e5e7eb').trim();
-  // axes
-  ctx.strokeStyle = axisColor; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(padX, padY); ctx.lineTo(padX, height-padY); ctx.lineTo(width-padX, height-padY); ctx.stroke();
-  // ticks (y)
-  ctx.fillStyle = textColor; ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
-  const yTicks = 4;
-  for(let i=0;i<=yTicks;i++){
-    const val = minY + (i*(dy/yTicks));
-    const y = height - padY - (i*(height-2*padY)/yTicks);
-    ctx.fillText(fmt(val), 6, y+4);
-    ctx.beginPath(); ctx.moveTo(padX, y); ctx.lineTo(width-padX, y); ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.stroke();
-  }
-  // zero line
-  if(minY<0 && maxY>0){
-    const zy = height - padY - ((0-minY)/dy)*(height-2*padY);
-    ctx.beginPath(); ctx.moveTo(padX, zy); ctx.lineTo(width-padX, zy); ctx.setLineDash([4,4]); ctx.strokeStyle=axisColor; ctx.stroke(); ctx.setLineDash([]);
-  }
-  // line
-  ctx.strokeStyle = lineColor; ctx.lineWidth=2; ctx.beginPath();
-  series.forEach((pt, i)=>{
-    const x = padX + ((pt.x.getTime()-minX)/dx)*(width-2*padX);
-    const y = height - padY - ((pt.y-minY)/dy)*(height-2*padY);
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  }); ctx.stroke();
-
-  // store scales for hover
-  canvas._chartScale = { minX, maxX, minY, maxY, padX, padY, width, height, series };
-}
-
-/**
- * Draw a static chart onto the provided canvas using a light theme.  This
- * helper is used for PNG export so that the downloaded image is readable
- * regardless of the site's dark mode.  It renders a title (date range)
- * above the chart area.  The chart is drawn with black axes, grey grid
- * lines and a blue line for the balance series.
- * @param {HTMLCanvasElement} canvas The canvas to draw on
- * @param {Array<{x: Date, y: number}>} series The data series to render
- * @param {Object} opts Additional options: { title: string }
- */
-function drawChartOn(canvas, series, opts = {}) {
-  const ctx = canvas.getContext('2d');
-  const width = canvas.width;
-  const height = canvas.height;
-  // clear & white background
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, width, height);
-  const title = opts.title || '';
-  // Title area height
-  const topMargin = 30;
-  ctx.fillStyle = '#111827';
-  ctx.font = 'bold 16px system-ui, -apple-system, Segoe UI, Roboto';
-  if(title) {
-    ctx.fillText(title, 10, 20);
-  }
-  if(!series || series.length < 2) return;
-  // compute ranges
-  const xs = series.map(p => p.x.getTime());
-  const ys = series.map(p => p.y);
-  const minX = Math.min(...xs);
-  const maxX = Math.max(...xs);
-  const minY = Math.min(...ys);
-  const maxY = Math.max(...ys);
-  const dx = (maxX - minX) || 1;
-  const dy = (maxY - minY) || 1;
-  // chart area padding
-  const padX = 48;
-  const padY = 40;
-  const chartTop = topMargin;
-  const chartHeight = height - chartTop - padY;
-  const chartBottom = chartTop + chartHeight;
-  // axes
-  ctx.strokeStyle = '#333333';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(padX, chartTop);
-  ctx.lineTo(padX, chartBottom);
-  ctx.lineTo(width - padX, chartBottom);
-  ctx.stroke();
-  // y ticks
-  ctx.fillStyle = '#333333';
-  ctx.font = '12px system-ui, -apple-system, Segoe UI, Roboto';
-  const yTicks = 4;
-  for(let i = 0; i <= yTicks; i++) {
-    const val = minY + (i * dy / yTicks);
-    const y = chartBottom - (i * chartHeight / yTicks);
-    ctx.fillText(fmt(val), 4, y + 4);
-    ctx.beginPath();
-    ctx.moveTo(padX, y);
-    ctx.lineTo(width - padX, y);
-    ctx.strokeStyle = '#e5e7eb';
-    ctx.stroke();
-  }
-  // zero line
-  if(minY < 0 && maxY > 0) {
-    const zy = chartBottom - ((0 - minY) / dy) * chartHeight;
-    ctx.beginPath();
-    ctx.moveTo(padX, zy);
-    ctx.lineTo(width - padX, zy);
-    ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = '#666666';
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-  // line
-  ctx.strokeStyle = '#3b82f6';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  series.forEach((pt, i) => {
-    const x = padX + ((pt.x.getTime() - minX) / dx) * (width - 2 * padX);
-    const y = chartBottom - ((pt.y - minY) / dy) * chartHeight;
-    if(i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
-}
-
-function canvasXYToData(canvas, evt){
-  const rect = canvas.getBoundingClientRect();
-  const x = evt.clientX - rect.left;
-  const y = evt.clientY - rect.top;
-  return {x,y};
-}
-
-function onChartHover(evt){
-  const canvas = $('#chartInteractive');
-  const tip = $('#chartTip');
-  const sc = canvas._chartScale;
-  if(!sc) return;
-  const pos = canvasXYToData(canvas, evt);
-  const {minX, maxX, minY, maxY, padX, padY, width, height, series} = sc;
-  if(pos.x < padX || pos.x > width - padX || pos.y < padY || pos.y > height - padY){
-    tip.style.display='none'; canvas.style.cursor='default'; return;
-  }
-  canvas.style.cursor='crosshair';
-  const rel = (pos.x - padX) / (width - 2*padX);
-  const time = minX + rel * (maxX - minX);
-  // find nearest index
-  let nearest = 0, best = Infinity;
-  for(let i=0;i<series.length;i++){
-    const d = Math.abs(series[i].x.getTime()-time);
-    if(d<best){ best=d; nearest=i; }
-  }
-  const pt = series[nearest];
-  const px = padX + ((pt.x.getTime()-minX)/(maxX-minX||1))*(width-2*padX);
-  const py = height - padY - ((pt.y-minY)/(maxY-minY||1))*(height-2*padY);
-  // redraw to add crosshair without accumulating
-  drawInteractive();
-  const ctx = canvas.getContext('2d');
-  ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(px, padY); ctx.lineTo(px, height-padY); ctx.moveTo(padX, py); ctx.lineTo(width-padX, py); ctx.stroke();
-  ctx.restore();
-  // tooltip
-  //
-  tip.style.display='block';
-  tip.textContent = toISODateLocal(pt.x) + ' • ' + fmt(pt.y);
-  let left = px + 10;
-  let top = py - 10;
-  // keep inside
-  const wrap = canvas.parentElement.getBoundingClientRect();
-  if(left + 160 > wrap.width) left = px - 170;
-  if(top < 0) top = py + 20;
-  tip.style.transform = 'translate(0,0)';
-  tip.style.left = Math.round(left) + 'px';
-  tip.style.top = Math.round(top) + 'px';
-}
-
-function onChartLeave(){
-  $('#chartTip').style.display='none';
-  drawInteractive();
-}
-
-$('#chartInteractive').addEventListener('mousemove', onChartHover);
-$('#chartInteractive').addEventListener('mouseleave', onChartLeave);
-
-
-document.getElementById('chartDlg').addEventListener('transitionend', function(e) {
-  if (e.propertyName === 'display' || e.propertyName === 'opacity') {
-    if (document.getElementById('chartDlg').style.display === 'flex') {
-      if (typeof drawInteractive === 'function') {
-        drawInteractive();
-        if (typeof updateRangeLabel === 'function') updateRangeLabel();
-      }
-    }
-  }
-});
-
-</script>
+  <script type="module" src="./js/app.js"></script>
 </body>
 </html>
