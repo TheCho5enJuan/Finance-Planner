@@ -1,4 +1,5 @@
 import './v51-ui.js?v=5.1.0';
+import './v51-insights.js?v=5.1.0';
 
 const DISPLAY_VERSION = '5.1.0';
 
