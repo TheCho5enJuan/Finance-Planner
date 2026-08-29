@@ -2,7 +2,7 @@ name: Test Finance Planner
 
 on:
   push:
-    branches: [main, v3-finance-planner-redesign]
+    branches: [main, v4-financial-command-center]
   pull_request:
     branches: [main]
 
