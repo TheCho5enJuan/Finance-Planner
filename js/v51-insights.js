@@ -1,5 +1,8 @@
+import { placeAfterIfNeeded, shouldStopInsightsObserver } from './v51-layout.js';
+
 const VERSION = '5.1.0';
 let observer;
+let scheduled = false;
 
 function $(selector) { return document.querySelector(selector); }
 function el(tag, className = '', text = '') {
@@ -59,7 +62,6 @@ function declutterInsights() {
   const optimizer = $('#v5OptimizationSection');
   if (!view || !head || !health || !history) return false;
 
-  // V5 intelligence supersedes the older generic V4 insight cards.
   $('#insightsGrid')?.classList.add('v51-legacy-insights');
   $('#categoryInsights')?.closest('.dashboard-grid')?.classList.add('v51-legacy-insights');
 
@@ -73,10 +75,12 @@ function declutterInsights() {
     historyCard.querySelector('.card-head')?.after(el('div', 'v51-history-hint', 'Hover or drag across the chart to inspect a balance on any check-in date.'));
   }
 
-  // Main scan path: health -> actual trend -> category intelligence.
-  head.after(health);
-  health.after(history);
-  if (categories) history.after(categories);
+  // Keep the primary scan path stable and idempotent. Re-inserting nodes that are
+  // already in the correct position causes MutationObserver churn and can interfere
+  // with interactions inside Category Intelligence.
+  placeAfterIfNeeded(head, health);
+  placeAfterIfNeeded(health, history);
+  if (categories) placeAfterIfNeeded(history, categories);
 
   const obligation = history.querySelector('.v5-obligation-card');
   const planning = disclosure(
@@ -97,21 +101,26 @@ function declutterInsights() {
   if (optimizer && optimizer.parentElement !== optimizationBody) optimizationBody.append(optimizer);
 
   const anchor = categories || history;
-  if (planning.parentElement !== view) anchor.after(planning);
-  else if (planning.previousElementSibling !== anchor) anchor.after(planning);
-  if (optimization.parentElement !== view) planning.after(optimization);
-  else if (optimization.previousElementSibling !== planning) planning.after(optimization);
+  if (planning.parentElement !== view || planning.previousElementSibling !== anchor) placeAfterIfNeeded(anchor, planning);
+  if (optimization.parentElement !== view || optimization.previousElementSibling !== planning) placeAfterIfNeeded(planning, optimization);
 
-  return true;
+  return shouldStopInsightsObserver({ health, history, categories });
 }
 
 function apply() {
+  scheduled = false;
   ensureStyles();
   setVersionLabels();
-  declutterInsights();
+  const ready = declutterInsights();
+  if (ready && observer) {
+    observer.disconnect();
+    observer = undefined;
+  }
 }
 
 function schedule() {
+  if (scheduled) return;
+  scheduled = true;
   window.requestAnimationFrame(() => window.requestAnimationFrame(apply));
 }
 
