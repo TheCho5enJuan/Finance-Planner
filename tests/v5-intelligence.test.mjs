@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 const memory = new Map();
 globalThis.localStorage = {
@@ -50,6 +51,22 @@ test('balance check-ins calculate expected cash and forecast variance automatica
   assert.ok(learning.accuracy > 0.9);
 });
 
+test('historical learning is not rewritten when the plan is edited later', () => {
+  const data = migrate({
+    version: '5.0.0',
+    accounts: [{ id: 'cash', name: 'Cash', type: 'checking', balance: 1000 }],
+    expenses: [{ id: 'bill', description: 'Bill', amount: 100, date: '2026-09-05', frequency: 'once', category: 'utilities' }]
+  });
+  recordBalanceSnapshot(data, '2026-09-01T12:00:00Z');
+  data.accounts[0].balance = 850;
+  recordBalanceSnapshot(data, '2026-09-10T12:00:00Z');
+  const before = forecastLearning(data);
+  data.expenses[0].amount = 900;
+  const after = forecastLearning(data);
+  assert.equal(after.monthlyError, before.monthlyError);
+  assert.equal(after.accuracy, before.accuracy);
+});
+
 test('safe-to-spend reserves major obligations and emergency cash without manual actuals', () => {
   const data = migrate({
     version: '5.0.0',
@@ -85,7 +102,7 @@ test('adaptive forecast learns a persistent shortfall from balance history', () 
   assert.ok(forecast.upperEnd >= forecast.endBalance);
 });
 
-test('purchase impact is temporary and reduces the adaptive forecast without changing the plan', () => {
+test('purchase impact is temporary and inserts an exact purchase-date point', () => {
   const data = migrate({
     version: '5.0.0',
     accounts: [{ id: 'cash', name: 'Cash', type: 'checking', balance: 10000 }],
@@ -97,5 +114,12 @@ test('purchase impact is temporary and reduces the adaptive forecast without cha
   assert.equal(data.expenses.length, beforeCount);
   assert.ok(result.endBalance < result.baselineEnd);
   assert.equal(result.amount, 2500);
+  assert.ok(result.series.some(point => point.x.getFullYear() === 2026 && point.x.getMonth() === 8 && point.x.getDate() === 15));
   assert.ok(['low', 'moderate', 'high'].includes(result.risk));
+});
+
+test('v5 renders user financial labels with text nodes rather than interpolated HTML', async () => {
+  const source = await readFile(new URL('../js/v5.js', import.meta.url), 'utf8');
+  assert.equal(source.includes('${item.description}</strong>'), false);
+  assert.equal(source.includes('${goal.name}</strong>'), false);
 });
