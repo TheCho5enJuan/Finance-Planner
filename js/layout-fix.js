@@ -1,4 +1,23 @@
-import './v51-ui.js';
+import './v51-ui.js?v=5.1.0';
+
+const DISPLAY_VERSION = '5.1.0';
+
+function syncDisplayedVersion() {
+  const brand = document.getElementById('brandVersion');
+  const settings = document.getElementById('appVersion');
+  if (brand && brand.textContent !== `v${DISPLAY_VERSION}`) brand.textContent = `v${DISPLAY_VERSION}`;
+  if (settings && settings.textContent !== DISPLAY_VERSION) settings.textContent = DISPLAY_VERSION;
+}
+
+// V5 still contains the original 5.0.0 injection fallback. Keep the displayed
+// release metadata aligned with the V5.1 UI layer until that legacy injector is
+// removed in the next architecture cleanup.
+syncDisplayedVersion();
+const versionObserver = new MutationObserver(syncDisplayedVersion);
+['brandVersion', 'appVersion'].forEach(id => {
+  const target = document.getElementById(id);
+  if (target) versionObserver.observe(target, { childList: true, characterData: true, subtree: true });
+});
 
 // Canvas charts use their rendered CSS size to build a high-DPI backing bitmap.
 // On a cold load Chrome can execute the chart modules before the final grid width
@@ -10,6 +29,7 @@ let refreshTimer = 0;
 let refreshFrame = 0;
 
 function redrawCharts() {
+  syncDisplayedVersion();
   window.dispatchEvent(new Event('resize'));
 }
 
