@@ -37,31 +37,112 @@ function normalizeList(list) {
   return Array.isArray(list) ? list.map(normalizeItem) : [];
 }
 
-export function migrate(raw) {
-  if (!raw || typeof raw !== 'object') return defaults();
-  const data = { ...defaults(), ...raw };
-  data.settings = { ...defaults().settings, ...(raw.settings || {}) };
+function convertUnifiedItem(raw = {}) {
+  return {
+    id: raw.id,
+    description: raw.description,
+    amount: raw.amount,
+    date: raw.startDate,
+    endDate: raw.endDate || '',
+    frequency: raw.frequency,
+    category: typeof raw.categoryId === 'string' ? raw.categoryId : (raw.category || '')
+  };
+}
 
-  if (!raw.balances) {
-    data.balances = { checking: Number(raw.startingBalance || 0), savings: 0 };
-  } else {
-    data.balances = {
+function transactionSource(raw) {
+  // Some v2.0.33 exports contain both the newer unified `items` array and
+  // stale legacy expenses/incomes arrays. The unified representation is the
+  // source of truth when present so imports do not silently shift dates or
+  // resurrect older amounts.
+  if (Array.isArray(raw?.items) && raw.items.length) {
+    const active = raw.items.filter(item => item && item.active !== false);
+    return {
+      format: 'items',
+      expenses: active.filter(item => item.kind === 'expense').map(convertUnifiedItem),
+      incomes: active.filter(item => item.kind === 'income').map(convertUnifiedItem)
+    };
+  }
+
+  return {
+    format: 'legacy',
+    expenses: Array.isArray(raw?.expenses) ? raw.expenses : [],
+    incomes: Array.isArray(raw?.incomes) ? raw.incomes : []
+  };
+}
+
+function normalizedBalances(raw) {
+  if (raw?.balances && typeof raw.balances === 'object') {
+    return {
       checking: Number(raw.balances.checking || 0),
       savings: Number(raw.balances.savings || 0)
     };
   }
 
-  // Legacy v2 targetDate represented either a selected range or a custom date.
-  if (!raw.settings?.targetMode) {
-    data.settings.targetMode = raw.settings?.targetDate ? 'date' : 'range';
-    data.settings.targetRangeDays = 180;
+  if (Array.isArray(raw?.accounts) && raw.accounts.some(account => Number.isFinite(Number(account?.balance)))) {
+    let checking = 0;
+    let savings = 0;
+    for (const account of raw.accounts) {
+      const amount = Number(account?.balance || 0);
+      if (!Number.isFinite(amount)) continue;
+      if (String(account?.type || '').toLowerCase() === 'savings') savings += amount;
+      else checking += amount;
+    }
+    return { checking, savings };
   }
 
-  data.expenses = normalizeList(raw.expenses);
-  data.incomes = normalizeList(raw.incomes);
-  data.startingBalance = data.balances.checking + data.balances.savings;
-  data.version = APP_VERSION;
-  return data;
+  return { checking: Number(raw?.startingBalance || 0), savings: 0 };
+}
+
+export function migrate(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return defaults();
+
+  const base = defaults();
+  const source = transactionSource(raw);
+  const balances = normalizedBalances(raw);
+  const settings = { ...base.settings, ...(raw.settings || {}) };
+
+  // Legacy v2 targetDate represented a fixed/custom date. New v3 range
+  // selections are stored independently so they continue to roll forward.
+  if (!raw.settings?.targetMode) {
+    settings.targetMode = raw.settings?.targetDate ? 'date' : 'range';
+    settings.targetRangeDays = 180;
+  }
+
+  // Build an explicit clean schema instead of spreading `raw`. This is
+  // intentional: mixed-format backups can contain stale `items` arrays that
+  // must not survive into v3 localStorage and override later edits on reload.
+  return {
+    version: APP_VERSION,
+    settings,
+    startingBalance: balances.checking + balances.savings,
+    balances,
+    accounts: Array.isArray(raw.accounts) ? structuredClone(raw.accounts) : base.accounts,
+    categories: Array.isArray(raw.categories) ? structuredClone(raw.categories) : [],
+    expenses: normalizeList(source.expenses),
+    incomes: normalizeList(source.incomes),
+    rules: Array.isArray(raw.rules) ? structuredClone(raw.rules) : [],
+    goals: Array.isArray(raw.goals) ? structuredClone(raw.goals) : []
+  };
+}
+
+function validateList(list, label, diagnostics) {
+  const valid = [];
+  list.forEach((item, index) => {
+    const validAmount = parseAmount(item?.amount) !== null;
+    const validDate = Boolean(parseISODate(item?.date));
+    if (!validAmount || !validDate) {
+      diagnostics.push(`${label} ${index + 1} skipped: invalid ${!validAmount ? 'amount' : 'date'}.`);
+      return;
+    }
+
+    const clean = { ...item };
+    if (clean.endDate && !parseISODate(clean.endDate)) {
+      diagnostics.push(`${label} ${index + 1}: invalid end date removed.`);
+      clean.endDate = '';
+    }
+    valid.push(clean);
+  });
+  return valid;
 }
 
 export function validateImport(raw) {
@@ -70,23 +151,43 @@ export function validateImport(raw) {
   }
 
   const diagnostics = [];
-  for (const [key, label] of [['expenses', 'expense'], ['incomes', 'income']]) {
-    if (!Array.isArray(raw[key])) continue;
-    raw[key] = raw[key].filter((item, index) => {
-      const validAmount = parseAmount(item?.amount) !== null;
-      const validDate = Boolean(parseISODate(item?.date));
-      if (!validAmount || !validDate) {
-        diagnostics.push(`${label} ${index + 1} skipped: invalid ${!validAmount ? 'amount' : 'date'}.`);
-        return false;
-      }
-      if (item?.endDate && !parseISODate(item.endDate)) {
-        diagnostics.push(`${label} ${index + 1}: invalid end date removed.`);
-        item = { ...item, endDate: '' };
-      }
-      return true;
-    });
+  const source = transactionSource(raw);
+  const clean = structuredClone(raw);
+
+  if (source.format === 'items') {
+    const validExpenses = validateList(source.expenses, 'expense', diagnostics);
+    const validIncomes = validateList(source.incomes, 'income', diagnostics);
+    clean.items = [
+      ...validExpenses.map(item => ({
+        id: item.id,
+        kind: 'expense',
+        description: item.description,
+        amount: item.amount,
+        startDate: item.date,
+        endDate: item.endDate,
+        frequency: item.frequency,
+        categoryId: item.category || '',
+        active: true
+      })),
+      ...validIncomes.map(item => ({
+        id: item.id,
+        kind: 'income',
+        description: item.description,
+        amount: item.amount,
+        startDate: item.date,
+        endDate: item.endDate,
+        frequency: item.frequency,
+        categoryId: item.category || '',
+        active: true
+      }))
+    ];
+    diagnostics.unshift('Imported unified v2 transaction data; stale legacy transaction arrays were ignored.');
+  } else {
+    clean.expenses = validateList(source.expenses, 'expense', diagnostics);
+    clean.incomes = validateList(source.incomes, 'income', diagnostics);
   }
-  return { data: migrate(raw), diagnostics };
+
+  return { data: migrate(clean), diagnostics };
 }
 
 function safeParseStored() {
