@@ -1,4 +1,5 @@
-import './v51-ui.js';
+import './v51-ui.js?v=5.1.0';
+import './v51-insights.js?v=5.1.0';
 
 // Canvas charts use their rendered CSS size to build a high-DPI backing bitmap.
 // On a cold load Chrome can execute the chart modules before the final grid width
