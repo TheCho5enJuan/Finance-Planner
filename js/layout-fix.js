@@ -2,8 +2,9 @@ import './v51-ui.js?v=5.1.1';
 import './v51-insights.js?v=5.1.1';
 import './v52-clarity.js?v=5.2.0';
 import './v52-health-copy.js?v=5.2.0';
+import './v53-drive.js?v=5.3.0';
 
-const DISPLAY_VERSION = '5.2.0';
+const DISPLAY_VERSION = '5.3.0';
 
 function syncDisplayedVersion() {
   const brand = document.getElementById('brandVersion');
@@ -12,9 +13,8 @@ function syncDisplayedVersion() {
   if (settings && settings.textContent !== DISPLAY_VERSION) settings.textContent = DISPLAY_VERSION;
 }
 
-// V5 still contains the original 5.0.0 injection fallback. Keep the displayed
-// release metadata aligned with the current UI layer until that legacy injector
-// is removed in the next architecture cleanup.
+// Older UI layers can still write their original release label while rendering.
+// Keep the displayed release metadata aligned with the current application version.
 syncDisplayedVersion();
 const versionObserver = new MutationObserver(syncDisplayedVersion);
 ['brandVersion', 'appVersion'].forEach(id => {

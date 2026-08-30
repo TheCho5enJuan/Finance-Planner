@@ -7,8 +7,8 @@
   <meta name="description" content="A private, local-first planner for balances, bills, income, goals, and future cash flow.">
   <title>Dashboard · Finance Planner</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./css/app.css?v=5.2.0">
-  <link rel="stylesheet" href="./css/v5.css?v=5.2.0">
+  <link rel="stylesheet" href="./css/app.css?v=5.3.0">
+  <link rel="stylesheet" href="./css/v5.css?v=5.3.0">
   <link rel="stylesheet" id="v52ClarityStyles" href="./css/v52-clarity.css?v=5.2.0">
 </head>
 <body>
@@ -16,7 +16,7 @@
     <aside class="sidebar" aria-label="Primary navigation">
       <div class="brand">
         <div class="brand-mark" aria-hidden="true">F</div>
-        <div class="brand-copy"><div class="brand-name">Finance Planner</div><div class="brand-version" id="brandVersion">v5.2.0</div></div>
+        <div class="brand-copy"><div class="brand-name">Finance Planner</div><div class="brand-version" id="brandVersion">v5.3.0</div></div>
       </div>
       <nav class="nav">
         <button class="nav-item active" type="button" data-view="overview"><span class="nav-icon">◫</span>Dashboard</button>
@@ -141,7 +141,7 @@
           <div class="settings-grid">
             <section class="surface-card settings-card wide-card"><div class="settings-title"><div><h2>Accounts</h2><p>Account balances are the source of truth. Use Update balances for normal check-ins; use Edit to rename or restructure an account.</p></div><div class="head-actions"><button class="button" type="button" onclick="document.getElementById('topBalance')?.click()">Update balances</button><button class="button primary" id="addAccount" type="button">Add account</button></div></div><div id="accountsList" class="settings-list"></div><div class="metric-pair"><span>Last balance update</span><strong id="lastBalanceUpdate">Not recorded yet</strong></div></section>
             <section class="surface-card settings-card wide-card"><div class="settings-title"><div><h2>Categories</h2><p>Categories group planned spending so you can see where your money is going.</p></div><button class="button" id="addCategory" type="button">Add category</button></div><div id="categoriesList" class="category-chip-list"></div></section>
-            <section class="surface-card settings-card"><h2>Appearance</h2><p>Choose light or dark mode for this browser.</p><div class="field"><label for="themeSelect">Theme</label><select class="input" id="themeSelect"><option value="dark">Dark</option><option value="light">Light</option></select></div><div class="version-row">Finance Planner <strong id="appVersion">5.2.0</strong></div></section>
+            <section class="surface-card settings-card"><h2>Appearance</h2><p>Choose light or dark mode for this browser.</p><div class="field"><label for="themeSelect">Theme</label><select class="input" id="themeSelect"><option value="dark">Dark</option><option value="light">Light</option></select></div><div class="version-row">Finance Planner <strong id="appVersion">5.3.0</strong></div></section>
             <section class="surface-card settings-card"><h2>Backup & restore</h2><p>Export a backup so you can restore your plan later or move it to another browser.</p><div class="settings-actions"><button class="button" id="exportData" type="button">Export backup</button><label class="button file-button">Import backup<input id="importFile" type="file" accept="application/json,.json"></label></div></section>
             <section class="surface-card settings-card"><h2>Local data</h2><p>Your financial data stays in this browser unless you export a backup.</p><div class="settings-actions"><button class="button danger" id="resetData" type="button">Reset local data</button></div></section>
           </div>
@@ -170,8 +170,8 @@
   <dialog class="dialog small-dialog" id="categoryDialog"><form id="categoryForm"><div class="dialog-head"><h2>Add category</h2></div><div class="dialog-body"><div class="dialog-grid"><div class="field wide"><label for="categoryName">Name</label><input class="input" id="categoryName" required></div><div class="field wide"><label for="categoryKind">Used for</label><select class="input" id="categoryKind"><option value="expense">Expenses</option><option value="income">Income</option><option value="both">Both</option></select></div></div></div><div class="dialog-actions"><button class="button" id="categoryCancel" type="button">Cancel</button><button class="button primary" type="submit">Add category</button></div></form></dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script type="module" src="./js/app.js?v=5.2.0"></script>
-  <script type="module" src="./js/v5.js?v=5.2.0"></script>
-  <script type="module" src="./js/layout-fix.js?v=5.2.0"></script>
+  <script type="module" src="./js/app.js?v=5.3.0"></script>
+  <script type="module" src="./js/v5.js?v=5.3.0"></script>
+  <script type="module" src="./js/layout-fix.js?v=5.3.0"></script>
 </body>
 </html>
