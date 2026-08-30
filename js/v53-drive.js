@@ -16,9 +16,12 @@ const ROLE_BACKUP = 'primary-backup';
 let tokenClient = null;
 let accessToken = '';
 let tokenExpiresAt = 0;
-let tokenRequest = null;
+let tokenPromise = null;
+let tokenResolve = null;
+let tokenReject = null;
 let remoteFile = null;
 let currentSyncState = 'disconnected';
+let lastError = '';
 let busy = false;
 let suppressAutoBackup = false;
 let autoTimer = 0;
@@ -40,7 +43,7 @@ function loadGoogleIdentity() {
   const existing = document.getElementById('googleIdentityServices');
   if (existing) {
     return new Promise((resolve, reject) => {
-      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('load', resolve, { once: true });
       existing.addEventListener('error', () => reject(new Error('Google sign-in could not be loaded.')), { once: true });
     });
   }
@@ -50,46 +53,52 @@ function loadGoogleIdentity() {
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve();
+    script.onload = resolve;
     script.onerror = () => reject(new Error('Google sign-in could not be loaded.'));
     document.head.append(script);
   });
 }
 
+function settleTokenRequest(error, token = '') {
+  const resolve = tokenResolve;
+  const reject = tokenReject;
+  tokenPromise = null;
+  tokenResolve = null;
+  tokenReject = null;
+  if (error) reject?.(error);
+  else resolve?.(token);
+}
+
 async function requestAccessToken(prompt = 'consent') {
   if (accessToken && Date.now() < tokenExpiresAt - 30_000) return accessToken;
   await loadGoogleIdentity();
-  if (tokenRequest) return tokenRequest;
+  if (tokenPromise) return tokenPromise;
 
-  tokenRequest = new Promise((resolve, reject) => {
-    if (!tokenClient) {
-      tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: DRIVE_SCOPE,
-        callback: response => {
-          const pending = tokenRequest;
-          tokenRequest = null;
-          if (response?.error || !response?.access_token) {
-            accessToken = '';
-            tokenExpiresAt = 0;
-            pending?.reject?.(new Error(response?.error_description || response?.error || 'Google Drive authorization was not completed.'));
-            return;
-          }
-          accessToken = response.access_token;
-          tokenExpiresAt = Date.now() + (Number(response.expires_in || 3600) * 1000);
-          pending?.resolve?.(accessToken);
-        },
-        error_callback: error => {
-          const pending = tokenRequest;
-          tokenRequest = null;
-          pending?.reject?.(new Error(error?.message || 'Google Drive authorization was closed.'));
+  if (!tokenClient) {
+    tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: response => {
+        if (response?.error || !response?.access_token) {
+          accessToken = '';
+          tokenExpiresAt = 0;
+          settleTokenRequest(new Error(response?.error_description || response?.error || 'Google Drive authorization was not completed.'));
+          return;
         }
-      });
-    }
-    tokenClient.requestAccessToken({ prompt });
-  });
+        accessToken = response.access_token;
+        tokenExpiresAt = Date.now() + (Number(response.expires_in || 3600) * 1000);
+        settleTokenRequest(null, accessToken);
+      },
+      error_callback: error => settleTokenRequest(new Error(error?.message || 'Google Drive authorization was closed.'))
+    });
+  }
 
-  return tokenRequest;
+  tokenPromise = new Promise((resolve, reject) => {
+    tokenResolve = resolve;
+    tokenReject = reject;
+  });
+  tokenClient.requestAccessToken({ prompt });
+  return tokenPromise;
 }
 
 function hasActiveToken() {
@@ -101,6 +110,7 @@ function clearToken() {
   tokenExpiresAt = 0;
   remoteFile = null;
   currentSyncState = 'disconnected';
+  lastError = '';
 }
 
 async function driveFetch(url, options = {}) {
@@ -130,10 +140,7 @@ function queryUrl(query, fields = 'files(id,name,modifiedTime,createdTime,size,m
 }
 
 async function searchByRole(role, mimeType = '') {
-  const clauses = [
-    'trashed = false',
-    `appProperties has { key='${APP_PROPERTY}' and value='${role}' }`
-  ];
+  const clauses = ['trashed = false', `appProperties has { key='${APP_PROPERTY}' and value='${role}' }`];
   if (mimeType) clauses.push(`mimeType = '${mimeType}'`);
   const response = await driveFetch(queryUrl(clauses.join(' and ')));
   const payload = await response.json();
@@ -144,7 +151,6 @@ async function getOrCreateFolder() {
   const mimeType = 'application/vnd.google-apps.folder';
   const existing = await searchByRole(ROLE_FOLDER, mimeType);
   if (existing[0]) return existing[0];
-
   const response = await driveFetch(`${DRIVE_API}/files?fields=id,name,modifiedTime,appProperties`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -170,11 +176,7 @@ async function sha256Text(text) {
 
 async function localSnapshot() {
   const compact = JSON.stringify(store.data);
-  return {
-    compact,
-    pretty: JSON.stringify(store.data, null, 2),
-    hash: await sha256Text(compact)
-  };
+  return { compact, pretty: JSON.stringify(store.data, null, 2), hash: await sha256Text(compact) };
 }
 
 async function downloadRemote(file = remoteFile) {
@@ -221,7 +223,6 @@ async function uploadSnapshot(snapshot, file = remoteFile) {
   let url;
   let method;
   let metadata;
-
   if (file?.id) {
     url = `${DRIVE_UPLOAD_API}/files/${encodeURIComponent(file.id)}?uploadType=multipart&fields=id,name,modifiedTime,createdTime,size,mimeType,appProperties,parents`;
     method = 'PATCH';
@@ -232,13 +233,8 @@ async function uploadSnapshot(snapshot, file = remoteFile) {
     method = 'POST';
     metadata = backupMetadata(snapshot.hash, [folder.id]);
   }
-
   const multipart = multipartBody(metadata, snapshot.pretty);
-  const response = await driveFetch(url, {
-    method,
-    headers: { 'Content-Type': multipart.contentType },
-    body: multipart.body
-  });
+  const response = await driveFetch(url, { method, headers: { 'Content-Type': multipart.contentType }, body: multipart.body });
   return response.json();
 }
 
@@ -256,12 +252,9 @@ function statusTone(state) {
 }
 
 function updateStatus(title, detail, state = currentSyncState) {
-  const titleNode = $('#driveStatusTitle');
-  const detailNode = $('#driveStatusDetail');
-  const dot = $('#driveStatusDot');
-  if (titleNode) titleNode.textContent = title;
-  if (detailNode) detailNode.textContent = detail;
-  if (dot) dot.dataset.state = statusTone(state);
+  if ($('#driveStatusTitle')) $('#driveStatusTitle').textContent = title;
+  if ($('#driveStatusDetail')) $('#driveStatusDetail').textContent = detail;
+  if ($('#driveStatusDot')) $('#driveStatusDot').dataset.state = statusTone(state);
 }
 
 function setBusy(next, message = '') {
@@ -275,31 +268,28 @@ function setBusy(next, message = '') {
 
 function render() {
   const connected = hasActiveToken();
-  const connect = $('#driveConnect');
-  const save = $('#driveSave');
-  const restore = $('#driveRestore');
-  const refresh = $('#driveRefresh');
-  const disconnect = $('#driveDisconnect');
-  const conflict = $('#driveConflict');
-  const modified = $('#driveBackupModified');
-  const auto = $('#driveAutoBackup');
-
-  if (connect) connect.hidden = connected;
-  if (save) save.hidden = !connected;
-  if (restore) restore.hidden = !connected || !remoteFile;
-  if (refresh) refresh.hidden = !connected;
-  if (disconnect) disconnect.hidden = !connected;
-  if (auto) { auto.checked = meta.autoBackup !== false; auto.disabled = !connected || busy; }
-  if (modified) modified.textContent = remoteFile ? formatDriveTime(remoteFile.modifiedTime) : 'Not saved yet';
+  if ($('#driveConnect')) $('#driveConnect').hidden = connected;
+  if ($('#driveSave')) $('#driveSave').hidden = !connected;
+  if ($('#driveRestore')) $('#driveRestore').hidden = !connected || !remoteFile;
+  if ($('#driveRefresh')) $('#driveRefresh').hidden = !connected;
+  if ($('#driveDisconnect')) $('#driveDisconnect').hidden = !connected;
+  if ($('#driveAutoBackup')) {
+    $('#driveAutoBackup').checked = meta.autoBackup !== false;
+    $('#driveAutoBackup').disabled = !connected || busy;
+  }
+  if ($('#driveBackupModified')) $('#driveBackupModified').textContent = remoteFile ? formatDriveTime(remoteFile.modifiedTime) : 'Not saved yet';
 
   const needsChoice = connected && ['conflict','remote-newer','unlinked-difference'].includes(currentSyncState);
-  if (conflict) conflict.hidden = !needsChoice;
+  if ($('#driveConflict')) $('#driveConflict').hidden = !needsChoice;
 
   if (!connected) {
     updateStatus('Not connected', meta.lastSyncedAt ? `Last successful Drive backup: ${formatDriveTime(meta.lastSyncedAt)}. Reconnect to save or restore.` : 'Connect Google Drive to keep a second copy of your Finance Planner backup.', 'disconnected');
     return;
   }
-
+  if (currentSyncState === 'error') {
+    updateStatus('Google Drive problem', lastError || 'The last Drive action did not finish.', 'error');
+    return;
+  }
   const [title, detail] = describeSyncState(currentSyncState);
   updateStatus(title, detail, currentSyncState);
 }
@@ -309,30 +299,31 @@ async function inspectSyncState() {
   const local = await localSnapshot();
   const remoteHash = remoteFile ? await resolveRemoteHash(remoteFile) : '';
   currentSyncState = classifySyncState({ localHash: local.hash, remoteHash, lastSyncedHash: meta.lastSyncedHash });
+  lastError = '';
   render();
   return { local, remoteHash, state: currentSyncState };
 }
 
-async function saveNow({ force = false, quiet = false } = {}) {
-  if (!hasActiveToken()) await requestAccessToken('consent');
-  if (busy) return false;
-  setBusy(true, quiet ? '' : 'Checking Google Drive');
-  try {
-    const { local, state } = await inspectSyncState();
-    if (!force && ['conflict','remote-newer','unlinked-difference'].includes(state)) {
-      render();
-      return false;
-    }
+function markSynced(hash) {
+  meta = writeCloudMeta({ ...meta, lastSyncedHash: hash, lastSyncedAt: new Date().toISOString() });
+  currentSyncState = 'in-sync';
+  lastError = '';
+}
 
+async function saveNow({ force = false, quiet = false } = {}) {
+  if (busy) return false;
+  try {
+    if (!hasActiveToken()) await requestAccessToken('consent');
+    setBusy(true, quiet ? '' : 'Checking Google Drive');
+    const { local, state } = await inspectSyncState();
+    if (!force && ['conflict','remote-newer','unlinked-difference'].includes(state)) return false;
     remoteFile = await uploadSnapshot(local, remoteFile);
-    meta = writeCloudMeta({ ...meta, lastSyncedHash: local.hash, lastSyncedAt: new Date().toISOString() });
-    currentSyncState = 'in-sync';
-    render();
+    markSynced(local.hash);
     return true;
   } catch (error) {
     console.error('Finance Planner Google Drive save failed.', error);
     currentSyncState = 'error';
-    updateStatus('Drive backup failed', error.message, 'error');
+    lastError = error.message;
     return false;
   } finally {
     setBusy(false);
@@ -341,28 +332,27 @@ async function saveNow({ force = false, quiet = false } = {}) {
 }
 
 async function restoreFromDrive() {
-  if (!hasActiveToken()) await requestAccessToken('consent');
-  if (!remoteFile) remoteFile = await findBackup();
-  if (!remoteFile) {
-    updateStatus('No Drive backup found', 'Save this browser to Google Drive first.', 'warning');
-    return false;
-  }
-  if (!window.confirm('Restore the Google Drive backup? This will replace the Finance Planner data currently stored in this browser.')) return false;
-
-  setBusy(true, 'Restoring from Google Drive');
+  if (busy) return false;
   try {
+    if (!hasActiveToken()) await requestAccessToken('consent');
+    if (!remoteFile) remoteFile = await findBackup();
+    if (!remoteFile) {
+      currentSyncState = 'missing-remote';
+      render();
+      return false;
+    }
+    if (!window.confirm('Restore the Google Drive backup? This will replace the Finance Planner data currently stored in this browser.')) return false;
+    setBusy(true, 'Restoring from Google Drive');
     const remote = await downloadRemote(remoteFile);
     suppressAutoBackup = true;
     store.import(remote.data);
     const local = await localSnapshot();
-    meta = writeCloudMeta({ ...meta, lastSyncedHash: local.hash, lastSyncedAt: new Date().toISOString() });
-    currentSyncState = 'in-sync';
-    render();
+    markSynced(local.hash);
     return true;
   } catch (error) {
     console.error('Finance Planner Google Drive restore failed.', error);
     currentSyncState = 'error';
-    updateStatus('Restore failed', error.message, 'error');
+    lastError = error.message;
     return false;
   } finally {
     suppressAutoBackup = false;
@@ -377,11 +367,14 @@ async function connectDrive() {
   try {
     await requestAccessToken('consent');
     const result = await inspectSyncState();
-    if (result.state === 'missing-remote') await saveNow({ force: true, quiet: true });
+    if (result.state === 'missing-remote') {
+      remoteFile = await uploadSnapshot(result.local, null);
+      markSynced(result.local.hash);
+    }
   } catch (error) {
     console.error('Finance Planner Google Drive connection failed.', error);
     currentSyncState = 'error';
-    updateStatus('Could not connect', error.message, 'error');
+    lastError = error.message;
   } finally {
     setBusy(false);
     render();
@@ -389,13 +382,14 @@ async function connectDrive() {
 }
 
 async function refreshDrive() {
-  if (!hasActiveToken()) await requestAccessToken('consent');
-  setBusy(true, 'Checking Google Drive');
+  if (busy) return;
   try {
+    if (!hasActiveToken()) await requestAccessToken('consent');
+    setBusy(true, 'Checking Google Drive');
     await inspectSyncState();
   } catch (error) {
     currentSyncState = 'error';
-    updateStatus('Could not check Drive', error.message, 'error');
+    lastError = error.message;
   } finally {
     setBusy(false);
     render();
@@ -405,9 +399,7 @@ async function refreshDrive() {
 function disconnectDrive() {
   const token = accessToken;
   clearToken();
-  if (token && window.google?.accounts?.oauth2?.revoke) {
-    window.google.accounts.oauth2.revoke(token, () => {});
-  }
+  if (token && window.google?.accounts?.oauth2?.revoke) window.google.accounts.oauth2.revoke(token, () => {});
   render();
 }
 
@@ -417,20 +409,10 @@ function scheduleAutoBackup() {
   autoTimer = window.setTimeout(() => saveNow({ quiet: true }), 1500);
 }
 
-function makeButton(id, text, className = 'button') {
-  const button = document.createElement('button');
-  button.id = id;
-  button.type = 'button';
-  button.className = className;
-  button.textContent = text;
-  return button;
-}
-
 function buildCard() {
   if ($('#driveBackupCard')) return;
   const grid = $('#view-settings .settings-grid');
   if (!grid) return;
-
   const card = document.createElement('section');
   card.id = 'driveBackupCard';
   card.className = 'surface-card settings-card wide-card v53-drive-card';
@@ -480,16 +462,13 @@ function buildCard() {
     render();
     if (event.target.checked) scheduleAutoBackup();
   });
-
   render();
 }
 
 function updateVersionLabels() {
   document.documentElement.dataset.financePlannerVersion = APP_VERSION;
-  const brand = $('#brandVersion');
-  const app = $('#appVersion');
-  if (brand) brand.textContent = `v${APP_VERSION}`;
-  if (app) app.textContent = APP_VERSION;
+  if ($('#brandVersion')) $('#brandVersion').textContent = `v${APP_VERSION}`;
+  if ($('#appVersion')) $('#appVersion').textContent = APP_VERSION;
 }
 
 function init() {
