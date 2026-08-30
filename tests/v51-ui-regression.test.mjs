@@ -32,10 +32,11 @@ function makeSiblingFixture(names) {
 }
 
 test('current version metadata stays aligned', () => {
-  assert.equal(pkg.version, '5.2.0');
-  assert.match(constants, /APP_VERSION\s*=\s*'5\.2\.0'/);
-  assert.match(layoutFix, /DISPLAY_VERSION\s*=\s*'5\.2\.0'/);
+  assert.equal(pkg.version, '5.3.0');
+  assert.match(constants, /APP_VERSION\s*=\s*'5\.3\.0'/);
+  assert.match(layoutFix, /DISPLAY_VERSION\s*=\s*'5\.3\.0'/);
   assert.match(layoutFix, /v52-clarity\.js\?v=5\.2\.0/);
+  assert.match(layoutFix, /v53-drive\.js\?v=5\.3\.0/);
 });
 
 test('Insights layout helper is idempotent and does not churn the DOM', () => {
