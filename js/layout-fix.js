@@ -3,6 +3,7 @@ import './v51-insights.js?v=5.1.1';
 import './v52-clarity.js?v=5.2.0';
 import './v52-health-copy.js?v=5.2.0';
 import './v53-drive.js?v=5.3.0';
+import './v53-legal.js?v=5.3.0';
 
 const DISPLAY_VERSION = '5.3.0';
 
