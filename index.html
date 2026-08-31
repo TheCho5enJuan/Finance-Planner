@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="./css/app.css?v=5.4.0">
   <link rel="stylesheet" href="./css/v5.css?v=5.4.0">
   <link rel="stylesheet" id="v52ClarityStyles" href="./css/v52-clarity.css?v=5.2.0">
+  <link rel="stylesheet" href="./css/v541-mobile-nav.css?v=5.4.1">
 </head>
 <body>
   <div class="app-shell">
@@ -151,7 +152,7 @@
   </div>
 
   <nav class="mobile-nav" aria-label="Mobile navigation">
-    <button class="nav-item active" type="button" data-view="overview">Dashboard</button><button class="nav-item" type="button" data-view="calendar">Calendar</button><button class="nav-item" type="button" data-view="plan">Plan</button><button class="nav-item" type="button" data-view="insights">Insights</button><button class="nav-item" type="button" data-view="settings">Settings</button>
+    <button class="nav-item active" type="button" data-view="overview">Dashboard</button><button class="nav-item" type="button" data-view="calendar">Calendar</button><button class="nav-item" type="button" data-view="plan">Plan</button><button class="nav-item" type="button" data-view="insights">Insights</button><button class="nav-item" type="button" data-view="expenses">Expenses</button><button class="nav-item" type="button" data-view="incomes">Income</button><button class="nav-item" type="button" data-view="settings">Settings</button>
   </nav>
 
   <dialog class="dialog small-dialog" id="balanceDialog"><form id="balanceForm"><div class="dialog-head"><h2>Update account balances</h2></div><div class="dialog-body"><p class="subtle">Enter the balances you see today. This saves a balance check-in and starts every forecast from the updated total.</p><div class="dialog-grid" id="balanceFields"></div><div class="balance-inline"><span>New total balance</span><strong id="balanceDialogTotal">$0.00</strong></div></div><div class="dialog-actions"><button class="button" id="balanceCancel" type="button">Cancel</button><button class="button primary" type="submit">Update balances</button></div></form></dialog>
