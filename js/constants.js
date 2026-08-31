@@ -1,4 +1,4 @@
-export const APP_VERSION = '5.3.0';
+export const APP_VERSION = '5.4.0';
 export const STORAGE_KEY = 'planner_v2';
 export const STORAGE_BACKUP_KEY = 'planner_v2_backup';
 export const MAX_OCCURRENCES = 20000;
