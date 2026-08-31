@@ -17,7 +17,7 @@ function memoryStorage() {
   };
 }
 
-test('V5.3 uses only the narrow Drive file scope and configured OAuth client ID', () => {
+test('V5.3 Drive component uses only the narrow Drive file scope and configured OAuth client ID', () => {
   assert.match(drive, /631310159901-pn1q8vh8408u4nmjusaskq9hiac0lqha\.apps\.googleusercontent\.com/);
   assert.match(drive, /https:\/\/www\.googleapis\.com\/auth\/drive\.file/);
   assert.doesNotMatch(drive, /auth\/drive['"`]/);
@@ -76,11 +76,11 @@ test('Drive card supports connect, save, restore, refresh, disconnect, auto back
   assert.match(drive, /showModal\(\)/);
 });
 
-test('V5.3 version metadata is consistent in core modules', () => {
-  assert.match(constants, /APP_VERSION = '5\.3\.0'/);
+test('Drive integration remains loaded while overall app version advances', () => {
+  assert.match(constants, /APP_VERSION = '5\.4\.0'/);
   assert.match(layout, /v53-drive\.js\?v=5\.3\.0/);
-  assert.match(layout, /DISPLAY_VERSION = '5\.3\.0'/);
-  assert.equal(pkg.version, '5.3.0');
+  assert.match(layout, /DISPLAY_VERSION = '5\.4\.0'/);
+  assert.equal(pkg.version, '5.4.0');
   assert.match(pkg.scripts.test, /v53-drive\.js/);
   assert.match(pkg.scripts.test, /cloud-backup-core\.js/);
 });
