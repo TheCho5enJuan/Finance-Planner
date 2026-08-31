@@ -26,16 +26,16 @@ export function compactLines(lines = [], maxLines = 40) {
 export function buildPrompt({ title, question, contextLines = [] }) {
   const safeTitle = cleanText(title || 'Finance Planner', 120);
   const safeQuestion = cleanText(question || AI_MODES.summary, 500);
-  const context = compactLines(contextLines).map(line => `- ${line}`).join('\n');
-  const prompt = [
+  const header = [
     'I am using a personal Finance Planner. The planner has already calculated the values below.',
     'Do not replace the supplied calculations with guesses. If you do additional math, label it clearly as your own calculation.',
     '',
     `TOPIC: ${safeTitle}`,
     `QUESTION: ${safeQuestion}`,
     '',
-    'FINANCE PLANNER CONTEXT',
-    context || '- No additional numeric context is available.',
+    'FINANCE PLANNER CONTEXT'
+  ].join('\n');
+  const footer = [
     '',
     'RESPONSE GUIDELINES',
     '- Use plain English for someone who does not follow finance closely.',
@@ -48,9 +48,23 @@ export function buildPrompt({ title, question, contextLines = [] }) {
     '- Treat this as educational planning context, not individualized professional financial advice.'
   ].join('\n');
 
-  if (prompt.length <= MAX_PROMPT_CHARS) return prompt;
-  const fixed = prompt.slice(0, MAX_PROMPT_CHARS - 120);
-  return `${fixed}\n\n[Finance Planner shortened this prompt to fit safely in a browser link.]`;
+  const lines = compactLines(contextLines);
+  const marker = '- [Finance Planner shortened the context to fit safely in a browser link.]';
+  const available = Math.max(0, MAX_PROMPT_CHARS - header.length - footer.length - marker.length - 6);
+  const selected = [];
+  let used = 0;
+  let trimmed = false;
+  for (const line of lines) {
+    const next = `- ${line}`;
+    const cost = next.length + 1;
+    if (used + cost > available) { trimmed = true; break; }
+    selected.push(next);
+    used += cost;
+  }
+  if (!selected.length) selected.push('- No additional numeric context is available.');
+  if (trimmed) selected.push(marker);
+
+  return `${header}\n${selected.join('\n')}\n${footer}`;
 }
 
 export function buildChatGPTUrl(prompt) {
