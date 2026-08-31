@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0d10">
-  <meta name="description" content="Finance Planner privacy policy, including Google Drive backup data practices.">
+  <meta name="description" content="Finance Planner privacy policy, including Google Drive backup and Ask ChatGPT data practices.">
   <title>Privacy Policy · Finance Planner</title>
   <style>
     :root{color-scheme:dark light;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b0d10;color:#f4f7fb}*{box-sizing:border-box}body{margin:0;background:#0b0d10;color:#f4f7fb;line-height:1.65}.shell{max-width:880px;margin:0 auto;padding:32px 22px 64px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:42px}.brand{font-weight:800;letter-spacing:-.02em}.back,a{color:#9fc5ff}.back{text-decoration:none;font-weight:700}h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.05;letter-spacing:-.04em;margin:0 0 10px}h2{margin:34px 0 8px;font-size:1.25rem}p,li{color:#c7ced8}.lead{font-size:1.08rem;max-width:760px}.meta{color:#8f98a5;font-size:.9rem;margin-bottom:28px}.card{border:1px solid #262c35;border-radius:18px;padding:22px;background:#12161c;margin:24px 0}.card strong{color:#fff}code{background:#1b212a;border-radius:6px;padding:2px 5px}ul{padding-left:22px}.footer{margin-top:48px;padding-top:20px;border-top:1px solid #262c35;color:#8f98a5;font-size:.9rem}@media(prefers-color-scheme:light){:root{background:#f7f8fa;color:#111827}.shell,body{background:#f7f8fa;color:#111827}p,li{color:#4b5563}.card{background:white;border-color:#dfe3e8}.card strong{color:#111827}.footer{border-color:#dfe3e8}code{background:#eef1f5}}
@@ -15,12 +15,12 @@
     <div class="top"><div class="brand">Finance Planner</div><a class="back" href="./">Back to app</a></div>
     <h1>Privacy Policy</h1>
     <div class="meta">Effective: August 30, 2026</div>
-    <p class="lead">Finance Planner is a local-first personal finance planning application. This policy explains what information the app uses, where it is stored, and how the optional Google Drive backup feature works.</p>
+    <p class="lead">Finance Planner is a local-first personal finance planning application. This policy explains what information the app uses, where it is stored, and how optional Google Drive and Ask ChatGPT features work.</p>
 
-    <div class="card"><strong>Short version:</strong> Your finance data is stored in your browser. If you choose Google Drive backup, Finance Planner sends a JSON backup directly from your browser to your own Google Drive. Finance Planner does not operate a server that receives or stores your financial data.</div>
+    <div class="card"><strong>Short version:</strong> Your finance data is stored in your browser. Google Drive backup sends a JSON backup directly to your own Google Drive only after you connect it. Ask ChatGPT creates a limited summary for the section you choose and sends that summary to ChatGPT only after you press <strong>Open in ChatGPT</strong>. Finance Planner does not operate a server that receives or stores your financial data.</div>
 
     <h2>Information you enter</h2>
-    <p>Finance Planner may contain information you choose to enter, including account names and balances, planned income and expenses, categories, goals, sinking funds, forecast settings, and balance-history snapshots. This information is used only to provide the planning, forecasting, and backup features shown in the app.</p>
+    <p>Finance Planner may contain information you choose to enter, including account names and balances, planned income and expenses, categories, goals, sinking funds, forecast settings, and balance-history snapshots. This information is used only to provide the planning, forecasting, backup, and user-requested explanation features shown in the app.</p>
 
     <h2>Local browser storage</h2>
     <p>By default, Finance Planner stores its working data in your browser's local storage on the device and browser you use. The app does not automatically send this data to a developer-operated server.</p>
@@ -44,8 +44,14 @@
     <p>Google Drive data is used only to provide the user-facing backup, restore, synchronization-status, and conflict-resolution features that you choose to use. Finance Planner does not use Google Drive data for advertising, profiling, credit decisions, or sale to third parties.</p>
     <p>Finance Planner's use and transfer of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener noreferrer">Google API Services User Data Policy</a>, including its Limited Use requirements.</p>
 
+    <h2>Ask ChatGPT</h2>
+    <p>The optional Ask ChatGPT feature is user-initiated. Finance Planner first creates a compact summary from the page or section you selected and shows that summary in a preview dialog. Nothing is sent to ChatGPT merely because the page loads or because an AI button is visible.</p>
+    <p>If you choose <strong>Open in ChatGPT</strong>, the displayed summary and prompt are encoded into a ChatGPT link and opened in a new browser tab or app. That selected summary is then provided to ChatGPT so ChatGPT can respond to the question you requested. Because the prompt is placed in the destination URL, it may also appear in browser history or other browser-managed URL records.</p>
+    <p>Finance Planner does not send the full Finance Planner JSON backup, Google Drive files, Google OAuth tokens, refresh tokens, client secrets, or hidden local-storage contents through the Ask ChatGPT feature. Section-level prompts are intentionally limited to derived values and selected descriptions relevant to that request.</p>
+    <p>If you prefer not to place the prompt in a URL, you can choose <strong>Copy prompt</strong> and decide for yourself where and whether to paste it. Use of ChatGPT is subject to OpenAI's applicable terms and privacy practices.</p>
+
     <h2>Sharing and selling data</h2>
-    <p>Finance Planner does not sell your personal or financial information. The app does not transmit your Finance Planner data to an analytics provider, advertising network, or developer-operated backend. When you use Google Drive backup, the browser communicates directly with Google's services to perform the action you requested.</p>
+    <p>Finance Planner does not sell your personal or financial information. The app does not transmit your Finance Planner data to an analytics provider, advertising network, or developer-operated backend. When you use Google Drive backup, the browser communicates directly with Google's services. When you explicitly use Ask ChatGPT, the selected previewed summary is sent to ChatGPT only for the explanation or analysis you requested.</p>
 
     <h2>Your controls and data retention</h2>
     <ul>
@@ -53,10 +59,11 @@
       <li>You can delete the Finance Planner backup file or folder directly from your Google Drive.</li>
       <li>You can disconnect Google Drive from within Finance Planner. You may also revoke the app's Google Account access through your Google Account settings.</li>
       <li>You can export a JSON backup at any time and keep it wherever you choose.</li>
+      <li>You decide whether to open an Ask ChatGPT prompt or copy it. Finance Planner does not automatically submit prompts to ChatGPT.</li>
     </ul>
 
     <h2>Security</h2>
-    <p>Finance Planner is delivered as a static web application over HTTPS through GitHub Pages. Reasonable design measures are used to minimize access, including requesting the narrow <code>drive.file</code> scope and avoiding persistent OAuth credentials. No web application or storage service can guarantee absolute security, so you should protect access to your device, browser profile, Google account, and exported backup files.</p>
+    <p>Finance Planner is delivered as a static web application over HTTPS through GitHub Pages. Reasonable design measures are used to minimize access, including requesting the narrow <code>drive.file</code> scope, avoiding persistent OAuth credentials, limiting ChatGPT context to the selected summary, and requiring an explicit user action before opening ChatGPT. No web application or storage service can guarantee absolute security, so you should protect access to your device, browser profile, Google account, ChatGPT account, and exported backup files.</p>
 
     <h2>Children's privacy</h2>
     <p>Finance Planner is a general personal finance tool and is not directed to children under 13. The app does not knowingly collect children's personal information through a developer-operated service.</p>
